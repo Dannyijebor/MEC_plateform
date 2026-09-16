@@ -1,15 +1,20 @@
 import {
-  Image,
+  Camera,
+  Heart,
+  Image as ImageIcon,
   Loader2,
   MessageCircle,
   MoreHorizontal,
   RefreshCw,
   Send,
-  ThumbsUp,
+  Sparkles,
   Trash2,
+  Users,
   X,
+  Zap,
 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
 
@@ -19,6 +24,7 @@ function Community() {
   const [postText, setPostText] = useState("")
   const [selectedMedia, setSelectedMedia] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
+
   const [posts, setPosts] = useState([])
   const [reactionCounts, setReactionCounts] = useState({})
   const [userReactions, setUserReactions] = useState({})
@@ -26,6 +32,7 @@ function Community() {
   const [comments, setComments] = useState({})
   const [commentInputs, setCommentInputs] = useState({})
   const [openComments, setOpenComments] = useState({})
+
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [likingPostId, setLikingPostId] = useState(null)
@@ -33,127 +40,164 @@ function Community() {
   const [loadingCommentsPostId, setLoadingCommentsPostId] = useState(null)
   const [error, setError] = useState("")
 
-  const loadPosts = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true)
-    else setLoading(true)
+  const fileInputRef = useRef(null)
 
-    setError("")
+  const loadPosts = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true)
+      else setLoading(true)
 
-    const { data, error } = await supabase
-      .from("posts")
-      .select(`
-        id,
-        author_id,
-        content,
-        media_url,
-        media_type,
-        created_at,
-        expires_at,
-        profiles:author_id (
-          full_name,
-          username,
-          avatar_url
-        )
-      `)
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
+      setError("")
 
-    if (error) {
-      console.error("Unable to load posts:", error)
-      setError("Unable to load the community feed.")
-      setPosts([])
+      const { data, error } = await supabase
+        .from("posts")
+        .select(`
+          id,
+          author_id,
+          content,
+          media_url,
+          media_type,
+          created_at,
+          expires_at,
+          profiles:author_id (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        console.error("Unable to load posts:", error)
+        setError("Unable to load the family feed.")
+        setPosts([])
+        setLoading(false)
+        setRefreshing(false)
+        return
+      }
+
+      const loadedPosts = data ?? []
+
+      const postsWithMediaUrls = await Promise.all(
+        loadedPosts.map(async (post) => {
+          if (!post.media_url) return post
+
+          const { data: signedData, error: signedError } =
+            await supabase.storage
+              .from("community-media")
+              .createSignedUrl(post.media_url, 60 * 60)
+
+          if (signedError) {
+            console.error("Unable to create media URL:", signedError)
+            return post
+          }
+
+          return {
+            ...post,
+            media_display_url: signedData?.signedUrl ?? null,
+          }
+        })
+      )
+
+      setPosts(postsWithMediaUrls)
+
+      if (postsWithMediaUrls.length > 0) {
+        const postIds = postsWithMediaUrls.map((post) => post.id)
+
+        const { data: reactions, error: reactionsError } =
+          await supabase
+            .from("post_reactions")
+            .select("post_id, user_id")
+            .in("post_id", postIds)
+
+        if (!reactionsError) {
+          const counts = {}
+          const mine = {}
+
+          for (const reaction of reactions ?? []) {
+            counts[reaction.post_id] =
+              (counts[reaction.post_id] ?? 0) + 1
+
+            if (reaction.user_id === user?.id) {
+              mine[reaction.post_id] = true
+            }
+          }
+
+          setReactionCounts(counts)
+          setUserReactions(mine)
+        }
+
+        const { data: postComments, error: commentsError } =
+          await supabase
+            .from("post_comments")
+            .select("id, post_id")
+            .in("post_id", postIds)
+
+        if (!commentsError) {
+          const counts = {}
+
+          for (const comment of postComments ?? []) {
+            counts[comment.post_id] =
+              (counts[comment.post_id] ?? 0) + 1
+          }
+
+          setCommentCounts(counts)
+        }
+      } else {
+        setReactionCounts({})
+        setUserReactions({})
+        setCommentCounts({})
+      }
+
       setLoading(false)
       setRefreshing(false)
-      return
-    }
-
-    const loadedPosts = data ?? []
-
-    const postsWithMediaUrls = await Promise.all(
-      loadedPosts.map(async (post) => {
-        if (!post.media_url) {
-          return post
-        }
-
-        const { data: signedData, error: signedError } =
-          await supabase.storage
-            .from("community-media")
-            .createSignedUrl(post.media_url, 60 * 60)
-
-        if (signedError) {
-          console.error("Unable to create media URL:", signedError)
-          return post
-        }
-
-        return {
-          ...post,
-          media_display_url: signedData?.signedUrl ?? null,
-        }
-      })
-    )
-
-    setPosts(postsWithMediaUrls)
-
-    if (postsWithMediaUrls.length > 0) {
-      const postIds = postsWithMediaUrls.map((post) => post.id)
-
-      const { data: reactions, error: reactionsError } = await supabase
-        .from("post_reactions")
-        .select("post_id, user_id")
-        .in("post_id", postIds)
-
-      if (!reactionsError) {
-        const counts = {}
-        const mine = {}
-
-        for (const reaction of reactions ?? []) {
-          counts[reaction.post_id] =
-            (counts[reaction.post_id] ?? 0) + 1
-
-          if (reaction.user_id === user?.id) {
-            mine[reaction.post_id] = true
-          }
-        }
-
-        setReactionCounts(counts)
-        setUserReactions(mine)
-      }
-
-      const { data: postComments, error: commentsError } = await supabase
-        .from("post_comments")
-        .select("id, post_id")
-        .in("post_id", postIds)
-
-      if (!commentsError) {
-        const counts = {}
-
-        for (const comment of postComments ?? []) {
-          counts[comment.post_id] =
-            (counts[comment.post_id] ?? 0) + 1
-        }
-
-        setCommentCounts(counts)
-      }
-    } else {
-      setReactionCounts({})
-      setUserReactions({})
-      setCommentCounts({})
-    }
-
-    setLoading(false)
-    setRefreshing(false)
-  }, [user?.id])
+    },
+    [user?.id]
+  )
 
   useEffect(() => {
     loadPosts()
   }, [loadPosts])
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const difference = Math.floor((now - date) / 1000)
+
+    if (difference < 60) return "Just now"
+
+    if (difference < 3600) {
+      return `${Math.floor(difference / 60)}m ago`
+    }
+
+    if (difference < 86400) {
+      return `${Math.floor(difference / 3600)}h ago`
+    }
+
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  const getInitials = (name) =>
+    (name || "MEC")
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
 
   const handleMediaSelect = (event) => {
     const file = event.target.files?.[0]
 
     if (!file) return
 
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    if (
+      !file.type.startsWith("image/") &&
+      !file.type.startsWith("video/")
+    ) {
       setError("Please select an image or video.")
       return
     }
@@ -161,6 +205,10 @@ function Community() {
     if (file.size > 50 * 1024 * 1024) {
       setError("Media must be smaller than 50 MB.")
       return
+    }
+
+    if (mediaPreview) {
+      URL.revokeObjectURL(mediaPreview)
     }
 
     setError("")
@@ -175,6 +223,10 @@ function Community() {
 
     setSelectedMedia(null)
     setMediaPreview(null)
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   const handleCreatePost = async (event) => {
@@ -184,8 +236,6 @@ function Community() {
 
     if (!content && !selectedMedia) return
     if (!user) return
-
-    setError("")
 
     setError("")
 
@@ -431,25 +481,6 @@ function Community() {
     setCommentingPostId(null)
   }
 
-  const formatTime = (dateString) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const difference = Math.floor((now - date) / 1000)
-
-    if (difference < 60) return "Just now"
-    if (difference < 3600) {
-      return `${Math.floor(difference / 60)}m ago`
-    }
-    if (difference < 86400) {
-      return `${Math.floor(difference / 3600)}h ago`
-    }
-
-    return date.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-    })
-  }
-
   const handleDeletePost = async (postId) => {
     const confirmed = window.confirm(
       "Delete this post? This action cannot be undone."
@@ -457,7 +488,9 @@ function Community() {
 
     if (!confirmed) return
 
-    const postToDelete = posts.find((post) => post.id === postId)
+    const postToDelete = posts.find(
+      (post) => post.id === postId
+    )
 
     const { error } = await supabase
       .from("posts")
@@ -471,9 +504,10 @@ function Community() {
     }
 
     if (postToDelete?.media_url) {
-      const { error: mediaDeleteError } = await supabase.storage
-        .from("community-media")
-        .remove([postToDelete.media_url])
+      const { error: mediaDeleteError } =
+        await supabase.storage
+          .from("community-media")
+          .remove([postToDelete.media_url])
 
       if (mediaDeleteError) {
         console.error(
@@ -483,8 +517,8 @@ function Community() {
       }
     }
 
-    setPosts((currentPosts) =>
-      currentPosts.filter((post) => post.id !== postId)
+    setPosts((current) =>
+      current.filter((post) => post.id !== postId)
     )
 
     setReactionCounts((current) => {
@@ -506,347 +540,656 @@ function Community() {
     })
   }
 
+  const mediaCount = useMemo(
+    () =>
+      posts.filter(
+        (post) => Boolean(post.media_display_url)
+      ).length,
+    [posts]
+  )
+
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-[#d9b86c]/70">
-            MEC Community
-          </p>
+    <div className="min-h-full bg-[#F7F5EF] text-[#111827]">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-4 sm:px-6 lg:px-8">
 
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#f7f3ea] sm:text-3xl">
-            Family Feed
-          </h1>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => loadPosts(true)}
-          disabled={refreshing}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.035] text-[#f7f3ea]/60 transition hover:bg-white/[0.07] hover:text-[#f7f3ea] disabled:opacity-50"
-          aria-label="Refresh community"
+        {/* PAGE INTRO */}
+        <motion.header
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-7"
         >
-          <RefreshCw
-            size={17}
-            className={refreshing ? "animate-spin" : ""}
-          />
-        </button>
-      </div>
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F1E7CC] text-[#A8873F]">
+                  <Sparkles size={14} />
+                </span>
 
-      {error && (
-        <div className="rounded-2xl border border-red-400/10 bg-red-400/[0.06] px-4 py-3 text-sm text-red-300">
-          {error}
-        </div>
-      )}
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#A8873F]">
+                  MEC Community
+                </span>
+              </div>
 
-      <form
-        onSubmit={handleCreatePost}
-        className="rounded-2xl border border-white/[0.07] bg-[#11182b]/75 p-4 shadow-xl backdrop-blur-xl"
-      >
-        <textarea
-          value={postText}
-          onChange={(event) => setPostText(event.target.value)}
-          placeholder="Share something with the family..."
-          rows={3}
-          className="w-full resize-none bg-transparent text-sm leading-6 text-[#f7f3ea] outline-none placeholder:text-[#f7f3ea]/30"
-        />
+              <h1 className="text-3xl font-semibold tracking-[-0.035em] text-[#111827] sm:text-4xl">
+                Family, in motion.
+              </h1>
 
-        {mediaPreview && (
-          <div className="relative mt-3 overflow-hidden rounded-2xl border border-white/[0.07]">
-            {selectedMedia?.type.startsWith("video") ? (
-              <video
-                src={mediaPreview}
-                controls
-                className="max-h-72 w-full object-cover"
-              />
-            ) : (
-              <img
-                src={mediaPreview}
-                alt="Selected media preview"
-                className="max-h-72 w-full object-cover"
-              />
-            )}
+              <p className="mt-2 max-w-xl text-sm leading-6 text-[#5F6673]">
+                The place for everyday moments, stories, inside jokes,
+                celebrations and everything happening across the family.
+              </p>
+            </div>
 
             <button
               type="button"
-              onClick={removeSelectedMedia}
-              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur"
-              aria-label="Remove selected media"
+              onClick={() => loadPosts(true)}
+              disabled={refreshing}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#DCD9D0] bg-[#FCFBF7] text-[#5F6673] shadow-[0_8px_30px_rgba(17,24,39,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#C9A85C]/50 hover:text-[#A8873F] disabled:opacity-50"
+              aria-label="Refresh family feed"
             >
-              <X size={15} />
+              <RefreshCw
+                size={17}
+                className={refreshing ? "animate-spin" : ""}
+              />
             </button>
           </div>
+
+          {!loading && posts.length > 0 && (
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-[#DCD9D0] bg-[#FCFBF7] px-3 py-1.5 text-[11px] font-medium text-[#5F6673]">
+                {posts.length} {posts.length === 1 ? "moment" : "moments"}
+              </span>
+
+              {mediaCount > 0 && (
+                <span className="rounded-full border border-[#DCD9D0] bg-[#FCFBF7] px-3 py-1.5 text-[11px] font-medium text-[#5F6673]">
+                  {mediaCount} with media
+                </span>
+              )}
+
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF0FF] px-3 py-1.5 text-[11px] font-semibold text-[#4F7CFF]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#4F7CFF]" />
+                Family space
+              </span>
+            </div>
+          )}
+        </motion.header>
+
+        {/* COMPOSER */}
+        <motion.form
+          onSubmit={handleCreatePost}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-8 overflow-hidden rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7] shadow-[0_18px_60px_rgba(17,24,39,0.07)]"
+        >
+          <div className="p-4 sm:p-5">
+            <div className="flex gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#C9A85C]/25 bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+                {user?.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  "YOU"
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="text-xs font-semibold text-[#111827]">
+                    What's happening?
+                  </p>
+
+                  <span className="hidden text-[10px] font-medium text-[#8A8F98] sm:block">
+                    Share with the family
+                  </span>
+                </div>
+
+                <textarea
+                  value={postText}
+                  onChange={(event) =>
+                    setPostText(event.target.value)
+                  }
+                  placeholder="Drop a thought, memory, photo or little life update..."
+                  rows={3}
+                  className="w-full resize-none bg-transparent py-2 text-sm leading-6 text-[#111827] outline-none placeholder:text-[#8A8F98]"
+                />
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {mediaPreview && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="relative mt-3 overflow-hidden rounded-2xl border border-[#DCD9D0] bg-[#F1EFE8]"
+                >
+                  {selectedMedia?.type.startsWith("video") ? (
+                    <video
+                      src={mediaPreview}
+                      controls
+                      className="max-h-[420px] w-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={mediaPreview}
+                      alt="Selected media preview"
+                      className="max-h-[420px] w-full object-cover"
+                    />
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={removeSelectedMedia}
+                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#111827]/80 text-white shadow-lg backdrop-blur transition hover:bg-[#111827]"
+                    aria-label="Remove selected media"
+                  >
+                    <X size={15} />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#DCD9D0] bg-[#F1EFE8]/45 px-4 py-3 sm:px-5">
+            <div className="flex items-center gap-1">
+              <label className="group flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-[#5F6673] transition hover:bg-[#EAF0FF] hover:text-[#4F7CFF]">
+                <ImageIcon size={16} />
+                <span>Photo / video</span>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleMediaSelect}
+                  className="hidden"
+                />
+              </label>
+
+              <span className="hidden text-[10px] text-[#8A8F98] sm:block">
+                Up to 50 MB
+              </span>
+            </div>
+
+            <motion.button
+              type="submit"
+              disabled={!postText.trim() && !selectedMedia}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#111827] px-4 py-2.5 text-xs font-bold text-white shadow-[0_8px_24px_rgba(17,24,39,0.14)] transition hover:-translate-y-0.5 hover:bg-[#1B2435] disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              <Send size={14} />
+              Share moment
+            </motion.button>
+          </div>
+        </motion.form>
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-5 rounded-2xl border border-[#E7B4AC] bg-[#FFF3F0] px-4 py-3 text-sm text-[#9B4036]"
+          >
+            {error}
+          </motion.div>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
-          <label className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs text-[#f7f3ea]/50 transition hover:bg-white/[0.05] hover:text-[#d9b86c]">
-            <Image size={16} />
-            Add media
-            <input
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleMediaSelect}
-              className="hidden"
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={!postText.trim() && !selectedMedia}
-            className="flex items-center gap-2 rounded-xl bg-[#d9b86c] px-4 py-2.5 text-xs font-semibold text-[#17130a] transition hover:bg-[#e5c87f] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <Send size={15} />
-            Post
-          </button>
-        </div>
-      </form>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-16 text-[#f7f3ea]/50">
-          <Loader2 size={24} className="animate-spin" />
-        </div>
-      ) : posts.length === 0 ? (
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-6 py-14 text-center">
-          <p className="text-sm text-[#f7f3ea]/50">
-            No posts yet. Be the first to share something with the family.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {posts.map((post) => {
-            const profile = post.profiles
-            const name = profile?.full_name || "MEC Member"
-
-            const initials = name
-              .split(" ")
-              .map((part) => part[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()
-
-            const liked = Boolean(userReactions[post.id])
-            const likes = reactionCounts[post.id] ?? 0
-            const totalComments = commentCounts[post.id] ?? 0
-            const isCommentsOpen = Boolean(openComments[post.id])
-
-            return (
-              <article
-                key={post.id}
-                className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#11182b]/70 shadow-xl backdrop-blur-xl"
+        {/* FEED */}
+        {loading ? (
+          <div className="space-y-5">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="overflow-hidden rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7]"
               >
-                <div className="flex items-start justify-between gap-3 p-4">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d9b86c]/20 bg-[#d9b86c]/10 text-xs font-semibold text-[#d9b86c]">
-                      {profile?.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        initials
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[#f7f3ea]">
-                        {name}
-                      </p>
-
-                      <p className="text-xs text-[#f7f3ea]/35">
-                        {formatTime(post.created_at)}
-                      </p>
+                <div className="animate-pulse p-5">
+                  <div className="flex gap-3">
+                    <div className="h-11 w-11 rounded-2xl bg-[#F1EFE8]" />
+                    <div className="space-y-2">
+                      <div className="h-3 w-28 rounded-full bg-[#F1EFE8]" />
+                      <div className="h-2 w-16 rounded-full bg-[#F1EFE8]" />
                     </div>
                   </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-                    type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#f7f3ea]/35 transition hover:bg-white/[0.05] hover:text-[#f7f3ea]"
-                    aria-label="Post options"
-                  >
-                    <MoreHorizontal size={17} />
-                  </button>
-            {user?.id === post.author_id && (
-              <button
-                type="button"
-                onClick={() => handleDeletePost(post.id)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#f7f3ea]/35 transition hover:bg-red-500/10 hover:text-red-400"
-                aria-label="Delete post"
-                title="Delete post"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
+
+                  <div className="mt-6 space-y-2">
+                    <div className="h-3 w-4/5 rounded-full bg-[#F1EFE8]" />
+                    <div className="h-3 w-3/5 rounded-full bg-[#F1EFE8]" />
+                  </div>
+
+                  <div className="mt-5 h-64 rounded-2xl bg-[#F1EFE8]" />
+                </div>
+              </div>
+            ))}
           </div>
-                </div>
+        ) : posts.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[30px] border border-[#DCD9D0] bg-[#FCFBF7] px-6 py-20 text-center shadow-[0_18px_60px_rgba(17,24,39,0.05)]"
+          >
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#F1E7CC] text-[#A8873F]">
+              <Users size={26} />
+            </div>
 
-                {post.content && (
-                  <div className="px-4 pb-4">
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#f7f3ea]/80">
-                      {post.content}
-                    </p>
-                  </div>
-                )}
+            <h2 className="mt-5 text-xl font-semibold tracking-tight text-[#111827]">
+              It's quiet in here.
+            </h2>
 
-                {post.media_display_url && (
-                  <div className="border-y border-white/[0.06]">
-                    {post.media_type?.startsWith("video") ? (
-                      <video
-                        src={post.media_display_url}
-                        controls
-                        className="max-h-[520px] w-full object-cover"
-                      />
-                    ) : (
-                      <img
-                        src={post.media_display_url}
-                        alt=""
-                        className="max-h-[520px] w-full object-cover"
-                      />
-                    )}
-                  </div>
-                )}
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#5F6673]">
+              Be the person who starts the next family moment.
+              Share a photo, thought, celebration or something
+              completely random.
+            </p>
 
-                <div className="flex items-center gap-2 border-t border-white/[0.06] px-3 py-2">
-                  <button
-                    type="button"
-                    onClick={() => handleLike(post.id)}
-                    disabled={likingPostId === post.id}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs transition ${
-                      liked
-                        ? "bg-[#d9b86c]/10 text-[#d9b86c]"
-                        : "text-[#f7f3ea]/45 hover:bg-white/[0.05] hover:text-[#f7f3ea]/80"
-                    }`}
-                  >
-                    {likingPostId === post.id ? (
-                      <Loader2 size={15} className="animate-spin" />
-                    ) : (
-                      <ThumbsUp
-                        size={15}
-                        fill={liked ? "currentColor" : "none"}
-                      />
-                    )}
+            <button
+              type="button"
+              onClick={() =>
+                document.querySelector("textarea")?.focus()
+              }
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#111827] px-4 py-3 text-xs font-bold text-white transition hover:-translate-y-0.5"
+            >
+              <Sparkles size={14} />
+              Start the conversation
+            </button>
+          </motion.div>
+        ) : (
+          <div className="space-y-5">
+            {posts.map((post, index) => {
+              const profile = post.profiles
+              const name = profile?.full_name || "MEC Member"
+              const initials = getInitials(name)
 
-                    {likes > 0 && <span>{likes}</span>}
-                    <span>Like</span>
-                  </button>
+              const liked = Boolean(userReactions[post.id])
+              const likes = reactionCounts[post.id] ?? 0
+              const totalComments =
+                commentCounts[post.id] ?? 0
+              const isCommentsOpen =
+                Boolean(openComments[post.id])
 
-                  <button
-                    type="button"
-                    onClick={() => toggleComments(post.id)}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs transition ${
-                      isCommentsOpen
-                        ? "bg-white/[0.06] text-[#d9b86c]"
-                        : "text-[#f7f3ea]/45 hover:bg-white/[0.05] hover:text-[#f7f3ea]/80"
-                    }`}
-                  >
-                    <MessageCircle size={15} />
-                    {totalComments > 0 && (
-                      <span>{totalComments}</span>
-                    )}
-                    <span>Comment</span>
-                  </button>
-                </div>
+              const isVideo =
+                post.media_type?.startsWith("video")
 
-                {isCommentsOpen && (
-                  <div className="border-t border-white/[0.06] bg-black/[0.08]">
-                    <div className="max-h-80 space-y-3 overflow-y-auto p-4">
-                      {loadingCommentsPostId === post.id ? (
-                        <div className="flex justify-center py-4 text-[#f7f3ea]/40">
-                          <Loader2
-                            size={18}
-                            className="animate-spin"
-                          />
-                        </div>
-                      ) : (comments[post.id] ?? []).length === 0 ? (
-                        <p className="py-3 text-center text-xs text-[#f7f3ea]/35">
-                          No comments yet.
-                        </p>
-                      ) : (
-                        (comments[post.id] ?? []).map((comment) => {
-                          const commentProfile = comment.profiles
-                          const commentName =
-                            commentProfile?.full_name || "MEC Member"
-
-                          return (
-                            <div
-                              key={comment.id}
-                              className="flex gap-3"
-                            >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#d9b86c]/10 text-[10px] font-semibold text-[#d9b86c]">
-                                {commentName
-                                  .split(" ")
-                                  .map((part) => part[0])
-                                  .join("")
-                                  .slice(0, 2)
-                                  .toUpperCase()}
-                              </div>
-
-                              <div className="min-w-0 flex-1 rounded-2xl bg-white/[0.035] px-3 py-2.5">
-                                <div className="flex items-center justify-between gap-2">
-                                  <p className="truncate text-xs font-semibold text-[#f7f3ea]">
-                                    {commentName}
-                                  </p>
-
-                                  <span className="shrink-0 text-[10px] text-[#f7f3ea]/25">
-                                    {formatTime(comment.created_at)}
-                                  </span>
-                                </div>
-
-                                <p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-[#f7f3ea]/65">
-                                  {comment.content}
-                                </p>
-                              </div>
-                            </div>
-                          )
-                        })
-                      )}
-                    </div>
-
-                    <form
-                      onSubmit={(event) =>
-                        handleComment(event, post.id)
-                      }
-                      className="flex items-center gap-2 border-t border-white/[0.06] p-3"
-                    >
-                      <input
-                        type="text"
-                        value={commentInputs[post.id] ?? ""}
-                        onChange={(event) =>
-                          setCommentInputs((current) => ({
-                            ...current,
-                            [post.id]: event.target.value,
-                          }))
-                        }
-                        placeholder="Write a comment..."
-                        className="min-w-0 flex-1 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 text-xs text-[#f7f3ea] outline-none placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/30"
-                      />
-
-                      <button
-                        type="submit"
-                        disabled={
-                          !(commentInputs[post.id] ?? "").trim() ||
-                          commentingPostId === post.id
-                        }
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#d9b86c] text-[#17130a] transition hover:bg-[#e5c87f] disabled:cursor-not-allowed disabled:opacity-40"
-                        aria-label="Send comment"
-                      >
-                        {commentingPostId === post.id ? (
-                          <Loader2
-                            size={16}
-                            className="animate-spin"
+              return (
+                <motion.article
+                  key={post.id}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: Math.min(index * 0.035, 0.2),
+                    duration: 0.35,
+                  }}
+                  className="group overflow-hidden rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7] shadow-[0_12px_45px_rgba(17,24,39,0.055)] transition duration-300 hover:border-[#C9A85C]/30 hover:shadow-[0_18px_55px_rgba(17,24,39,0.085)]"
+                >
+                  {/* POST HEADER */}
+                  <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-5 sm:pt-5">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#C9A85C]/20 bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+                        {profile?.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt=""
+                            className="h-full w-full object-cover"
                           />
                         ) : (
-                          <Send size={16} />
+                          initials
                         )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-semibold text-[#111827]">
+                            {name}
+                          </p>
+
+                          {index === 0 && (
+                            <span className="hidden rounded-full bg-[#EAF0FF] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#4F7CFF] sm:inline-flex">
+                              Recent
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mt-0.5 text-[11px] text-[#8A8F98]">
+                          {formatTime(post.created_at)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1">
+                      {user?.id === post.author_id && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeletePost(post.id)
+                          }
+                          className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#FFF3F0] hover:text-[#B44B40]"
+                          aria-label="Delete post"
+                          title="Delete post"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#F1EFE8] hover:text-[#111827]"
+                        aria-label="Post options"
+                      >
+                        <MoreHorizontal size={18} />
                       </button>
-                    </form>
+                    </div>
                   </div>
-                )}
-              </article>
-            )
-          })}
-        </div>
-      )}
+
+                  {/* CONTENT */}
+                  {post.content && (
+                    <div className="px-4 pb-4 pt-4 sm:px-5">
+                      <p className="whitespace-pre-wrap text-[15px] leading-7 text-[#303846]">
+                        {post.content}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* MEDIA */}
+                  {post.media_display_url && (
+                    <div className="relative overflow-hidden border-y border-[#DCD9D0] bg-[#F1EFE8]">
+                      {isVideo ? (
+                        <video
+                          src={post.media_display_url}
+                          controls
+                          preload="metadata"
+                          className="max-h-[680px] w-full object-contain"
+                        />
+                      ) : (
+                        <img
+                          src={post.media_display_url}
+                          alt=""
+                          loading="lazy"
+                          className="max-h-[680px] w-full object-cover transition duration-700 group-hover:scale-[1.01]"
+                        />
+                      )}
+
+                      {isVideo && (
+                        <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-[#111827]/75 px-3 py-1.5 text-[10px] font-semibold text-white backdrop-blur-md">
+                          <Zap size={11} />
+                          Video
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SOCIAL META */}
+                  {(likes > 0 || totalComments > 0) && (
+                    <div className="flex items-center justify-between px-4 pt-3 sm:px-5">
+                      <div className="flex items-center gap-2">
+                        {likes > 0 && (
+                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#8A8F98]">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FFF0F0] text-[#E15B65]">
+                              <Heart
+                                size={10}
+                                fill="currentColor"
+                              />
+                            </span>
+                            {likes}
+                          </div>
+                        )}
+                      </div>
+
+                      {totalComments > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toggleComments(post.id)
+                          }
+                          className="text-[11px] font-medium text-[#8A8F98] transition hover:text-[#4F7CFF]"
+                        >
+                          {totalComments}{" "}
+                          {totalComments === 1
+                            ? "comment"
+                            : "comments"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ACTIONS */}
+                  <div className="flex items-center gap-1 px-3 py-3 sm:px-4">
+                    <motion.button
+                      type="button"
+                      onClick={() => handleLike(post.id)}
+                      disabled={likingPostId === post.id}
+                      whileTap={{ scale: 0.94 }}
+                      className={`flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition ${
+                        liked
+                          ? "bg-[#FFF0F0] text-[#D94E5A]"
+                          : "text-[#5F6673] hover:bg-[#F1EFE8] hover:text-[#111827]"
+                      }`}
+                    >
+                      {likingPostId === post.id ? (
+                        <Loader2
+                          size={16}
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <motion.span
+                          animate={
+                            liked
+                              ? {
+                                  scale: [1, 1.25, 1],
+                                }
+                              : { scale: 1 }
+                          }
+                        >
+                          <Heart
+                            size={16}
+                            fill={
+                              liked
+                                ? "currentColor"
+                                : "none"
+                            }
+                          />
+                        </motion.span>
+                      )}
+
+                      <span>
+                        {liked ? "Loved" : "Like"}
+                      </span>
+                    </motion.button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toggleComments(post.id)
+                      }
+                      className={`flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition ${
+                        isCommentsOpen
+                          ? "bg-[#EAF0FF] text-[#4F7CFF]"
+                          : "text-[#5F6673] hover:bg-[#F1EFE8] hover:text-[#111827]"
+                      }`}
+                    >
+                      <MessageCircle size={16} />
+                      <span>
+                        {isCommentsOpen
+                          ? "Close"
+                          : "Comment"}
+                      </span>
+
+                      {totalComments > 0 && (
+                        <span className="text-[10px] opacity-60">
+                          {totalComments}
+                        </span>
+                      )}
+                    </button>
+
+                    <div className="ml-auto hidden items-center gap-1.5 pr-2 text-[10px] text-[#B0B3B8] sm:flex">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#C9A85C]" />
+                      Family only
+                    </div>
+                  </div>
+
+                  {/* COMMENTS */}
+                  <AnimatePresence initial={false}>
+                    {isCommentsOpen && (
+                      <motion.div
+                        initial={{
+                          opacity: 0,
+                          height: 0,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          height: "auto",
+                        }}
+                        exit={{
+                          opacity: 0,
+                          height: 0,
+                        }}
+                        className="overflow-hidden border-t border-[#DCD9D0] bg-[#F7F5EF]"
+                      >
+                        <div className="max-h-96 space-y-3 overflow-y-auto p-4 sm:p-5">
+                          {loadingCommentsPostId ===
+                          post.id ? (
+                            <div className="flex justify-center py-5 text-[#8A8F98]">
+                              <Loader2
+                                size={18}
+                                className="animate-spin"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              {(comments[post.id] ?? [])
+                                .length === 0 ? (
+                                <div className="py-5 text-center">
+                                  <MessageCircle
+                                    size={20}
+                                    className="mx-auto text-[#B0B3B8]"
+                                  />
+
+                                  <p className="mt-2 text-xs font-medium text-[#5F6673]">
+                                    Start the conversation.
+                                  </p>
+
+                                  <p className="mt-1 text-[11px] text-[#8A8F98]">
+                                    Someone has to break the
+                                    silence.
+                                  </p>
+                                </div>
+                              ) : (
+                                (
+                                  comments[post.id] ?? []
+                                ).map((comment) => {
+                                  const commentProfile =
+                                    comment.profiles
+
+                                  const commentName =
+                                    commentProfile?.full_name ||
+                                    "MEC Member"
+
+                                  return (
+                                    <div
+                                      key={comment.id}
+                                      className="flex gap-3"
+                                    >
+                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#F1E7CC] text-[9px] font-bold text-[#A8873F]">
+                                        {commentProfile?.avatar_url ? (
+                                          <img
+                                            src={
+                                              commentProfile.avatar_url
+                                            }
+                                            alt=""
+                                            className="h-full w-full object-cover"
+                                          />
+                                        ) : (
+                                          getInitials(
+                                            commentName
+                                          )
+                                        )}
+                                      </div>
+
+                                      <div className="min-w-0 flex-1 rounded-2xl border border-[#DCD9D0] bg-[#FCFBF7] px-3.5 py-3">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <p className="truncate text-xs font-semibold text-[#111827]">
+                                            {commentName}
+                                          </p>
+
+                                          <span className="shrink-0 text-[9px] text-[#B0B3B8]">
+                                            {formatTime(
+                                              comment.created_at
+                                            )}
+                                          </span>
+                                        </div>
+
+                                        <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-[#5F6673]">
+                                          {comment.content}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )
+                                })
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        <form
+                          onSubmit={(event) =>
+                            handleComment(
+                              event,
+                              post.id
+                            )
+                          }
+                          className="flex gap-2 border-t border-[#DCD9D0] bg-[#FCFBF7] p-3 sm:p-4"
+                        >
+                          <input
+                            type="text"
+                            value={
+                              commentInputs[post.id] ?? ""
+                            }
+                            onChange={(event) =>
+                              setCommentInputs(
+                                (current) => ({
+                                  ...current,
+                                  [post.id]:
+                                    event.target.value,
+                                })
+                              )
+                            }
+                            placeholder="Say something..."
+                            className="min-h-11 min-w-0 flex-1 rounded-xl border border-[#DCD9D0] bg-[#F7F5EF] px-3.5 text-xs text-[#111827] outline-none transition placeholder:text-[#8A8F98] focus:border-[#4F7CFF]/50 focus:bg-white"
+                          />
+
+                          <motion.button
+                            type="submit"
+                            disabled={
+                              !(commentInputs[
+                                post.id
+                              ] ?? "").trim() ||
+                              commentingPostId ===
+                                post.id
+                            }
+                            whileTap={{ scale: 0.94 }}
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#4F7CFF] text-white shadow-[0_8px_20px_rgba(79,124,255,0.2)] transition hover:bg-[#3E6BEF] disabled:cursor-not-allowed disabled:opacity-30"
+                            aria-label="Send comment"
+                          >
+                            {commentingPostId ===
+                            post.id ? (
+                              <Loader2
+                                size={16}
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <Send size={16} />
+                            )}
+                          </motion.button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.article>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
