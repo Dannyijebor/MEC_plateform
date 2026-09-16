@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+<script>
+window.addEventListener('error', function (event) {
+  document.body.innerHTML =
+    '<pre style="white-space:pre-wrap;padding:20px;color:#ff7777;background:#0b1020;font-size:14px;">' +
+    'MEC RUNTIME ERROR:\n\n' +
+    (event.error?.stack || event.message || 'Unknown browser error') +
+    '</pre>'
+})
+window.addEventListener('unhandledrejection', function (event) {
+  document.body.innerHTML =
+    '<pre style="white-space:pre-wrap;padding:20px;color:#ff7777;background:#0b1020;font-size:14px;">' +
+    'MEC PROMISE ERROR:\n\n' +
+    (event.reason?.stack || event.reason || 'Unknown promise error') +
+    '</pre>'
+})
+</script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mec-plateform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
