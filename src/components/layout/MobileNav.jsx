@@ -12,7 +12,7 @@ function MobileNav() {
     {
       label: "Home",
       icon: Home,
-      to: "/app",
+      to: "/",
     },
     {
       label: "Messages",
@@ -27,7 +27,7 @@ function MobileNav() {
     {
       label: "Family",
       icon: Users,
-      to: "/family",
+      to: "/",
     },
     {
       label: "Events",
