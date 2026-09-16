@@ -1,12 +1,13 @@
 import { NavLink } from "react-router-dom"
 import { supabase } from "../../lib/supabase"
-import { MessageCircle,
+import {
   Bell,
   CalendarDays,
   Compass,
   FileText,
   Home,
   LogOut,
+  MessageCircle,
   Settings,
   Shield,
   Sparkles,
@@ -47,47 +48,52 @@ function Sidebar() {
         </div>
 
         <div className="ml-3">
-          <p className="text-sm font-bold tracking-tight">
+          <p className="text-sm font-bold tracking-tight text-[#111827]">
             MEC
           </p>
-          <p className="text-[10px] text-[#f7f3ea]/35">
+
+          <p className="text-[10px] text-[#111827]/40">
             Mack Eselebor Clan
           </p>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-5">
-        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f7f3ea]/25">
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#111827]/30">
           Main
         </p>
 
         <nav className="space-y-1">
-          {mainNavigation.map((item, index) => {
+          {mainNavigation.map((item) => {
             const Icon = item.icon
+
             return (
               <NavLink
                 key={item.label}
                 to={item.path}
-                className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
-                  active
-                    ? "bg-[#d9b86c] text-[#17130a]"
-                    : "text-[#f7f3ea]/50 hover:bg-[#d9b86c]/[0.06] hover:text-white"
-                }`}
+                className={({ isActive }) =>
+                  `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                    isActive
+                      ? "bg-[#d9b86c] text-[#17130a]"
+                      : "text-[#111827]/60 hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+                  }`
+                }
               >
                 <Icon size={17} />
+
                 <span>{item.label}</span>
 
                 {item.label === "Messages" && (
-                  <span className="ml-auto rounded-full bg-[#d9b86c]/10 px-2 py-0.5 text-[10px] text-white/60">
+                  <span className="ml-auto rounded-full bg-[#d9b86c]/10 px-2 py-0.5 text-[10px] text-[#111827]/60">
                     3
                   </span>
                 )}
               </NavLink>
-       )
+            )
           })}
         </nav>
 
-        <p className="mb-2 mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f7f3ea]/25">
+        <p className="mb-2 mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#111827]/30">
           Clan
         </p>
 
@@ -108,6 +114,7 @@ function Sidebar() {
                 }
               >
                 <Icon size={17} />
+
                 <span>{item.label}</span>
               </NavLink>
             )
@@ -116,12 +123,18 @@ function Sidebar() {
       </div>
 
       <div className="border-t border-[#202635]/[0.09] p-3">
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#f7f3ea]/45 transition hover:bg-[#d9b86c]/[0.06] hover:text-white">
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+        >
           <Bell size={17} />
           Notifications
         </button>
 
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#f7f3ea]/45 transition hover:bg-[#d9b86c]/[0.06] hover:text-white">
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+        >
           <Settings size={17} />
           Settings
         </button>
