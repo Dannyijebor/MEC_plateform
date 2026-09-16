@@ -64,8 +64,6 @@ function Sidebar() {
         <nav className="space-y-1">
           {mainNavigation.map((item, index) => {
             const Icon = item.icon
-            const active = index === 0
-
             return (
               <NavLink
                 key={item.label}
