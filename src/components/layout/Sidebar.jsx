@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom"
+import { NavLink } from "react-router-dom"
+import { supabase } from "../../lib/supabase"
 import { MessageCircle,
   Bell,
   CalendarDays,
@@ -15,23 +16,31 @@ import { MessageCircle,
 } from "lucide-react"
 
 const mainNavigation = [
-  { label: "Home", icon: Home },
-  { label: "Community", icon: Compass },
-  { label: "Messages", icon: MessageCircle },
-  { label: "Spaces", icon: Video },
-  { label: "Family Tree", icon: UsersRound },
+  { label: "Home", icon: Home, path: "/" },
+  { label: "Community", icon: Compass, path: "/community" },
+  { label: "Messages", icon: MessageCircle, path: "/messages" },
+  { label: "Spaces", icon: Video, path: "/spaces" },
+  { label: "Family Tree", icon: UsersRound, path: "/family-tree" },
 ]
 
 const clanNavigation = [
-  { label: "Members", icon: Users },
-  { label: "Events", icon: CalendarDays },
-  { label: "Committees", icon: Shield },
-  { label: "Documents", icon: FileText },
+  { label: "Members", icon: Users, path: "/members" },
+  { label: "Events", icon: CalendarDays, path: "/events" },
+  { label: "Committees", icon: Shield, path: "/committees" },
+  { label: "Documents", icon: FileText, path: "/documents" },
 ]
 
 function Sidebar() {
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      console.error("Unable to sign out:", error)
+    }
+  }
+
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 hidden lg:flex hidden w-64 border-r border-[#202635]/[0.09] bg-[#faf8f3]/92 backdrop-blur-2xl lg:flex lg:flex-col">
+    <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-[#202635]/[0.09] bg-[#faf8f3]/92 backdrop-blur-2xl lg:flex lg:flex-col">
       <div className="flex h-16 items-center border-b border-[#202635]/[0.09] px-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d9b86c] text-[#17130a]">
           <Sparkles size={18} />
@@ -58,9 +67,9 @@ function Sidebar() {
             const active = index === 0
 
             return (
-              <Link
+              <NavLink
                 key={item.label}
-                to={item.label === "Messages" ? "/messages" : "/"}
+                to={item.path}
                 className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                   active
                     ? "bg-[#d9b86c] text-[#17130a]"
@@ -75,7 +84,7 @@ function Sidebar() {
                     3
                   </span>
                 )}
-              </Link>
+              </NavLink>
        )
           })}
         </nav>
@@ -89,13 +98,20 @@ function Sidebar() {
             const Icon = item.icon
 
             return (
-              <button
+              <NavLink
                 key={item.label}
-                className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#f7f3ea]/50 transition hover:bg-[#d9b86c]/[0.06] hover:text-white"
+                to={item.path}
+                className={({ isActive }) =>
+                  `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+                    isActive
+                      ? "bg-[#d9b86c] text-[#17130a]"
+                      : "text-[#111827]/60 hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+                  }`
+                }
               >
                 <Icon size={17} />
                 <span>{item.label}</span>
-              </button>
+              </NavLink>
             )
           })}
         </nav>
@@ -112,7 +128,11 @@ function Sidebar() {
           Settings
         </button>
 
-        <button className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#f7f3ea]/45 transition hover:bg-[#d9b86c]/[0.06] hover:text-white">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#FFF3F0] hover:text-[#B44B40]"
+        >
           <LogOut size={17} />
           Sign out
         </button>

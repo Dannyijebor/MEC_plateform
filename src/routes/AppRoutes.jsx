@@ -112,12 +112,47 @@ function AppRoutes() {
 
       <Route
         path="/family-tree"
-        element={<Navigate to="/" replace />}
+        element={
+          <ProtectedRoute>
+            <div className="p-8">Family Tree coming soon.</div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/members"
+        element={
+          <ProtectedRoute>
+            <div className="p-8">Members coming soon.</div>
+          </ProtectedRoute>
+        }
       />
 
       <Route
         path="/events"
-        element={<Navigate to="/" replace />}
+        element={
+          <ProtectedRoute>
+            <div className="p-8">Events coming soon.</div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/committees"
+        element={
+          <ProtectedRoute>
+            <div className="p-8">Committees coming soon.</div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/documents"
+        element={
+          <ProtectedRoute>
+            <div className="p-8">Documents coming soon.</div>
+          </ProtectedRoute>
+        }
       />
 
       <Route
