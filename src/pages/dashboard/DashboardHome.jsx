@@ -329,7 +329,7 @@ function DashboardHome() {
                 />
 
                 <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--mec-gold)]">
-                  Mack Eselebor Clan
+                  Mark Eselebor Clan
                 </span>
               </div>
 

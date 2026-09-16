@@ -21,7 +21,7 @@ function Navbar() {
 
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-[#f7f3ea]">
-              Mack Eselebor
+              Mark Eselebor
             </p>
             <p className="truncate text-[10px] text-[#f7f3ea]/40">
               Clan Community
