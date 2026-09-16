@@ -36,6 +36,10 @@ function Community() {
   const [editingPostId, setEditingPostId] = useState(null)
   const [editingPostText, setEditingPostText] = useState("")
   const [savingEdit, setSavingEdit] = useState(false)
+  const [editingCommentId, setEditingCommentId] = useState(null)
+  const [editingCommentText, setEditingCommentText] = useState("")
+  const [savingCommentEdit, setSavingCommentEdit] = useState(false)
+  const [deletingCommentId, setDeletingCommentId] = useState(null)
 
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -574,6 +578,139 @@ function Community() {
 
     cancelEditingPost()
     setSavingEdit(false)
+  }
+
+  const canEditComment = (comment) => {
+    if (!user || comment.author_id !== user.id) return false
+
+    const createdAt = new Date(comment.created_at).getTime()
+    const twentyFourHours = 24 * 60 * 60 * 1000
+
+    return Date.now() - createdAt < twentyFourHours
+  }
+
+  const startEditingComment = (comment) => {
+    if (!canEditComment(comment)) {
+      setError("Comments can only be edited within 24 hours of posting.")
+      return
+    }
+
+    setError("")
+    setEditingCommentId(comment.id)
+    setEditingCommentText(comment.content ?? "")
+  }
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null)
+    setEditingCommentText("")
+  }
+
+  const handleEditComment = async (comment) => {
+    const content = editingCommentText.trim()
+
+    if (!content) {
+      setError("Comment cannot be empty.")
+      return
+    }
+
+    if (!canEditComment(comment)) {
+      setError("Comments can only be edited within 24 hours of posting.")
+      cancelEditingComment()
+      return
+    }
+
+    setSavingCommentEdit(true)
+    setError("")
+
+    const { data, error } = await supabase
+      .from("post_comments")
+      .update({ content })
+      .eq("id", comment.id)
+      .eq("author_id", user.id)
+      .select(`
+        id,
+        post_id,
+        author_id,
+        content,
+        created_at,
+        profiles:author_id (
+          full_name,
+          username,
+          avatar_url
+        )
+      `)
+      .single()
+
+    if (error) {
+      console.error("Unable to edit comment:", error)
+      setError(
+        error.message?.includes("24 hours")
+          ? "This comment can no longer be edited."
+          : "Unable to update your comment."
+      )
+      setSavingCommentEdit(false)
+      return
+    }
+
+    setComments((current) => ({
+      ...current,
+      [comment.post_id]: (current[comment.post_id] ?? []).map(
+        (currentComment) =>
+          currentComment.id === comment.id
+            ? data
+            : currentComment
+      ),
+    }))
+
+    cancelEditingComment()
+    setSavingCommentEdit(false)
+  }
+
+  const handleDeleteComment = async (comment) => {
+    if (!user || comment.author_id !== user.id) return
+
+    const confirmed = window.confirm(
+      "Delete this comment? This action cannot be undone."
+    )
+
+    if (!confirmed) return
+
+    setDeletingCommentId(comment.id)
+    setError("")
+
+    const { error } = await supabase
+      .from("post_comments")
+      .delete()
+      .eq("id", comment.id)
+      .eq("author_id", user.id)
+
+    if (error) {
+      console.error("Unable to delete comment:", error)
+      setError("Unable to delete the comment. Please try again.")
+      setDeletingCommentId(null)
+      return
+    }
+
+    setComments((current) => ({
+      ...current,
+      [comment.post_id]: (current[comment.post_id] ?? []).filter(
+        (currentComment) => currentComment.id !== comment.id
+      ),
+    }))
+
+    setCommentCounts((current) => ({
+      ...current,
+      [comment.post_id]: Math.max(
+        (current[comment.post_id] ?? 1) - 1,
+        0
+      ),
+    }))
+
+    if (editingCommentId === comment.id) {
+      cancelEditingComment()
+    }
+
+    setDeletingCommentId(null)
   }
 
   const handleDeletePost = async (postId) => {
@@ -1248,6 +1385,12 @@ function Community() {
                                     commentProfile?.full_name ||
                                     "MEC Member"
 
+                                  const isEditingComment =
+                                    editingCommentId === comment.id
+
+                                  const isDeletingComment =
+                                    deletingCommentId === comment.id
+
                                   return (
                                     <div
                                       key={comment.id}
@@ -1270,21 +1413,127 @@ function Community() {
                                       </div>
 
                                       <div className="min-w-0 flex-1 rounded-2xl border border-[#DCD9D0] bg-[#FCFBF7] px-3.5 py-3">
-                                        <div className="flex items-center justify-between gap-2">
-                                          <p className="truncate text-xs font-semibold text-[#111827]">
-                                            {commentName}
-                                          </p>
+                                        <div className="flex items-start justify-between gap-2">
+                                          <div className="min-w-0">
+                                            <p className="truncate text-xs font-semibold text-[#111827]">
+                                              {commentName}
+                                            </p>
 
-                                          <span className="shrink-0 text-[9px] text-[#B0B3B8]">
-                                            {formatTime(
-                                              comment.created_at
-                                            )}
-                                          </span>
+                                            <p className="mt-0.5 text-[9px] text-[#B0B3B8]">
+                                              {formatTime(
+                                                comment.created_at
+                                              )}
+                                            </p>
+                                          </div>
+
+                                          {user?.id === comment.author_id && (
+                                            <div className="flex shrink-0 items-center gap-0.5">
+                                              {canEditComment(comment) && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    startEditingComment(comment)
+                                                  }
+                                                  disabled={
+                                                    isDeletingComment ||
+                                                    savingCommentEdit
+                                                  }
+                                                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[#8A8F98] transition hover:bg-[#EAF0FF] hover:text-[#4F7CFF] disabled:opacity-40"
+                                                  aria-label="Edit comment"
+                                                  title="Edit comment"
+                                                >
+                                                  <Edit3 size={13} />
+                                                </button>
+                                              )}
+
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  handleDeleteComment(comment)
+                                                }
+                                                disabled={
+                                                  isDeletingComment ||
+                                                  savingCommentEdit
+                                                }
+                                                className="flex h-7 w-7 items-center justify-center rounded-lg text-[#8A8F98] transition hover:bg-[#FFF3F0] hover:text-[#B44B40] disabled:opacity-40"
+                                                aria-label="Delete comment"
+                                                title="Delete comment"
+                                              >
+                                                {isDeletingComment ? (
+                                                  <Loader2
+                                                    size={13}
+                                                    className="animate-spin"
+                                                  />
+                                                ) : (
+                                                  <Trash2 size={13} />
+                                                )}
+                                              </button>
+                                            </div>
+                                          )}
                                         </div>
 
-                                        <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-[#5F6673]">
-                                          {comment.content}
-                                        </p>
+                                        {isEditingComment ? (
+                                          <div className="mt-3">
+                                            <textarea
+                                              value={editingCommentText}
+                                              onChange={(event) =>
+                                                setEditingCommentText(
+                                                  event.target.value
+                                                )
+                                              }
+                                              autoFocus
+                                              rows={3}
+                                              className="w-full resize-none rounded-xl border border-[#C9A85C]/40 bg-[#F7F5EF] px-3 py-2.5 text-xs leading-5 text-[#111827] outline-none transition focus:border-[#4F7CFF]/50 focus:bg-white"
+                                              placeholder="Edit your comment..."
+                                            />
+
+                                            <div className="mt-2 flex items-center justify-between gap-2">
+                                              <span className="text-[9px] text-[#8A8F98]">
+                                                Editable for 24 hours.
+                                              </span>
+
+                                              <div className="flex items-center gap-1">
+                                                <button
+                                                  type="button"
+                                                  onClick={cancelEditingComment}
+                                                  disabled={savingCommentEdit}
+                                                  className="rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-[#5F6673] transition hover:bg-[#F1EFE8] hover:text-[#111827] disabled:opacity-40"
+                                                >
+                                                  Cancel
+                                                </button>
+
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleEditComment(comment)
+                                                  }
+                                                  disabled={
+                                                    savingCommentEdit ||
+                                                    !editingCommentText.trim()
+                                                  }
+                                                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#111827] px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-[#1B2435] disabled:cursor-not-allowed disabled:opacity-40"
+                                                >
+                                                  {savingCommentEdit ? (
+                                                    <Loader2
+                                                      size={11}
+                                                      className="animate-spin"
+                                                    />
+                                                  ) : (
+                                                    <Edit3 size={11} />
+                                                  )}
+
+                                                  {savingCommentEdit
+                                                    ? "Saving..."
+                                                    : "Save"}
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-[#5F6673]">
+                                            {comment.content}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
                                   )
