@@ -1,808 +1,1043 @@
 /* =========================================================
-   MEC — WORLD-CLASS VISUAL SYSTEM
-   Warm Digital Home / Modern Family Network
+   MEC — APPLICATION DESIGN SYSTEM
    ========================================================= */
 
-:root {
-  /* Core palette */
-  --mec-midnight: #101522;
-  --mec-night: #171d2d;
-  --mec-ink: #242a38;
+/* ---------------------------------------------------------
+   PAGE
+   --------------------------------------------------------- */
 
-  --mec-ivory: #faf8f3;
-  --mec-paper: #f4f1e9;
-  --mec-cloud: #ffffff;
-
-  /* Signature colors */
-  --mec-champagne: #d9b36c;
-  --mec-gold-light: #efd59b;
-
-  --mec-terracotta: #c8795b;
-  --mec-plum: #75618f;
-  --mec-sage: #789b88;
-
-  /* Functional */
-  --mec-success: #5d9b7c;
-  --mec-danger: #c96666;
-  --mec-warning: #d39b52;
-
-  /* Text */
-  --mec-text: #202635;
-  --mec-text-soft: #687080;
-  --mec-text-muted: #9298a5;
-  --mec-text-on-dark: #f8f6ef;
-
-  /* Surfaces */
-  --mec-border: rgba(31, 37, 52, 0.09);
-  --mec-border-strong: rgba(31, 37, 52, 0.15);
-
-  --mec-glass: rgba(250, 248, 243, 0.72);
-  --mec-glass-dark: rgba(16, 21, 34, 0.76);
-
-  /* Shadows */
-  --mec-shadow-sm:
-    0 2px 12px rgba(16, 21, 34, 0.05);
-
-  --mec-shadow:
-    0 12px 35px rgba(16, 21, 34, 0.08);
-
-  --mec-shadow-lg:
-    0 24px 70px rgba(16, 21, 34, 0.13);
-
-  --mec-shadow-gold:
-    0 12px 35px rgba(217, 179, 108, 0.16);
-
-  /* Radius */
-  --mec-radius-sm: 10px;
-  --mec-radius: 16px;
-  --mec-radius-lg: 24px;
-  --mec-radius-xl: 32px;
-
-  /* Motion */
-  --mec-ease:
-    cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* =========================================================
-   GLOBAL APP ATMOSPHERE
-   ========================================================= */
-
-#root {
+.mec-page {
   min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at 8% 5%,
-      rgba(217, 179, 108, 0.09),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 92% 18%,
-      rgba(117, 97, 143, 0.08),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      var(--mec-ivory) 0%,
-      #f8f6f0 48%,
-      #f1eee6 100%
-    );
-
   color: var(--mec-text);
 }
 
-/* =========================================================
-   PREMIUM SELECTION
-   ========================================================= */
-
-::selection {
-  background: rgba(217, 179, 108, 0.28);
-  color: var(--mec-midnight);
+.mec-content {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 32px 28px 48px;
 }
 
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+@media (max-width: 768px) {
+  .mec-content {
+    padding: 22px 16px 96px;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* ---------------------------------------------------------
+   SURFACES
+   --------------------------------------------------------- */
+
+.mec-surface {
+  background: rgba(252, 251, 247, 0.92);
+  border: 1px solid var(--mec-border-soft);
+  box-shadow: var(--mec-shadow-sm);
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(16, 21, 34, 0.16);
-  border-radius: 999px;
+.mec-surface-elevated {
+  background: var(--mec-surface);
+  border: 1px solid var(--mec-border);
+  box-shadow: var(--mec-shadow-md);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 21, 34, 0.28);
+.mec-surface-soft {
+  background: var(--mec-surface-2);
+  border: 1px solid var(--mec-border-soft);
 }
-
-/* =========================================================
-   PREMIUM CARDS
-   ========================================================= */
 
 .mec-card {
   position: relative;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.92),
-      rgba(250, 248, 243, 0.78)
-    );
-
-  border: 1px solid var(--mec-border);
-
+  background: var(--mec-surface);
+  border: 1px solid var(--mec-border-soft);
   border-radius: var(--mec-radius-lg);
-
-  box-shadow: var(--mec-shadow);
-
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-
+  box-shadow: var(--mec-shadow-sm);
   transition:
-    transform 0.35s var(--mec-ease),
-    box-shadow 0.35s var(--mec-ease),
-    border-color 0.35s ease;
+    transform var(--mec-transition),
+    box-shadow var(--mec-transition),
+    border-color var(--mec-transition);
 }
 
 .mec-card:hover {
-  transform: translateY(-3px);
-
-  border-color:
-    rgba(217, 179, 108, 0.24);
-
-  box-shadow: var(--mec-shadow-lg);
+  border-color: var(--mec-border);
+  box-shadow: var(--mec-shadow-md);
 }
 
-/* =========================================================
-   PREMIUM BUTTON LANGUAGE
-   ========================================================= */
-
-.mec-button-primary {
-  position: relative;
-
-  color: var(--mec-midnight);
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--mec-gold-light),
-      var(--mec-champagne)
-    );
-
-  border: 1px solid
-    rgba(217, 179, 108, 0.45);
-
-  border-radius: 12px;
-
-  box-shadow:
-    0 8px 22px
-      rgba(217, 179, 108, 0.18);
-
-  transition:
-    transform 0.25s var(--mec-ease),
-    box-shadow 0.25s var(--mec-ease);
+.mec-card-interactive {
+  cursor: pointer;
 }
 
-.mec-button-primary:hover {
+.mec-card-interactive:hover {
   transform: translateY(-2px);
-
-  box-shadow:
-    0 13px 30px
-      rgba(217, 179, 108, 0.27);
 }
 
-.mec-button-primary:active {
+.mec-card-interactive:active {
   transform: translateY(0);
 }
 
-/* =========================================================
-   DARK PREMIUM SURFACE
-   ========================================================= */
+/* ---------------------------------------------------------
+   EDITORIAL HEADERS
+   --------------------------------------------------------- */
 
-.mec-dark {
-  color: var(--mec-text-on-dark);
+.mec-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 
-  background:
-    radial-gradient(
-      circle at 12% 0%,
-      rgba(217, 179, 108, 0.13),
-      transparent 32%
-    ),
-    radial-gradient(
-      circle at 90% 100%,
-      rgba(117, 97, 143, 0.16),
-      transparent 35%
-    ),
-    var(--mec-midnight);
+  color: var(--mec-gold-dark);
+
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
-/* =========================================================
-   HERO
-   ========================================================= */
+.mec-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--mec-gold);
+}
 
-.mec-hero {
+.mec-page-title {
+  margin: 7px 0 0;
+
+  color: var(--mec-text);
+
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.05;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.mec-page-description {
+  max-width: 650px;
+  margin-top: 12px;
+
+  color: var(--mec-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.mec-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.mec-section-title {
+  margin: 0;
+  color: var(--mec-text);
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+.mec-section-description {
+  margin: 5px 0 0;
+  color: var(--mec-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------
+   GOLD FAMILY LANGUAGE
+   --------------------------------------------------------- */
+
+.mec-gold {
+  color: var(--mec-gold-dark);
+}
+
+.mec-gold-surface {
+  background: var(--mec-gold-wash);
+  border-color: rgba(201, 168, 92, 0.18);
+}
+
+.mec-gold-line {
+  width: 28px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--mec-gold);
+}
+
+/* ---------------------------------------------------------
+   BLUE DIGITAL LANGUAGE
+   --------------------------------------------------------- */
+
+.mec-blue {
+  color: var(--mec-blue);
+}
+
+.mec-blue-surface {
+  background: var(--mec-blue-wash);
+  border-color: rgba(79, 124, 255, 0.16);
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+
+.mec-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 42px;
+  padding: 0 16px;
+
+  border: 1px solid transparent;
+  border-radius: var(--mec-radius-md);
+
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+
+  transition:
+    transform var(--mec-transition-fast),
+    background var(--mec-transition-fast),
+    border-color var(--mec-transition-fast),
+    box-shadow var(--mec-transition-fast),
+    color var(--mec-transition-fast);
+}
+
+.mec-button:hover {
+  transform: translateY(-1px);
+}
+
+.mec-button:active {
+  transform: translateY(0);
+}
+
+.mec-button-primary {
+  color: #ffffff;
+  background: var(--mec-text);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.12);
+}
+
+.mec-button-primary:hover {
+  background: #202938;
+  box-shadow: 0 7px 18px rgba(17, 24, 39, 0.14);
+}
+
+.mec-button-family {
+  color: #211b0e;
+  background: var(--mec-gold);
+  box-shadow: 0 4px 14px rgba(201, 168, 92, 0.18);
+}
+
+.mec-button-family:hover {
+  background: #d4b56d;
+  box-shadow: 0 7px 20px rgba(201, 168, 92, 0.24);
+}
+
+.mec-button-secondary {
+  color: var(--mec-text);
+  background: rgba(255, 255, 255, 0.55);
+  border-color: var(--mec-border);
+}
+
+.mec-button-secondary:hover {
+  background: var(--mec-surface);
+  border-color: var(--mec-border-strong);
+}
+
+.mec-button-blue {
+  color: #ffffff;
+  background: var(--mec-blue);
+  box-shadow: 0 4px 14px rgba(79, 124, 255, 0.18);
+}
+
+.mec-button-blue:hover {
+  box-shadow: 0 7px 20px rgba(79, 124, 255, 0.23);
+}
+
+/* ---------------------------------------------------------
+   INPUTS
+   --------------------------------------------------------- */
+
+.mec-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 13px;
+
+  color: var(--mec-text);
+  background: var(--mec-surface);
+
+  border: 1px solid var(--mec-border);
+  border-radius: var(--mec-radius-md);
+
+  outline: none;
+
+  transition:
+    border-color var(--mec-transition-fast),
+    box-shadow var(--mec-transition-fast),
+    background var(--mec-transition-fast);
+}
+
+.mec-input:hover {
+  border-color: var(--mec-border-strong);
+}
+
+.mec-input:focus {
+  border-color: rgba(79, 124, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
+}
+
+/* ---------------------------------------------------------
+   BADGES / STATUS
+   --------------------------------------------------------- */
+
+.mec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  min-height: 26px;
+  padding: 0 9px;
+
+  border: 1px solid var(--mec-border-soft);
+  border-radius: 999px;
+
+  color: var(--mec-text-secondary);
+
+  background: var(--mec-surface-2);
+
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.mec-badge-family {
+  color: var(--mec-gold-dark);
+  background: var(--mec-gold-soft);
+  border-color: rgba(201, 168, 92, 0.22);
+}
+
+.mec-badge-blue {
+  color: #4268d9;
+  background: var(--mec-blue-soft);
+  border-color: rgba(79, 124, 255, 0.15);
+}
+
+.mec-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---------------------------------------------------------
+   AVATARS
+   --------------------------------------------------------- */
+
+.mec-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  color: var(--mec-gold-dark);
+  background: var(--mec-gold-soft);
+
+  border: 1px solid rgba(201, 168, 92, 0.22);
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mec-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------------------------------------------------------
+   DIVIDERS
+   --------------------------------------------------------- */
+
+.mec-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--mec-border-soft);
+}
+
+.mec-divider-gold {
+  background: rgba(201, 168, 92, 0.25);
+}
+
+/* ---------------------------------------------------------
+   EMPTY STATES
+   --------------------------------------------------------- */
+
+.mec-empty {
+  padding: 48px 24px;
+  text-align: center;
+
+  background: rgba(252, 251, 247, 0.62);
+  border: 1px dashed var(--mec-border);
+  border-radius: var(--mec-radius-lg);
+}
+
+.mec-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+
+  color: var(--mec-gold-dark);
+  background: var(--mec-gold-soft);
+
+  border-radius: 14px;
+}
+
+/* ---------------------------------------------------------
+   LOADING
+   --------------------------------------------------------- */
+
+.mec-skeleton {
   position: relative;
   overflow: hidden;
 
-  border-radius: var(--mec-radius-xl);
-
-  background:
-    radial-gradient(
-      circle at 20% 10%,
-      rgba(217, 179, 108, 0.15),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 90% 80%,
-      rgba(120, 155, 136, 0.12),
-      transparent 28%
-    ),
-    linear-gradient(
-      135deg,
-      #171d2d,
-      #101522
-    );
-
-  color: var(--mec-text-on-dark);
-
-  box-shadow:
-    0 25px 80px
-      rgba(16, 21, 34, 0.2);
+  background: var(--mec-surface-2);
+  border-radius: var(--mec-radius-md);
 }
 
-.mec-hero::before {
+.mec-skeleton::after {
   content: "";
 
   position: absolute;
   inset: 0;
 
+  transform: translateX(-100%);
+
   background:
     linear-gradient(
-      120deg,
-      transparent 20%,
-      rgba(255, 255, 255, 0.035) 50%,
-      transparent 80%
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.55),
+      transparent
     );
 
-  pointer-events: none;
+  animation: mec-skeleton 1.5s infinite;
 }
 
+@keyframes mec-skeleton {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------------------------------------------------------
+   ATMOSPHERE
+   --------------------------------------------------------- */
+
+.mec-atmosphere {
+  position: relative;
+  isolation: isolate;
+}
+
+.mec-atmosphere::before {
+  content: "";
+
+  position: absolute;
+  z-index: -1;
+
+  width: 420px;
+  height: 420px;
+
+  top: -180px;
+  right: -120px;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(201, 168, 92, 0.08),
+      transparent 68%
+    );
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .mec-section-header {
+    align-items: flex-start;
+  }
+
+  .mec-page-title {
+    font-size: 32px;
+  }
+
+  .mec-page-description {
+    font-size: 13px;
+  }
+
+  .mec-card {
+    border-radius: var(--mec-radius-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .mec-section-header {
+    display: block;
+  }
+
+  .mec-section-header > * + * {
+    margin-top: 10px;
+  }
+
+  .mec-button {
+    min-height: 44px;
+  }
+}
+
+/* ---------------------------------------------------------
+   LEGACY VITE SELECTORS
+   Kept harmless so starter styles cannot affect MEC.
+   --------------------------------------------------------- */
+
+.counter,
+.hero,
+#center,
+#next-steps,
+#docs,
+#spacer,
+.ticks {
+  all: unset;
+}
+EOcat > src/App.css <<'EOF'
 /* =========================================================
-   TYPOGRAPHY
+   MEC — APPLICATION DESIGN SYSTEM
    ========================================================= */
 
-.mec-title {
-  color: var(--mec-midnight);
+/* ---------------------------------------------------------
+   PAGE
+   --------------------------------------------------------- */
 
-  font-weight: 750;
-
-  letter-spacing: -0.045em;
-
-  line-height: 1.05;
+.mec-page {
+  min-height: 100vh;
+  color: var(--mec-text);
 }
 
-.mec-subtitle {
-  color: var(--mec-text-soft);
-
-  line-height: 1.65;
+.mec-content {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 32px 28px 48px;
 }
+
+@media (max-width: 768px) {
+  .mec-content {
+    padding: 22px 16px 96px;
+  }
+}
+
+/* ---------------------------------------------------------
+   SURFACES
+   --------------------------------------------------------- */
+
+.mec-surface {
+  background: rgba(252, 251, 247, 0.92);
+  border: 1px solid var(--mec-border-soft);
+  box-shadow: var(--mec-shadow-sm);
+}
+
+.mec-surface-elevated {
+  background: var(--mec-surface);
+  border: 1px solid var(--mec-border);
+  box-shadow: var(--mec-shadow-md);
+}
+
+.mec-surface-soft {
+  background: var(--mec-surface-2);
+  border: 1px solid var(--mec-border-soft);
+}
+
+.mec-card {
+  position: relative;
+  background: var(--mec-surface);
+  border: 1px solid var(--mec-border-soft);
+  border-radius: var(--mec-radius-lg);
+  box-shadow: var(--mec-shadow-sm);
+  transition:
+    transform var(--mec-transition),
+    box-shadow var(--mec-transition),
+    border-color var(--mec-transition);
+}
+
+.mec-card:hover {
+  border-color: var(--mec-border);
+  box-shadow: var(--mec-shadow-md);
+}
+
+.mec-card-interactive {
+  cursor: pointer;
+}
+
+.mec-card-interactive:hover {
+  transform: translateY(-2px);
+}
+
+.mec-card-interactive:active {
+  transform: translateY(0);
+}
+
+/* ---------------------------------------------------------
+   EDITORIAL HEADERS
+   --------------------------------------------------------- */
 
 .mec-eyebrow {
-  color: var(--mec-champagne);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 
-  font-size: 11px;
+  color: var(--mec-gold-dark);
 
-  font-weight: 800;
-
-  letter-spacing: 0.16em;
-
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-/* =========================================================
-   AVATAR / PEOPLE LANGUAGE
-   ========================================================= */
-
-.mec-avatar-ring {
-  padding: 3px;
-
-  border-radius: 999px;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--mec-champagne),
-      var(--mec-terracotta),
-      var(--mec-plum)
-    );
-
-  box-shadow:
-    0 8px 24px
-      rgba(16, 21, 34, 0.12);
+.mec-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--mec-gold);
 }
 
-/* =========================================================
-   FAMILY / COMMUNITY ACCENTS
-   ========================================================= */
-
-.mec-warm {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(217, 179, 108, 0.16),
-      rgba(217, 179, 108, 0.05)
-    );
-
-  border-color:
-    rgba(217, 179, 108, 0.18);
-}
-
-.mec-sage {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(120, 155, 136, 0.14),
-      rgba(120, 155, 136, 0.04)
-    );
-
-  border-color:
-    rgba(120, 155, 136, 0.18);
-}
-
-.mec-plum {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(117, 97, 143, 0.13),
-      rgba(117, 97, 143, 0.04)
-    );
-
-  border-color:
-    rgba(117, 97, 143, 0.17);
-}
-
-.mec-terracotta {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(200, 121, 91, 0.13),
-      rgba(200, 121, 91, 0.04)
-    );
-
-  border-color:
-    rgba(200, 121, 91, 0.17);
-}
-
-/* =========================================================
-   STATUS DOT
-   ========================================================= */
-
-.mec-status {
-  width: 8px;
-  height: 8px;
-
-  border-radius: 50%;
-
-  background: var(--mec-success);
-
-  box-shadow:
-    0 0 0 4px
-      rgba(93, 155, 124, 0.12);
-}
-
-/* =========================================================
-   INPUTS
-   ========================================================= */
-
-.mec-input {
-  width: 100%;
-
-  box-sizing: border-box;
+.mec-page-title {
+  margin: 7px 0 0;
 
   color: var(--mec-text);
 
-  background:
-    rgba(255, 255, 255, 0.7);
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.05;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
 
-  border: 1px solid
-    var(--mec-border-strong);
+.mec-page-description {
+  max-width: 650px;
+  margin-top: 12px;
 
-  border-radius: 13px;
+  color: var(--mec-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.mec-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.mec-section-title {
+  margin: 0;
+  color: var(--mec-text);
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+.mec-section-description {
+  margin: 5px 0 0;
+  color: var(--mec-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------
+   GOLD FAMILY LANGUAGE
+   --------------------------------------------------------- */
+
+.mec-gold {
+  color: var(--mec-gold-dark);
+}
+
+.mec-gold-surface {
+  background: var(--mec-gold-wash);
+  border-color: rgba(201, 168, 92, 0.18);
+}
+
+.mec-gold-line {
+  width: 28px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--mec-gold);
+}
+
+/* ---------------------------------------------------------
+   BLUE DIGITAL LANGUAGE
+   --------------------------------------------------------- */
+
+.mec-blue {
+  color: var(--mec-blue);
+}
+
+.mec-blue-surface {
+  background: var(--mec-blue-wash);
+  border-color: rgba(79, 124, 255, 0.16);
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+
+.mec-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 42px;
+  padding: 0 16px;
+
+  border: 1px solid transparent;
+  border-radius: var(--mec-radius-md);
+
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+
+  transition:
+    transform var(--mec-transition-fast),
+    background var(--mec-transition-fast),
+    border-color var(--mec-transition-fast),
+    box-shadow var(--mec-transition-fast),
+    color var(--mec-transition-fast);
+}
+
+.mec-button:hover {
+  transform: translateY(-1px);
+}
+
+.mec-button:active {
+  transform: translateY(0);
+}
+
+.mec-button-primary {
+  color: #ffffff;
+  background: var(--mec-text);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.12);
+}
+
+.mec-button-primary:hover {
+  background: #202938;
+  box-shadow: 0 7px 18px rgba(17, 24, 39, 0.14);
+}
+
+.mec-button-family {
+  color: #211b0e;
+  background: var(--mec-gold);
+  box-shadow: 0 4px 14px rgba(201, 168, 92, 0.18);
+}
+
+.mec-button-family:hover {
+  background: #d4b56d;
+  box-shadow: 0 7px 20px rgba(201, 168, 92, 0.24);
+}
+
+.mec-button-secondary {
+  color: var(--mec-text);
+  background: rgba(255, 255, 255, 0.55);
+  border-color: var(--mec-border);
+}
+
+.mec-button-secondary:hover {
+  background: var(--mec-surface);
+  border-color: var(--mec-border-strong);
+}
+
+.mec-button-blue {
+  color: #ffffff;
+  background: var(--mec-blue);
+  box-shadow: 0 4px 14px rgba(79, 124, 255, 0.18);
+}
+
+.mec-button-blue:hover {
+  box-shadow: 0 7px 20px rgba(79, 124, 255, 0.23);
+}
+
+/* ---------------------------------------------------------
+   INPUTS
+   --------------------------------------------------------- */
+
+.mec-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 13px;
+
+  color: var(--mec-text);
+  background: var(--mec-surface);
+
+  border: 1px solid var(--mec-border);
+  border-radius: var(--mec-radius-md);
 
   outline: none;
 
   transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease;
+    border-color var(--mec-transition-fast),
+    box-shadow var(--mec-transition-fast),
+    background var(--mec-transition-fast);
+}
+
+.mec-input:hover {
+  border-color: var(--mec-border-strong);
 }
 
 .mec-input:focus {
-  background: var(--mec-cloud);
-
-  border-color:
-    rgba(217, 179, 108, 0.65);
-
-  box-shadow:
-    0 0 0 4px
-      rgba(217, 179, 108, 0.11);
+  border-color: rgba(79, 124, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.08);
 }
 
-/* =========================================================
-   ORIGINAL STARTER STYLES — REFINED
-   ========================================================= */
+/* ---------------------------------------------------------
+   BADGES / STATUS
+   --------------------------------------------------------- */
 
-.counter {
-  font-size: 16px;
+.mec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
-  padding: 7px 13px;
+  min-height: 26px;
+  padding: 0 9px;
 
+  border: 1px solid var(--mec-border-soft);
   border-radius: 999px;
 
-  color: var(--mec-midnight);
+  color: var(--mec-text-secondary);
 
-  background:
-    rgba(217, 179, 108, 0.12);
+  background: var(--mec-surface-2);
 
-  border: 1px solid
-    rgba(217, 179, 108, 0.24);
-
-  transition:
-    border-color 0.3s ease,
-    background 0.3s ease,
-    transform 0.3s var(--mec-ease);
-
-  margin-bottom: 24px;
+  font-size: 10px;
+  font-weight: 650;
 }
 
-.counter:hover {
-  border-color:
-    rgba(217, 179, 108, 0.55);
-
-  background:
-    rgba(217, 179, 108, 0.18);
-
-  transform: translateY(-1px);
+.mec-badge-family {
+  color: var(--mec-gold-dark);
+  background: var(--mec-gold-soft);
+  border-color: rgba(201, 168, 92, 0.22);
 }
 
-.counter:focus-visible {
-  outline: 2px solid var(--mec-champagne);
-  outline-offset: 3px;
+.mec-badge-blue {
+  color: #4268d9;
+  background: var(--mec-blue-soft);
+  border-color: rgba(79, 124, 255, 0.15);
 }
 
-/* =========================================================
-   LEGACY HERO
-   ========================================================= */
-
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-
-    position: relative;
-
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-
-    top: 34px;
-
-    height: 28px;
-
-    transform:
-      perspective(2000px)
-      rotateZ(300deg)
-      rotateX(44deg)
-      rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-
-    top: 107px;
-
-    height: 26px;
-
-    width: auto;
-
-    transform:
-      perspective(2000px)
-      rotateZ(300deg)
-      rotateX(40deg)
-      rotateY(39deg)
-      scale(0.8);
-  }
+.mec-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-/* =========================================================
-   CENTER
-   ========================================================= */
+/* ---------------------------------------------------------
+   AVATARS
+   --------------------------------------------------------- */
 
-#center {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 25px;
-
-  place-content: center;
-
-  place-items: center;
-
-  flex-grow: 1;
-}
-
-@media (max-width: 1024px) {
-  #center {
-    padding: 32px 20px 24px;
-
-    gap: 18px;
-  }
-}
-
-/* =========================================================
-   NEXT STEPS
-   ========================================================= */
-
-#next-steps {
-  display: flex;
-
-  border-top:
-    1px solid var(--mec-border);
-
-  text-align: left;
-
-  background:
-    rgba(255, 255, 255, 0.34);
-}
-
-#next-steps > div {
-  flex: 1 1 0;
-
-  padding: 32px;
-}
-
-#next-steps .icon {
-  margin-bottom: 16px;
-
-  width: 22px;
-
-  height: 22px;
-}
-
-@media (max-width: 1024px) {
-  #next-steps {
-    flex-direction: column;
-
-    text-align: center;
-  }
-
-  #next-steps > div {
-    padding: 24px 20px;
-  }
-}
-
-/* =========================================================
-   DOCS
-   ========================================================= */
-
-#docs {
-  border-right:
-    1px solid var(--mec-border);
-}
-
-@media (max-width: 1024px) {
-  #docs {
-    border-right: none;
-
-    border-bottom:
-      1px solid var(--mec-border);
-  }
-}
-
-/* =========================================================
-   SOCIAL / LINKS
-   ========================================================= */
-
-#next-steps ul {
-  list-style: none;
-
-  padding: 0;
-
-  display: flex;
-
-  gap: 8px;
-
-  margin: 32px 0 0;
-}
-
-#next-steps ul .logo {
-  height: 18px;
-}
-
-#next-steps ul a {
-  color: var(--mec-text);
-
-  font-size: 16px;
-
-  border-radius: 10px;
-
-  background:
-    rgba(255, 255, 255, 0.65);
-
-  border:
-    1px solid var(--mec-border);
-
-  display: flex;
-
-  padding: 8px 13px;
-
+.mec-avatar {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
 
-  gap: 8px;
+  flex-shrink: 0;
 
-  text-decoration: none;
+  overflow: hidden;
 
-  transition:
-    box-shadow 0.3s ease,
-    transform 0.3s var(--mec-ease),
-    border-color 0.3s ease;
+  color: var(--mec-gold-dark);
+  background: var(--mec-gold-soft);
+
+  border: 1px solid rgba(201, 168, 92, 0.22);
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 700;
 }
 
-#next-steps ul a:hover {
-  transform: translateY(-2px);
-
-  border-color:
-    rgba(217, 179, 108, 0.3);
-
-  box-shadow: var(--mec-shadow);
-}
-
-#next-steps ul a .button-icon {
-  height: 18px;
-
-  width: 18px;
-}
-
-@media (max-width: 1024px) {
-  #next-steps ul {
-    margin-top: 20px;
-
-    flex-wrap: wrap;
-
-    justify-content: center;
-  }
-
-  #next-steps ul li {
-    flex: 1 1 calc(50% - 8px);
-  }
-
-  #next-steps ul a {
-    width: 100%;
-
-    justify-content: center;
-
-    box-sizing: border-box;
-  }
-}
-
-/* =========================================================
-   SPACER
-   ========================================================= */
-
-#spacer {
-  height: 88px;
-
-  border-top:
-    1px solid var(--mec-border);
-}
-
-@media (max-width: 1024px) {
-  #spacer {
-    height: 48px;
-  }
-}
-
-/* =========================================================
-   DECORATIVE TICKS
-   ========================================================= */
-
-.ticks {
-  position: relative;
-
+.mec-avatar img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.ticks::before,
-.ticks::after {
+/* ---------------------------------------------------------
+   DIVIDERS
+   --------------------------------------------------------- */
+
+.mec-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--mec-border-soft);
+}
+
+.mec-divider-gold {
+  background: rgba(201, 168, 92, 0.25);
+}
+
+/* ---------------------------------------------------------
+   EMPTY STATES
+   --------------------------------------------------------- */
+
+.mec-empty {
+  padding: 48px 24px;
+  text-align: center;
+
+  background: rgba(252, 251, 247, 0.62);
+  border: 1px dashed var(--mec-border);
+  border-radius: var(--mec-radius-lg);
+}
+
+.mec-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+
+  color: var(--mec-gold-dark);
+  background: var(--mec-gold-soft);
+
+  border-radius: 14px;
+}
+
+/* ---------------------------------------------------------
+   LOADING
+   --------------------------------------------------------- */
+
+.mec-skeleton {
+  position: relative;
+  overflow: hidden;
+
+  background: var(--mec-surface-2);
+  border-radius: var(--mec-radius-md);
+}
+
+.mec-skeleton::after {
   content: "";
 
   position: absolute;
+  inset: 0;
 
-  top: -4.5px;
+  transform: translateX(-100%);
 
-  border: 5px solid transparent;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.55),
+      transparent
+    );
+
+  animation: mec-skeleton 1.5s infinite;
 }
 
-.ticks::before {
-  left: 0;
-
-  border-left-color:
-    rgba(217, 179, 108, 0.5);
-}
-
-.ticks::after {
-  right: 0;
-
-  border-right-color:
-    rgba(217, 179, 108, 0.5);
-}
-
-/* =========================================================
-   ACCESSIBILITY
-   ========================================================= */
-
-:focus-visible {
-  outline:
-    2px solid var(--mec-champagne);
-
-  outline-offset: 3px;
-}
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-
-    transition-duration: 0.01ms !important;
-
-    animation-duration: 0.01ms !important;
-
-    animation-iteration-count: 1 !important;
+@keyframes mec-skeleton {
+  100% {
+    transform: translateX(100%);
   }
 }
 
-/* =========================================================
-   MOBILE POLISH
-   ========================================================= */
+/* ---------------------------------------------------------
+   ATMOSPHERE
+   --------------------------------------------------------- */
 
-@media (max-width: 640px) {
+.mec-atmosphere {
+  position: relative;
+  isolation: isolate;
+}
+
+.mec-atmosphere::before {
+  content: "";
+
+  position: absolute;
+  z-index: -1;
+
+  width: 420px;
+  height: 420px;
+
+  top: -180px;
+  right: -120px;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(201, 168, 92, 0.08),
+      transparent 68%
+    );
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .mec-section-header {
+    align-items: flex-start;
+  }
+
+  .mec-page-title {
+    font-size: 32px;
+  }
+
+  .mec-page-description {
+    font-size: 13px;
+  }
+
   .mec-card {
-    border-radius: 20px;
+    border-radius: var(--mec-radius-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .mec-section-header {
+    display: block;
   }
 
-  .mec-hero {
-    border-radius: 24px;
+  .mec-section-header > * + * {
+    margin-top: 10px;
   }
 
-  .mec-title {
-    letter-spacing: -0.035em;
+  .mec-button {
+    min-height: 44px;
   }
+}
+
+/* ---------------------------------------------------------
+   LEGACY VITE SELECTORS
+   Kept harmless so starter styles cannot affect MEC.
+   --------------------------------------------------------- */
+
+.counter,
+.hero,
+#center,
+#next-steps,
+#docs,
+#spacer,
+.ticks {
+  all: unset;
 }

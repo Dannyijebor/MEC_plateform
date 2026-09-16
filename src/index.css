@@ -1,11 +1,72 @@
 @import "tailwindcss";
 
 /* =========================================================
-   MEC — GLOBAL DESIGN FOUNDATION
-   Premium / Human / Warm / Modern
+   MEC — GLOBAL DESIGN SYSTEM
+   "Our home on the internet."
    ========================================================= */
 
 :root {
+  /* ---------- Core surfaces ---------- */
+  --mec-bg: #f7f5ef;
+  --mec-surface: #fcfbf7;
+  --mec-surface-2: #f1efe8;
+  --mec-surface-3: #ebe8df;
+
+  /* ---------- Typography ---------- */
+  --mec-text: #111827;
+  --mec-text-secondary: #5f6673;
+  --mec-text-muted: #8a8f98;
+  --mec-text-faint: #a8adb4;
+
+  /* ---------- Borders ---------- */
+  --mec-border: #dcd9d0;
+  --mec-border-soft: rgba(17, 24, 39, 0.07);
+  --mec-border-strong: rgba(17, 24, 39, 0.13);
+
+  /* ---------- Family / heritage ---------- */
+  --mec-gold: #c9a85c;
+  --mec-gold-dark: #a8873f;
+  --mec-gold-soft: #f1e7cc;
+  --mec-gold-wash: rgba(201, 168, 92, 0.10);
+
+  /* ---------- Digital / interaction ---------- */
+  --mec-blue: #4f7cff;
+  --mec-blue-soft: #eaf0ff;
+  --mec-blue-wash: rgba(79, 124, 255, 0.09);
+
+  /* ---------- Supporting accents ---------- */
+  --mec-violet: #7867a8;
+  --mec-violet-soft: #eeeafb;
+  --mec-coral: #c87961;
+  --mec-coral-soft: #f8e9e3;
+
+  /* ---------- Geometry ---------- */
+  --mec-radius-sm: 10px;
+  --mec-radius-md: 14px;
+  --mec-radius-lg: 18px;
+  --mec-radius-xl: 24px;
+  --mec-radius-2xl: 30px;
+
+  /* ---------- Shadows ---------- */
+  --mec-shadow-sm:
+    0 1px 2px rgba(17, 24, 39, 0.035),
+    0 4px 12px rgba(17, 24, 39, 0.025);
+
+  --mec-shadow-md:
+    0 8px 28px rgba(17, 24, 39, 0.055),
+    0 2px 6px rgba(17, 24, 39, 0.025);
+
+  --mec-shadow-lg:
+    0 20px 50px rgba(17, 24, 39, 0.075),
+    0 4px 12px rgba(17, 24, 39, 0.035);
+
+  /* ---------- Motion ---------- */
+  --mec-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mec-transition-fast: 160ms var(--mec-ease);
+  --mec-transition: 240ms var(--mec-ease);
+  --mec-transition-slow: 420ms var(--mec-ease);
+
+  /* ---------- Typography ---------- */
   font-family:
     Inter,
     ui-sans-serif,
@@ -15,20 +76,17 @@
     "Segoe UI",
     sans-serif;
 
-  color: #202635;
-  background: #faf8f3;
+  color: var(--mec-text);
+  background: var(--mec-bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  color-scheme: light;
 }
 
 /* =========================================================
-   BOX MODEL
+   RESET
    ========================================================= */
 
 *,
@@ -37,58 +95,44 @@
   box-sizing: border-box;
 }
 
-/* =========================================================
-   DOCUMENT
-   ========================================================= */
-
 html {
   width: 100%;
   min-width: 320px;
   min-height: 100%;
-
-  background: #faf8f3;
-
+  background: var(--mec-bg);
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-
   min-width: 320px;
   min-height: 100vh;
 
-  overflow-x: hidden;
-
-  color: #202635;
+  color: var(--mec-text);
 
   background:
     radial-gradient(
-      circle at 8% 0%,
-      rgba(217, 179, 108, 0.13),
-      transparent 28%
+      circle at 8% 4%,
+      rgba(201, 168, 92, 0.055),
+      transparent 27%
     ),
     radial-gradient(
-      circle at 96% 12%,
-      rgba(117, 97, 143, 0.08),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 50% 100%,
-      rgba(120, 155, 136, 0.06),
-      transparent 32%
+      circle at 92% 18%,
+      rgba(79, 124, 255, 0.035),
+      transparent 24%
     ),
     linear-gradient(
-      135deg,
-      #faf8f3 0%,
-      #f8f6f0 48%,
-      #f1eee6 100%
+      180deg,
+      #f9f7f1 0%,
+      #f7f5ef 45%,
+      #f5f3ed 100%
     );
 
-  background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 /* =========================================================
-   APP ROOT
+   ROOT
    ========================================================= */
 
 html,
@@ -99,30 +143,18 @@ body,
   min-height: 100%;
 }
 
-#root {
-  isolation: isolate;
-  position: relative;
-}
-
-/*
- * Keep atmospheric effects behind the application.
- * This works with the snow/butterfly canvas.
- */
-
-#root > canvas {
-  z-index: 0 !important;
-}
-
 /* =========================================================
    TYPOGRAPHY
    ========================================================= */
 
-body,
-button,
-input,
-textarea,
-select {
-  font: inherit;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-top: 0;
 }
 
 h1,
@@ -131,106 +163,92 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: 0;
+  color: var(--mec-text);
+  letter-spacing: -0.025em;
+}
 
-  color: #101522;
+h1 {
+  font-weight: 650;
+}
 
-  font-weight: 750;
+h2 {
+  font-weight: 630;
+}
 
-  letter-spacing: -0.035em;
-
-  line-height: 1.12;
+h3,
+h4 {
+  font-weight: 600;
 }
 
 p {
-  line-height: 1.65;
+  color: var(--mec-text-secondary);
 }
+
+small {
+  color: var(--mec-text-muted);
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
 
 a {
   color: inherit;
+}
 
-  text-decoration: none;
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* =========================================================
-   MEDIA
+   BUTTONS / FORMS
    ========================================================= */
 
-img,
-video,
-canvas,
-svg {
-  display: block;
-
-  max-width: 100%;
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
 
 button {
-  border: 0;
-
   cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {
   cursor: not-allowed;
-
-  opacity: 0.55;
 }
-
-/* =========================================================
-   FORM ELEMENTS
-   ========================================================= */
 
 input,
 textarea,
 select {
-  max-width: 100%;
-
-  color: #202635;
-
-  background: rgba(255, 255, 255, 0.76);
-
-  border: 1px solid rgba(31, 37, 52, 0.12);
-
-  outline: none;
-
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  background: #ffffff;
-
-  border-color: rgba(217, 179, 108, 0.7);
-
-  box-shadow:
-    0 0 0 4px
-    rgba(217, 179, 108, 0.11);
+  color: var(--mec-text);
+  background: var(--mec-surface);
+  border-color: var(--mec-border);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #9298a5;
+  color: var(--mec-text-faint);
 }
 
 /* =========================================================
-   PREMIUM SELECTION
+   ACCESSIBLE FOCUS
+   ========================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--mec-blue);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   SELECTION
    ========================================================= */
 
 ::selection {
-  background: rgba(217, 179, 108, 0.3);
-
-  color: #101522;
+  background: var(--mec-gold-soft);
+  color: var(--mec-text);
 }
 
 /* =========================================================
@@ -238,9 +256,8 @@ textarea::placeholder {
    ========================================================= */
 
 ::-webkit-scrollbar {
-  width: 8px;
-
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -248,36 +265,27 @@ textarea::placeholder {
 }
 
 ::-webkit-scrollbar-thumb {
-  background:
-    rgba(16, 21, 34, 0.14);
-
-  border:
-    2px solid transparent;
-
+  background: rgba(17, 24, 39, 0.14);
   border-radius: 999px;
-
-  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background:
-    rgba(16, 21, 34, 0.24);
-
-  border:
-    2px solid transparent;
-
-  background-clip: padding-box;
+  background: rgba(17, 24, 39, 0.23);
 }
 
 /* =========================================================
-   ACCESSIBILITY
+   IMAGES / MEDIA
    ========================================================= */
 
-:focus-visible {
-  outline:
-    2px solid #d9b36c;
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
 
-  outline-offset: 3px;
+img {
+  display: block;
 }
 
 /* =========================================================
@@ -288,24 +296,8 @@ textarea::placeholder {
   h1,
   h2,
   h3,
-  h4,
-  h5,
-  h6 {
+  h4 {
     overflow-wrap: anywhere;
-  }
-
-  body {
-    background:
-      radial-gradient(
-        circle at 10% 0%,
-        rgba(217, 179, 108, 0.1),
-        transparent 35%
-      ),
-      linear-gradient(
-        145deg,
-        #faf8f3,
-        #f3f0e8
-      );
   }
 }
 
@@ -322,9 +314,7 @@ textarea::placeholder {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
-
     animation-iteration-count: 1 !important;
-
     transition-duration: 0.01ms !important;
   }
 }
