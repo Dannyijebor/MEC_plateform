@@ -1,5 +1,6 @@
 import {
   Camera,
+  Edit3,
   Heart,
   Image as ImageIcon,
   Loader2,
@@ -32,6 +33,9 @@ function Community() {
   const [comments, setComments] = useState({})
   const [commentInputs, setCommentInputs] = useState({})
   const [openComments, setOpenComments] = useState({})
+  const [editingPostId, setEditingPostId] = useState(null)
+  const [editingPostText, setEditingPostText] = useState("")
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -481,6 +485,97 @@ function Community() {
     setCommentingPostId(null)
   }
 
+  const canEditPost = (post) => {
+    if (!user || post.author_id !== user.id) return false
+
+    const createdAt = new Date(post.created_at).getTime()
+    const twentyFourHours = 24 * 60 * 60 * 1000
+
+    return Date.now() - createdAt < twentyFourHours
+  }
+
+  const startEditingPost = (post) => {
+    if (!canEditPost(post)) {
+      setError("Posts can only be edited within 24 hours of posting.")
+      return
+    }
+
+    setError("")
+    setEditingPostId(post.id)
+    setEditingPostText(post.content ?? "")
+  }
+
+  const cancelEditingPost = () => {
+    setEditingPostId(null)
+    setEditingPostText("")
+  }
+
+  const handleEditPost = async (postId) => {
+    const content = editingPostText.trim()
+
+    if (!content) {
+      setError("Post text cannot be empty.")
+      return
+    }
+
+    const post = posts.find((item) => item.id === postId)
+
+    if (!post || !canEditPost(post)) {
+      setError("Posts can only be edited within 24 hours of posting.")
+      cancelEditingPost()
+      return
+    }
+
+    setSavingEdit(true)
+    setError("")
+
+    const { data, error } = await supabase
+      .from("posts")
+      .update({ content })
+      .eq("id", postId)
+      .select(`
+        id,
+        author_id,
+        content,
+        media_url,
+        media_type,
+        created_at,
+        expires_at,
+        profiles:author_id (
+          full_name,
+          username,
+          avatar_url
+        )
+      `)
+      .single()
+
+    if (error) {
+      console.error("Unable to edit post:", error)
+      setError(
+        error.message?.includes("24 hours")
+          ? "This post can no longer be edited."
+          : "Unable to update your post."
+      )
+      setSavingEdit(false)
+      return
+    }
+
+    setPosts((currentPosts) =>
+      currentPosts.map((currentPost) =>
+        currentPost.id === postId
+          ? {
+              ...data,
+              media_display_url:
+                currentPost.media_display_url ?? null,
+            }
+          : currentPost
+      )
+    )
+
+    cancelEditingPost()
+    setSavingEdit(false)
+  }
+
   const handleDeletePost = async (postId) => {
     const confirmed = window.confirm(
       "Delete this post? This action cannot be undone."
@@ -858,17 +953,31 @@ function Community() {
 
                     <div className="flex shrink-0 items-center gap-1">
                       {user?.id === post.author_id && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleDeletePost(post.id)
-                          }
-                          className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#FFF3F0] hover:text-[#B44B40]"
-                          aria-label="Delete post"
-                          title="Delete post"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <>
+                          {canEditPost(post) && (
+                            <button
+                              type="button"
+                              onClick={() => startEditingPost(post)}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#EAF0FF] hover:text-[#4F7CFF]"
+                              aria-label="Edit post"
+                              title="Edit post"
+                            >
+                              <Edit3 size={16} />
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDeletePost(post.id)
+                            }
+                            className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#FFF3F0] hover:text-[#B44B40]"
+                            aria-label="Delete post"
+                            title="Delete post"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
                       )}
 
                       <button
@@ -882,12 +991,67 @@ function Community() {
                   </div>
 
                   {/* CONTENT */}
-                  {post.content && (
+                  {editingPostId === post.id ? (
                     <div className="px-4 pb-4 pt-4 sm:px-5">
-                      <p className="whitespace-pre-wrap text-[15px] leading-7 text-[#303846]">
-                        {post.content}
-                      </p>
+                      <textarea
+                        value={editingPostText}
+                        onChange={(event) =>
+                          setEditingPostText(event.target.value)
+                        }
+                        autoFocus
+                        rows={4}
+                        className="w-full resize-none rounded-2xl border border-[#C9A85C]/40 bg-[#F7F5EF] px-4 py-3 text-[15px] leading-7 text-[#111827] outline-none transition focus:border-[#4F7CFF]/50 focus:bg-white"
+                        placeholder="Edit your post..."
+                      />
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="text-[10px] text-[#8A8F98]">
+                          Editable for 24 hours after posting.
+                        </span>
+
+                        <div className="flex shrink-0 items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={cancelEditingPost}
+                            disabled={savingEdit}
+                            className="rounded-xl px-3 py-2 text-xs font-semibold text-[#5F6673] transition hover:bg-[#F1EFE8] hover:text-[#111827] disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleEditPost(post.id)}
+                            disabled={
+                              savingEdit ||
+                              !editingPostText.trim()
+                            }
+                            className="inline-flex items-center gap-2 rounded-xl bg-[#111827] px-4 py-2 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#1B2435] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {savingEdit ? (
+                              <Loader2
+                                size={13}
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <Edit3 size={13} />
+                            )}
+
+                            {savingEdit
+                              ? "Saving..."
+                              : "Save changes"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
+                  ) : (
+                    post.content && (
+                      <div className="px-4 pb-4 pt-4 sm:px-5">
+                        <p className="whitespace-pre-wrap text-[15px] leading-7 text-[#303846]">
+                          {post.content}
+                        </p>
+                      </div>
+                    )
                   )}
 
                   {/* MEDIA */}
