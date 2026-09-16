@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 
 function Navbar() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#0b1020]/80 backdrop-blur-2xl lg:ml-64">
+    <header className="sticky top-0 z-40 border-b border-[#202635]/[0.09] bg-[#faf8f3]/88 backdrop-blur-2xl lg:ml-64">
       <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
 
         {/* Mobile / tablet branding */}
@@ -49,7 +49,7 @@ function Navbar() {
             whileTap={{ scale: 0.92 }}
             type="button"
             aria-label="Notifications"
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.035] text-[#f7f3ea]/65 transition hover:bg-white/[0.07] hover:text-[#f7f3ea]"
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#202635]/[0.09] bg-white/[0.035] text-[#f7f3ea]/65 transition hover:bg-white/[0.07] hover:text-[#f7f3ea]"
           >
             <Bell size={18} />
 
@@ -59,7 +59,7 @@ function Navbar() {
           {/* Desktop profile */}
           <Link
             to="/settings"
-            className="hidden items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.035] px-2 py-1.5 transition hover:bg-white/[0.07] sm:flex"
+            className="hidden items-center gap-2 rounded-xl border border-[#202635]/[0.09] bg-white/[0.035] px-2 py-1.5 transition hover:bg-white/[0.07] sm:flex"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d9b86c] text-[10px] font-bold text-[#17130a]">
               ME

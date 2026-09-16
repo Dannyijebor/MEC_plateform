@@ -37,7 +37,7 @@ function MobileNav() {
   ]
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.08] bg-[#0b1020]/95 px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-2xl lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#202635]/[0.09] bg-[#faf8f3]/96 px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-2xl lg:hidden">
       <div className="mx-auto flex max-w-md items-center justify-around">
         {items.map(({ label, icon: Icon, to }) => (
           <NavLink

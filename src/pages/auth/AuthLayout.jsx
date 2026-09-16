@@ -4,13 +4,13 @@ import Fireflies from "../../components/effects/Fireflies"
 
 function AuthLayout() {
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-[#0b1020] text-[#f7f3ea]">
+    <div className="relative flex min-h-screen overflow-hidden bg-[#faf8f3] text-[#202635]">
       <Fireflies />
 
       <div className="relative z-10 flex min-h-screen w-full">
 
         {/* Branding panel */}
-        <section className="hidden w-1/2 flex-col justify-between border-r border-white/[0.06] bg-[#0b1020]/60 p-10 backdrop-blur-xl lg:flex xl:p-14">
+        <section className="hidden w-1/2 flex-col justify-between border-r border-[#202635]/[0.09] bg-[#faf8f3]/82 p-10 backdrop-blur-xl lg:flex xl:p-14">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d9b86c]/20 bg-[#d9b86c]/10">
               <Sparkles

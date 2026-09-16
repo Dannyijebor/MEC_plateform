@@ -282,7 +282,7 @@ function Call() {
   if (error) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.05] p-8 text-center backdrop-blur-xl">
+        <div className="w-full max-w-md rounded-3xl border border-[#202635]/[0.09] bg-white/[0.05] p-8 text-center backdrop-blur-xl">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-300">
             <Wifi size={28} />
           </div>
@@ -306,11 +306,11 @@ function Call() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-120px)] overflow-hidden rounded-3xl border border-white/10 bg-[#0b1020]/80 shadow-2xl">
+    <div className="relative min-h-[calc(100vh-120px)] overflow-hidden rounded-3xl border border-[#202635]/[0.09] bg-[#faf8f3]/92 shadow-2xl">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(217,184,108,0.12),transparent_35%)]" />
 
       <div className="relative flex min-h-[calc(100vh-120px)] flex-col">
-        <header className="flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6">
+        <header className="flex items-center justify-between border-b border-[#202635]/[0.09] px-4 py-4 sm:px-6">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-[#d9b86c]/70">
               MEC Call
@@ -321,7 +321,7 @@ function Call() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-white/65">
+          <div className="flex items-center gap-2 rounded-full border border-[#202635]/[0.09] bg-white/[0.05] px-3 py-1.5 text-xs text-white/65">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             {status}
           </div>
@@ -329,7 +329,7 @@ function Call() {
 
         <main className="relative flex flex-1 items-center justify-center p-4 sm:p-8">
           {mode === "video" ? (
-            <div className="relative h-full min-h-[420px] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-2xl">
+            <div className="relative h-full min-h-[420px] w-full max-w-5xl overflow-hidden rounded-3xl border border-[#202635]/[0.09] bg-black/40 shadow-2xl">
               <video
                 ref={remoteVideoRef}
                 autoPlay
@@ -338,7 +338,7 @@ function Call() {
               />
 
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/30">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full border border-[#202635]/[0.09] bg-white/[0.06] text-white/30">
                   <UserRound size={40} />
                 </div>
               </div>
@@ -376,14 +376,14 @@ function Call() {
           )}
         </main>
 
-        <footer className="flex items-center justify-center gap-3 border-t border-white/10 px-4 py-5 sm:gap-4">
+        <footer className="flex items-center justify-center gap-3 border-t border-[#202635]/[0.09] px-4 py-5 sm:gap-4">
           <button
             type="button"
             onClick={toggleMute}
             className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${
               muted
                 ? "border-red-400/30 bg-red-400/15 text-red-300"
-                : "border-white/10 bg-white/[0.07] text-white hover:bg-white/[0.12]"
+                : "border-[#202635]/[0.09] bg-white/[0.07] text-white hover:bg-white/[0.12]"
             }`}
             aria-label={muted ? "Unmute microphone" : "Mute microphone"}
           >
@@ -397,7 +397,7 @@ function Call() {
               className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${
                 cameraOff
                   ? "border-red-400/30 bg-red-400/15 text-red-300"
-                  : "border-white/10 bg-white/[0.07] text-white hover:bg-white/[0.12]"
+                  : "border-[#202635]/[0.09] bg-white/[0.07] text-white hover:bg-white/[0.12]"
               }`}
               aria-label={
                 cameraOff ? "Turn camera on" : "Turn camera off"

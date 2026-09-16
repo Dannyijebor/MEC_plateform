@@ -31,8 +31,8 @@ const clanNavigation = [
 
 function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 hidden lg:flex hidden w-64 border-r border-white/[0.06] bg-[#0b1020]/90 backdrop-blur-2xl lg:flex lg:flex-col">
-      <div className="flex h-16 items-center border-b border-white/[0.06] px-5">
+    <aside className="fixed inset-y-0 left-0 z-50 hidden lg:flex hidden w-64 border-r border-[#202635]/[0.09] bg-[#faf8f3]/92 backdrop-blur-2xl lg:flex lg:flex-col">
+      <div className="flex h-16 items-center border-b border-[#202635]/[0.09] px-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d9b86c] text-[#17130a]">
           <Sparkles size={18} />
         </div>
@@ -101,7 +101,7 @@ function Sidebar() {
         </nav>
       </div>
 
-      <div className="border-t border-white/[0.06] p-3">
+      <div className="border-t border-[#202635]/[0.09] p-3">
         <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#f7f3ea]/45 transition hover:bg-[#d9b86c]/[0.06] hover:text-white">
           <Bell size={17} />
           Notifications

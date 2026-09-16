@@ -9,7 +9,7 @@ import AppRoutes from "./routes/AppRoutes"
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen overflow-x-hidden bg-[#0b1020] text-[#f7f3ea]">
+      <div className="min-h-screen overflow-x-hidden bg-[#faf8f3] text-[#202635]">
         <Fireflies />
 
         <div className="relative z-10">
