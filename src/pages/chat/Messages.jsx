@@ -865,14 +865,53 @@ function Messages() {
                           animate={{ opacity: 1, y: 0 }}
                           className={`flex ${mine ? "justify-end" : "justify-start"}`}
                         >
-                          <div className="flex max-w-[80%] flex-col">
-                            <div
-                              className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                          <div className="relative flex max-w-[80%] flex-col">
+                            <button
+                              type="button"
+                              onClick={() => setShowMenuFor(showMenuFor === message.id ? null : message.id)}
+                              className={`text-left rounded-2xl px-4 py-2.5 text-sm shadow-sm transition ${
                                 mine ? theme.ownBubble : theme.otherBubble
                               }`}
                             >
+                              {message.reply_to_id && (() => {
+                                const original = messages.find((m) => m.id === message.reply_to_id)
+                                return (
+                                  <div className={`mb-2 rounded-lg border-l-2 border-l-current/40 px-2 py-1 text-[11px] opacity-70`}>
+                                    <p className="font-semibold">
+                                      {original?.sender_id === user?.id ? "You" : "Member"}
+                                    </p>
+                                    <p className="mt-0.5 line-clamp-2">
+                                      {original?.content || "Original message"}
+                                    </p>
+                                  </div>
+                                )
+                              })()}
                               <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                            </div>
+                              {message.edited_at && (
+                                <p className="mt-1 text-[10px] opacity-60">(edited)</p>
+                              )}
+                            </button>
+
+                            {showMenuFor === message.id && (
+                              <div className={`absolute ${mine ? "right-0" : "left-0"} top-full z-20 mt-1 flex items-center gap-1 rounded-xl border ${theme.headerBorder} ${theme.sidebar} p-1 shadow-lg`}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReplyingTo({
+                                      id: message.id,
+                                      content: message.content,
+                                      sender_id: message.sender_id,
+                                      sender_name: message.sender_id === user?.id ? "You" : "Member",
+                                    })
+                                    setShowMenuFor(null)
+                                    textareaRef.current?.focus()
+                                  }}
+                                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                                >
+                                  Reply
+                                </button>
+                              </div>
+                            )}
                             <span className={`mt-1 flex items-center gap-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "justify-end" : "justify-start"}`}>
                               <span>{formatTime(message.created_at)}</span>
                               {mine && (() => {
@@ -924,6 +963,26 @@ function Messages() {
                   <div className={`mb-2 text-center text-xs italic ${theme.textMuted}`}>
                     {typingUsers.map((u) => u.name).join(", ")}{" "}
                     {typingUsers.length === 1 ? "is" : "are"} typing...
+                  </div>
+                )}
+                {replyingTo && (
+                  <div className={`mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl border-l-4 border-l-[#d9b86c] ${theme.inputBg} px-3 py-2 ${theme.headerBorder} border`}>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${theme.iconAccent}`}>
+                        Replying to {replyingTo.sender_id === user?.id ? "yourself" : (replyingTo.sender_name || "member")}
+                      </p>
+                      <p className={`mt-0.5 truncate text-xs ${theme.textMuted}`}>
+                        {replyingTo.content}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setReplyingTo(null)}
+                      className={`shrink-0 rounded-lg p-1.5 ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                      aria-label="Cancel reply"
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
                 )}
                 <form onSubmit={handleSendMessage} className="mx-auto flex max-w-2xl items-end gap-2">
