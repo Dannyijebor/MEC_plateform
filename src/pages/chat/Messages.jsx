@@ -681,6 +681,48 @@ function Messages() {
                   <div className="mx-auto max-w-2xl space-y-3">
                     {messages.map((message) => {
                       const mine = message.sender_id === user?.id
+                      const isCallEvent = message.content?.startsWith("[MEC_CALL]")
+
+                      if (isCallEvent) {
+                        let callInfo = {}
+                        try {
+                          callInfo = JSON.parse(message.content.slice(10))
+                        } catch {}
+                        const isMissed = callInfo.status === "missed"
+                        const isAnswered = callInfo.status === "answered"
+                        const isDeclined = callInfo.status === "declined"
+                        const durationLabel =
+                          isAnswered && callInfo.duration
+                            ? ` · ${Math.floor(callInfo.duration / 60)}:${String(callInfo.duration % 60).padStart(2, "0")}`
+                            : ""
+                        return (
+                          <motion.div
+                            key={message.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex justify-center py-2"
+                          >
+                            <div
+                              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium ${theme.headerBorder} ${theme.sidebar} ${theme.textMuted}`}
+                            >
+                              <span>{callInfo.mode === "video" ? "📹" : "📞"}</span>
+                              <span>
+                                {isMissed
+                                  ? "Missed call"
+                                  : isDeclined
+                                    ? "Declined call"
+                                    : isAnswered
+                                      ? "Call ended"
+                                      : "Call"}
+                              </span>
+                              <span className={isMissed ? "text-red-400" : theme.textFaint}>
+                                {callInfo.mode === "video" ? "video" : "audio"}
+                                {durationLabel}
+                              </span>
+                            </div>
+                          </motion.div>
+                        )
+                      }
                       return (
                         <motion.div
                           key={message.id}
