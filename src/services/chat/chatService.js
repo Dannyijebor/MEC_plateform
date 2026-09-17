@@ -99,48 +99,48 @@ export async function unsubscribeFromConversation(channel) {
 }
 
 export async function getOrCreateConversation(currentUserId, targetUserId) {
-  const { data: existing, error } = await supabase
-    .from("conversation_participants")
-    .select(`
-      conversation_id,
-      conversations!inner(type)
-    `)
+  // 1. Check if a direct conversation already exists
+  const { data: existing } = await supabase
+    .from("conversation_members")
+    .select("conversation_id, conversations!inner(type)")
     .eq("user_id", currentUserId)
     .eq("conversations.type", "direct")
 
-  if (error) throw error
-
   if (existing && existing.length > 0) {
     const conversationIds = existing.map((c) => c.conversation_id)
-    
+
     const { data: match } = await supabase
-      .from("conversation_participants")
+      .from("conversation_members")
       .select("conversation_id")
       .eq("user_id", targetUserId)
       .in("conversation_id", conversationIds)
-      .single()
+      .maybeSingle()
 
-    if (match) {
-      return match.conversation_id 
-    }
+    if (match) return match.conversation_id
   }
 
-  const { data: newConv, error: createError } = await supabase
+  // 2. Create new conversation with client-generated UUID
+  const newId = crypto.randomUUID()
+
+  const { error: createError } = await supabase
     .from("conversations")
-    .insert({ type: "direct" })
-    .select()
-    .single()
+    .insert({
+      id: newId,
+      type: "direct",
+      created_by: currentUserId,
+    })
 
   if (createError) throw createError
 
-  const { error: participantError } = await supabase
-    .from("conversation_participants")
+  // 3. Add both users as members
+  const { error: memberError } = await supabase
+    .from("conversation_members")
     .insert([
-      { conversation_id: newConv.id, user_id: currentUserId },
-      { conversation_id: newConv.id, user_id: targetUserId }
+      { conversation_id: newId, user_id: currentUserId },
+      { conversation_id: newId, user_id: targetUserId },
     ])
 
-  if (participantError) throw participantError
+  if (memberError) throw memberError
 
-  return newConv.id
+  return newId
 }
