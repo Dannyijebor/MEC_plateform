@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock } from "lucide-react"
+import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import SwipeableBubble from "../../components/chat/SwipeableBubble"
 import MessageActionMenu from "../../components/chat/MessageActionMenu"
+import NewChatModal from "../../components/chat/NewChatModal"
 import { useAuth } from "../../hooks/useAuth"
 import { useOnlineUsers } from "../../context/PresenceContext"
 import { supabase } from "../../lib/supabase"
@@ -275,6 +276,7 @@ function Messages() {
   const [replyingTo, setReplyingTo] = useState(null)
   const [editingMessage, setEditingMessage] = useState(null)
   const [reactions, setReactions] = useState({})
+  const [showNewChatModal, setShowNewChatModal] = useState(false)
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
   const [typingUsers, setTypingUsers] = useState([])
@@ -715,6 +717,15 @@ function Messages() {
                   title="Call history"
                 >
                   <Clock size={17} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewChatModal(true)}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.accentBg} text-white shadow-lg transition hover:opacity-90`}
+                  aria-label="New chat"
+                  title="Start new chat"
+                >
+                  <Plus size={18} />
                 </button>
                 <ThemePicker current={themeKey} onChange={setThemeKey} />
               </div>
@@ -1244,6 +1255,21 @@ function Messages() {
         call={incomingCall}
         onAccept={handleAcceptIncoming}
         onDecline={handleDeclineIncoming}
+      />
+
+      <NewChatModal
+        open={showNewChatModal}
+        onClose={() => setShowNewChatModal(false)}
+        onStartConversation={async (conversationId) => {
+          try {
+            const data = await getMyConversations(user.id)
+            setConversations(data || [])
+            const target = (data || []).find((c) => c.id === conversationId)
+            if (target) setSelectedConversation(target)
+          } catch (err) {
+            console.warn("Refresh failed:", err)
+          }
+        }}
       />
 
       {showMenuFor && (() => {
