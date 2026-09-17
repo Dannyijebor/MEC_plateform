@@ -188,38 +188,3 @@ export async function getOrCreateConversation(currentUserId, targetUserId) {
 
   return newId
 }
-
-/**
- * Log a call event as a special system message in the conversation.
- * These messages render differently and auto-expire after 24 hours.
- */
-export async function logCallEvent({
-  conversationId,
-  callerId,
-  callerName,
-  status, // "missed" | "declined" | "answered" | "ended"
-  mode,   // "audio" | "video"
-  durationSeconds = 0,
-}) {
-  const payload = JSON.stringify({
-    status,
-    mode,
-    callerName,
-    duration: durationSeconds,
-  })
-
-  const { data, error } = await supabase
-    .from("messages")
-    .insert({
-      conversation_id: conversationId,
-      sender_id: callerId,
-      content: `[MEC_CALL]${payload}`,
-      type: "call_event",
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
