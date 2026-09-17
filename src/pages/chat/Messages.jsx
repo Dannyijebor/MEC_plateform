@@ -875,11 +875,21 @@ function Messages() {
                             >
                               {message.reply_to_id && (() => {
                                 const original = messages.find((m) => m.id === message.reply_to_id)
+                                if (!original) return null
+                                let name = "MEC Member"
+                                if (original.sender_id === user?.id) {
+                                  name = "You"
+                                } else {
+                                  const member = (selectedConversation?.conversation_members || []).find(
+                                    (m) => m?.user_id === original.sender_id
+                                  )
+                                  name = member?.profiles?.full_name
+                                    || member?.profiles?.username
+                                    || "MEC Member"
+                                }
                                 return (
-                                  <div className={`mb-2 rounded-lg border-l-2 border-l-current/40 px-2 py-1 text-[11px] opacity-70`}>
-                                    <p className="font-semibold">
-                                      {original?.sender_id === user?.id ? "You" : "Member"}
-                                    </p>
+                                  <div className="mb-2 rounded-lg border-l-2 border-l-current/40 px-2 py-1 text-[11px] opacity-70">
+                                    <p className="font-semibold">{name}</p>
                                     <p className="mt-0.5 line-clamp-2">
                                       {original?.content || "Original message"}
                                     </p>
@@ -901,7 +911,6 @@ function Messages() {
                                       id: message.id,
                                       content: message.content,
                                       sender_id: message.sender_id,
-                                      sender_name: message.sender_id === user?.id ? "You" : "Member",
                                     })
                                     setShowMenuFor(null)
                                     textareaRef.current?.focus()
@@ -969,7 +978,15 @@ function Messages() {
                   <div className={`mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl border-l-4 border-l-[#d9b86c] ${theme.inputBg} px-3 py-2 ${theme.headerBorder} border`}>
                     <div className="min-w-0 flex-1">
                       <p className={`text-[10px] font-bold uppercase tracking-wider ${theme.iconAccent}`}>
-                        Replying to {replyingTo.sender_id === user?.id ? "yourself" : (replyingTo.sender_name || "member")}
+                        Replying to {(() => {
+                          if (replyingTo.sender_id === user?.id) return "yourself"
+                          const member = (selectedConversation?.conversation_members || []).find(
+                            (m) => m?.user_id === replyingTo.sender_id
+                          )
+                          return member?.profiles?.full_name
+                            || member?.profiles?.username
+                            || "MEC Member"
+                        })()}
                       </p>
                       <p className={`mt-0.5 truncate text-xs ${theme.textMuted}`}>
                         {replyingTo.content}
