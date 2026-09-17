@@ -858,7 +858,7 @@ function Community() {
         >
           <div className="p-4 sm:p-5">
             <div className="flex gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#C9A85C]/25 bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+              <div onClick={() => setViewingProfileId(post.author_id)} className="cursor-pointer flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#C9A85C]/25 bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
                 {user?.user_metadata?.avatar_url ? (
                   <img
                     src={user.user_metadata.avatar_url}
