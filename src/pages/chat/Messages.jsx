@@ -18,6 +18,8 @@ import {
   sendReplyMessage,
   editMessage,
   deleteMessage,
+  getReactionsForMessages,
+  toggleReaction,
 } from "../../services/chat/chatService"
 import {
   broadcastCallCancelled,
@@ -272,6 +274,7 @@ function Messages() {
   const [incomingCall, setIncomingCall] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
   const [editingMessage, setEditingMessage] = useState(null)
+  const [reactions, setReactions] = useState({})
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
   const [typingUsers, setTypingUsers] = useState([])
@@ -436,6 +439,26 @@ function Messages() {
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // Load reactions whenever messages change
+  useEffect(() => {
+    if (!messages || messages.length === 0) {
+      setReactions({})
+      return
+    }
+    const ids = messages.map((m) => m.id)
+    let cancelled = false
+    getReactionsForMessages(ids)
+      .then((grouped) => {
+        if (!cancelled) setReactions(grouped || {})
+      })
+      .catch((err) => {
+        console.warn("Failed to load reactions:", err)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [messages])
 
   // Subscribe to incoming call invites (safe, never crashes)
