@@ -1605,12 +1605,13 @@ function Community() {
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-      <UserProfileModal
+          <UserProfileModal
         userId={viewingProfileId}
         onClose={() => setViewingProfileId(null)}
       />
+</div>
+  )
+}
+
+      
 export default Community// Deploy: Thu Sep 17 11:24:42 WAT 2026
