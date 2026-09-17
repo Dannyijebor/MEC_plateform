@@ -1199,7 +1199,7 @@ function Messages() {
                   </div>
                 )}
                 <form onSubmit={handleSendMessage} className="mx-auto flex max-w-2xl items-end gap-2">
-                  <div className={`flex flex-1 items-end gap-2 rounded-2xl border ${theme.inputBorder} ${theme.inputBg} p-2`}>
+                  <div className={`flex flex-1 items-end gap-2 rounded-2xl border ${theme.inputBorder} ${theme.inputBg} p-2 focus-within:ring-0 focus-within:outline-none`}>
                     <textarea
                       ref={textareaRef}
                       value={messageText}
@@ -1219,7 +1219,7 @@ function Messages() {
                       onKeyDown={handleKeyDown}
                       rows={1}
                       placeholder="Write a message..."
-                      className={`max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm ${theme.text} outline-none placeholder:${theme.textFaint}`}
+                      className={`max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm ${theme.text} outline-none focus:outline-none focus:ring-0 focus:border-transparent appearance-none`}
                     />
                   </div>
                   <button
