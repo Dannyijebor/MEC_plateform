@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { useAuth } from "../../hooks/useAuth"
 import {
   getMyConversations,
@@ -272,6 +273,17 @@ function Messages() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
   const [incomingCall, setIncomingCall] = useState(null)
+
+  const handleAcceptIncoming = () => {
+    if (!incomingCall) return
+    const { conversationId, mode } = incomingCall
+    setIncomingCall(null)
+    navigate(`/calls?conversation=${conversationId}&mode=${mode}`)
+  }
+
+  const handleDeclineIncoming = () => {
+    setIncomingCall(null)
+  }
 
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
@@ -720,6 +732,12 @@ function Messages() {
           )}
         </main>
       </div>
+
+      <IncomingCallPopup
+        call={incomingCall}
+        onAccept={handleAcceptIncoming}
+        onDecline={handleDeclineIncoming}
+      />
     </div>
   )
 }
