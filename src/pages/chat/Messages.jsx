@@ -328,7 +328,15 @@ function Messages() {
     }
     loadMessages()
 
+    // Mark incoming messages as read (when opening the chat)
+    if (user?.id) {
+      markConversationAsRead(selectedConversation.id, user.id).catch((err) => {
+        console.warn("markConversationAsRead failed:", err)
+      })
+    }
+
     let unsubscribe
+    let updateChannel
     try {
       if (typeof subscribeToConversation === "function") {
         unsubscribe = subscribeToConversation(
@@ -338,14 +346,45 @@ function Messages() {
               if (current.some((m) => m.id === newMsg.id)) return current
               return [...current, newMsg]
             })
+
+            // If it's from the other person, mark as read
+            if (newMsg.sender_id !== user?.id && user?.id) {
+              markConversationAsRead(selectedConversation.id, user.id).catch(() => {})
+            }
           }
         )
       }
+
+      // Subscribe to UPDATE events so tick marks update live
+      updateChannel = supabase
+        .channel(`messages-update:${selectedConversation.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "messages",
+            filter: `conversation_id=eq.${selectedConversation.id}`,
+          },
+          (payload) => {
+            const updated = payload.new
+            if (!updated) return
+            setMessages((current) =>
+              current.map((m) =>
+                m.id === updated.id ? { ...m, ...updated } : m
+              )
+            )
+          }
+        )
+        .subscribe()
     } catch (err) {
       console.warn("Realtime not available:", err)
     }
-    return () => unsubscribe?.()
-  }, [selectedConversation, loadMessages])
+    return () => {
+      try { unsubscribe?.() } catch {}
+      try { if (updateChannel) supabase.removeChannel(updateChannel) } catch {}
+    }
+  }, [selectedConversation, loadMessages, user])
 
   // Typing indicator subscription
   useEffect(() => {
