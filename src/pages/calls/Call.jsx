@@ -59,6 +59,7 @@ export default function Call() {
   const [error, setError] = useState("")
   const [connected, setConnected] = useState(false)
   const [otherUser, setOtherUser] = useState(null)
+  const [callEnded, setCallEnded] = useState(false)
 
   // ---------- Fetch other user's profile ----------
   useEffect(() => {
@@ -194,8 +195,9 @@ export default function Call() {
           },
           onEnded: () => {
             setStatus("Call ended")
+            setCallEnded(true)
             cleanup()
-            setTimeout(() => navigate("/messages"), 800)
+            setTimeout(() => navigate("/messages"), 1500)
           },
         })
 
@@ -265,9 +267,12 @@ export default function Call() {
   async function hangUp() {
     try {
       await endCall(channelRef.current, "hangup")
-    } catch {}
+    } catch (err) {
+      console.warn("Failed to broadcast hangup:", err)
+    }
+    setCallEnded(true)
     cleanup()
-    navigate("/messages")
+    setTimeout(() => navigate("/messages"), 800)
   }
 
   if (error) {
@@ -281,6 +286,19 @@ export default function Call() {
         >
           Back to messages
         </button>
+      </div>
+    )
+  }
+
+  // Show "Call ended" screen briefly
+  if (callEnded) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0b1020] text-white">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-500/15">
+          <PhoneOff size={32} className="text-red-400" />
+        </div>
+        <p className="mt-5 text-xl font-semibold">Call ended</p>
+        <p className="mt-1 text-sm text-white/50">Returning to messages...</p>
       </div>
     )
   }

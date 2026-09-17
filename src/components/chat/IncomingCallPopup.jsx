@@ -27,12 +27,18 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
 
     if ("vibrate" in navigator) navigator.vibrate([300, 200, 300, 200, 300])
 
+    // Auto-dismiss after 30 seconds
+    const autoDismissTimer = setTimeout(() => {
+      onDecline?.()
+    }, 30000)
+
     return () => {
       stopped = true
+      clearTimeout(autoDismissTimer)
       ctx.close().catch(() => {})
       if ("vibrate" in navigator) navigator.vibrate(0)
     }
-  }, [call])
+  }, [call, onDecline])
 
   return (
     <AnimatePresence>
