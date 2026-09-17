@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { Phone, PhoneOff, Video, UserRound } from "lucide-react"
+import { Phone, PhoneOff, Video, UserRound, Volume2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function IncomingCallPopup({ call, onAccept, onDecline }) {
@@ -27,7 +27,6 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
 
     if ("vibrate" in navigator) navigator.vibrate([300, 200, 300, 200, 300])
 
-    // Auto-dismiss after 30 seconds
     const autoDismissTimer = setTimeout(() => {
       onDecline?.()
     }, 30000)
@@ -44,53 +43,125 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
     <AnimatePresence>
       {call && (
         <motion.div
-          initial={{ opacity: 0, y: -20, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.96 }}
-          className="fixed left-1/2 top-4 z-[200] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-3xl border border-[#d9b86c]/30 bg-[#0b1020]/95 p-5 shadow-2xl backdrop-blur-xl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[200] flex items-start justify-center bg-black/40 px-4 pt-4 backdrop-blur-md sm:pt-6"
         >
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#d9b86c]/30 bg-[#d9b86c]/10 text-xl font-bold text-[#d9b86c]">
-              {call.callerAvatar ? (
-                <img src={call.callerAvatar} alt="" className="h-full w-full object-cover" />
-              ) : (
-                call.callerName?.charAt(0) || <UserRound size={24} />
-              )}
-            </div>
+          <motion.div
+            initial={{ y: -60, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -40, opacity: 0, scale: 0.95 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 28,
+              mass: 0.9,
+            }}
+            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_30px_80px_-10px_rgba(0,0,0,0.35)]"
+          >
+            {/* Gold accent line at top */}
+            <div className="h-1 w-full bg-gradient-to-r from-transparent via-[#d9b86c] to-transparent" />
 
-            <div className="min-w-0 flex-1">
+            {/* Blurred background using caller avatar */}
+            {call.callerAvatar && (
+              <div
+                className="absolute inset-0 scale-125 opacity-10 blur-3xl"
+                style={{
+                  backgroundImage: `url(${call.callerAvatar})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            )}
+
+            <div className="relative px-6 pt-6 pb-5">
+              {/* Header row */}
               <div className="flex items-center gap-2">
                 {call.mode === "video" ? (
-                  <Video size={14} className="text-[#d9b86c]" />
+                  <Video size={13} className="text-[#a8873f]" />
                 ) : (
-                  <Phone size={14} className="text-[#d9b86c]" />
+                  <Phone size={13} className="text-[#a8873f]" />
                 )}
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#d9b86c]">
-                  Incoming {call.mode === "video" ? "video" : "audio"} call
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a8873f]">
+                  Incoming {call.mode === "video" ? "video call" : "call"}
+                </p>
+                <Volume2 size={12} className="ml-auto text-gray-300" />
+              </div>
+
+              {/* Avatar with pulsing rings */}
+              <div className="mt-5 flex justify-center">
+                <div className="relative flex h-28 w-28 items-center justify-center">
+                  <motion.div
+                    animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                    className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/60"
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
+                    className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/40"
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#f1e7cc] shadow-[0_10px_40px_-10px_rgba(217,184,108,0.6)]"
+                  >
+                    {call.callerAvatar ? (
+                      <img
+                        src={call.callerAvatar}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl font-bold text-[#a8873f]">
+                        {call.callerName?.charAt(0) || <UserRound size={32} />}
+                      </span>
+                    )}
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Caller info */}
+              <div className="mt-5 text-center">
+                <p className="text-xl font-semibold tracking-tight text-gray-900">
+                  {call.callerName || "MEC Member"}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  is calling you...
                 </p>
               </div>
-              <p className="mt-1 truncate text-sm font-semibold text-white">
-                {call.callerName || "MEC Member"}
-              </p>
-            </div>
-          </div>
 
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={onDecline}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-500/15 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500/25"
-            >
-              <PhoneOff size={16} />
-              Decline
-            </button>
-            <button
-              onClick={onAccept}
-              className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3 text-sm font-bold text-white transition hover:bg-emerald-600"
-            >
-              <Phone size={16} />
-              Accept
-            </button>
-          </div>
+              {/* Buttons */}
+              <div className="mt-7 flex items-center gap-3">
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={onDecline}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-50 py-3.5 text-sm font-semibold text-red-500 transition hover:bg-red-100"
+                >
+                  <PhoneOff size={17} />
+                  Decline
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={onAccept}
+                  animate={{
+                    boxShadow: [
+                      "0 0 0 0 rgba(16,185,129,0.5)",
+                      "0 0 0 12px rgba(16,185,129,0)",
+                      "0 0 0 0 rgba(16,185,129,0.5)",
+                    ],
+                  }}
+                  transition={{ duration: 1.6, repeat: Infinity }}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-3.5 text-sm font-bold text-white transition hover:bg-emerald-600"
+                >
+                  <Phone size={17} />
+                  Accept
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
