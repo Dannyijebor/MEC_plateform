@@ -1,8 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
-  ArrowUpRight,
-  Bell,
-  BriefcaseBusiness,
   CalendarDays,
   Camera,
   Check,
@@ -10,16 +7,13 @@ import {
   Edit3,
   Globe2,
   Heart,
-  Link2,
+  Loader2,
   Mail,
   MapPin,
   MessageCircle,
-  MoreHorizontal,
-  Pencil,
   Phone,
   Save,
-  Settings,
-  Shield,
+  ShieldCheck,
   Sparkles,
   User,
   Users,
@@ -44,82 +38,124 @@ function getInitials(name) {
 function formatDate(date) {
   if (!date) return "Recently"
 
+  const parsed = new Date(date)
+
+  if (Number.isNaN(parsed.getTime())) return "Recently"
+
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     year: "numeric",
-  }).format(new Date(date))
+  }).format(parsed)
 }
 
 function Profile() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const fileInputRef = useRef(null)
 
-  const metadata = user?.user_metadata || {}
-
+  const [profile, setProfile] = useState(null)
+  const [form, setForm] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [showMore, setShowMore] = useState(false)
-  const [message, setMessage] = useState("")
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [error, setError] = useState("")
-
-  const [form, setForm] = useState({
-    fullName: metadata.full_name || "",
-    bio: metadata.bio || "",
-    phone: metadata.phone || "",
-    location: metadata.location || "",
-    occupation: metadata.occupation || "",
-    website: metadata.website || "",
-    instagram: metadata.instagram || "",
-    linkedin: metadata.linkedin || "",
-    interests: metadata.interests || "",
-  })
+  const [message, setMessage] = useState("")
 
   useEffect(() => {
-    const current = user?.user_metadata || {}
+    if (!user) return
 
-    setForm({
-      fullName: current.full_name || "",
-      bio: current.bio || "",
-      phone: current.phone || "",
-      location: current.location || "",
-      occupation: current.occupation || "",
-      website: current.website || "",
-      instagram: current.instagram || "",
-      linkedin: current.linkedin || "",
-      interests: current.interests || "",
-    })
+    let mounted = true
+
+    async function loadProfile() {
+      setLoading(true)
+      setError("")
+
+      const { data, error: profileError } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          username,
+          avatar_url,
+          bio,
+          phone,
+          location,
+          role,
+          is_active,
+          created_at,
+          updated_at
+        `)
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (!mounted) return
+
+      if (profileError) {
+        console.error("Unable to load profile:", profileError)
+        setError(
+          profileError.message || "Unable to load your profile."
+        )
+        setLoading(false)
+        return
+      }
+
+      if (!data) {
+        setError(
+          "Your MEC profile could not be found. Please sign out and sign in again."
+        )
+        setLoading(false)
+        return
+      }
+
+      setProfile(data)
+      setForm({
+        fullName: data.full_name || "",
+        username: data.username || "",
+        bio: data.bio || "",
+        phone: data.phone || "",
+        location: data.location || "",
+      })
+
+      setLoading(false)
+    }
+
+    loadProfile()
+
+    return () => {
+      mounted = false
+    }
   }, [user])
 
+  const displayName =
+    form?.fullName?.trim() ||
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    "MEC Member"
+
   const initials = useMemo(
-    () => getInitials(form.fullName || metadata.full_name),
-    [form.fullName, metadata.full_name]
+    () => getInitials(displayName),
+    [displayName]
   )
 
-  const displayName =
-    form.fullName || metadata.full_name || "MEC Member"
-
-  const profileFields = [
-    form.fullName,
-    form.bio,
-    form.phone,
-    form.location,
-    form.occupation,
+  const completionFields = [
+    profile?.full_name,
+    profile?.username,
+    profile?.avatar_url,
+    profile?.bio,
+    profile?.phone,
+    profile?.location,
   ]
 
-  const completion = Math.min(
-    100,
-    Math.round(
-      (profileFields.filter(Boolean).length / profileFields.length) * 100
-    )
+  const completion = Math.round(
+    (completionFields.filter(Boolean).length /
+      completionFields.length) *
+      100
   )
 
-  const interests = form.interests
-    ? form.interests
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 8)
-    : []
+  const roleLabel = profile?.role
+    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+    : "Member"
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -131,25 +167,18 @@ function Profile() {
   }
 
   const startEditing = () => {
-    setMessage("")
     setError("")
-    setShowMore(false)
+    setMessage("")
     setEditing(true)
   }
 
   const cancelEditing = () => {
-    const current = user?.user_metadata || {}
-
     setForm({
-      fullName: current.full_name || "",
-      bio: current.bio || "",
-      phone: current.phone || "",
-      location: current.location || "",
-      occupation: current.occupation || "",
-      website: current.website || "",
-      instagram: current.instagram || "",
-      linkedin: current.linkedin || "",
-      interests: current.interests || "",
+      fullName: profile?.full_name || "",
+      username: profile?.username || "",
+      bio: profile?.bio || "",
+      phone: profile?.phone || "",
+      location: profile?.location || "",
     })
 
     setError("")
@@ -160,793 +189,769 @@ function Profile() {
   const handleSave = async (event) => {
     event.preventDefault()
 
+    if (!user || !form) return
+
     setError("")
     setMessage("")
 
-    if (!form.fullName.trim()) {
+    const fullName = form.fullName.trim()
+    const username = form.username.trim().toLowerCase()
+
+    if (!fullName) {
       setError("Your full name is required.")
+      return
+    }
+
+    if (username && !/^[a-z0-9._-]{3,30}$/.test(username)) {
+      setError(
+        "Username must be 3–30 characters and use only letters, numbers, dots, underscores, or hyphens."
+      )
       return
     }
 
     setSaving(true)
 
-    const { data, error: updateError } =
-      await supabase.auth.updateUser({
-        data: {
-          full_name: form.fullName.trim(),
-          bio: form.bio.trim(),
-          phone: form.phone.trim(),
-          location: form.location.trim(),
-          occupation: form.occupation.trim(),
-          website: form.website.trim(),
-          instagram: form.instagram.trim(),
-          linkedin: form.linkedin.trim(),
-          interests: form.interests.trim(),
-        },
+    const { data, error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        full_name: fullName,
+        username: username || null,
+        bio: form.bio.trim() || null,
+        phone: form.phone.trim() || null,
+        location: form.location.trim() || null,
       })
+      .eq("id", user.id)
+      .select(`
+        id,
+        full_name,
+        username,
+        avatar_url,
+        bio,
+        phone,
+        location,
+        role,
+        is_active,
+        created_at,
+        updated_at
+      `)
+      .single()
 
     setSaving(false)
 
     if (updateError) {
+      if (
+        updateError.code === "23505" ||
+        updateError.message?.toLowerCase().includes("username")
+      ) {
+        setError("That username is already taken.")
+      } else {
+        setError(
+          updateError.message || "Unable to update your profile."
+        )
+      }
+
+      return
+    }
+
+    setProfile(data)
+    setForm({
+      fullName: data.full_name || "",
+      username: data.username || "",
+      bio: data.bio || "",
+      phone: data.phone || "",
+      location: data.location || "",
+    })
+
+    setEditing(false)
+    setMessage("Profile updated successfully.")
+  }
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0]
+
+    event.target.value = ""
+
+    if (!file || !user) return
+
+    setError("")
+    setMessage("")
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      setError("Please choose a JPG, PNG, WebP, or GIF image.")
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Profile pictures must be smaller than 5 MB.")
+      return
+    }
+
+    setUploadingAvatar(true)
+
+    const extension =
+      file.name.split(".").pop()?.toLowerCase() || "jpg"
+
+    const path = `${user.id}/profile-${Date.now()}.${extension}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-avatars")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      })
+
+    if (uploadError) {
+      console.error("Avatar upload failed:", uploadError)
+      setUploadingAvatar(false)
       setError(
-        updateError.message || "Unable to update your profile."
+        uploadError.message || "Unable to upload your profile picture."
       )
       return
     }
 
-    if (data?.user) {
-      setMessage("Profile updated successfully.")
+    const {
+      data: { publicUrl },
+    } = supabase.storage
+      .from("profile-avatars")
+      .getPublicUrl(path)
+
+    const { data, error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: publicUrl,
+      })
+      .eq("id", user.id)
+      .select(`
+        id,
+        full_name,
+        username,
+        avatar_url,
+        bio,
+        phone,
+        location,
+        role,
+        is_active,
+        created_at,
+        updated_at
+      `)
+      .single()
+
+    if (updateError) {
+      console.error("Unable to save avatar URL:", updateError)
+
+      await supabase.storage
+        .from("profile-avatars")
+        .remove([path])
+
+      setUploadingAvatar(false)
+      setError(
+        updateError.message ||
+          "The picture uploaded but could not be attached to your profile."
+      )
+      return
     }
 
-    setEditing(false)
+    setProfile(data)
+    setUploadingAvatar(false)
+    setMessage("Profile picture updated.")
   }
 
-  if (!user) return null
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] w-full max-w-6xl items-center justify-center">
+        <div className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white px-5 py-4 shadow-sm">
+          <Loader2 className="animate-spin" size={20} />
+          <span className="text-sm font-medium">
+            Loading your profile…
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user || !profile || !form) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] w-full max-w-3xl items-center justify-center px-4">
+        <div className="w-full rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
+          <p className="font-semibold text-red-900">
+            {error || "Unable to load your profile."}
+          </p>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-5 rounded-xl bg-[#202635] px-5 py-3 text-sm font-semibold text-white"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl pb-32">
-      {/* =========================================================
-          PROFILE HERO
-      ========================================================== */}
-      <section className="relative overflow-hidden rounded-[28px] border border-black/[0.06] bg-[#171b28] shadow-[0_20px_70px_rgba(32,38,53,0.12)]">
-        {/* ambient lights */}
-        <div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-[#d9b86c]/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 left-10 h-72 w-72 rounded-full bg-[#6575ff]/15 blur-3xl" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_28%),linear-gradient(120deg,transparent,rgba(217,184,108,0.05))]" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleAvatarChange}
+      />
 
-        <div className="relative px-5 pb-6 pt-6 sm:px-8 sm:pb-8">
-          {/* top controls */}
-          <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.05] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f7f3ea]/55">
-              <Sparkles size={13} className="text-[#d9b86c]" />
-              MEC identity
+      {/* HERO */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-[#151923] text-white shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.12),transparent_30%),radial-gradient(circle_at_85%_0%,rgba(255,255,255,0.08),transparent_30%)]" />
+
+        <div className="relative px-5 pb-7 pt-7 sm:px-8 sm:pb-9 sm:pt-9 lg:px-10">
+          <div className="flex items-start justify-between gap-4">
+            <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur">
+              MEC PROFILE
             </div>
 
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowMore((value) => !value)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.05] text-white/55 transition hover:bg-white/[0.09] hover:text-white"
-                aria-label="More profile options"
-              >
-                <MoreHorizontal size={18} />
-              </button>
-
-              {showMore && (
-                <div className="absolute right-0 top-12 z-30 w-48 overflow-hidden rounded-2xl border border-black/[0.08] bg-white p-1.5 shadow-2xl">
-                  <button
-                    type="button"
-                    onClick={startEditing}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-[#202635] transition hover:bg-black/[0.04]"
-                  >
-                    <Pencil size={15} />
-                    Edit profile
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/settings")}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-[#202635] transition hover:bg-black/[0.04]"
-                  >
-                    <Settings size={15} />
-                    Settings
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={editing ? cancelEditing : startEditing}
+              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3.5 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/15"
+            >
+              {editing ? <X size={16} /> : <Edit3 size={16} />}
+              <span className="hidden sm:inline">
+                {editing ? "Cancel" : "Edit profile"}
+              </span>
+            </button>
           </div>
 
-          {/* identity */}
-          <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end">
-            <div className="relative shrink-0 self-center sm:self-auto">
-              <div className="flex h-28 w-28 items-center justify-center rounded-[32px] border border-white/10 bg-gradient-to-br from-[#2d3448] to-[#111521] text-3xl font-bold text-[#d9b86c] shadow-2xl sm:h-32 sm:w-32 sm:text-4xl">
-                {initials}
+          <div className="mt-9 flex flex-col gap-6 sm:flex-row sm:items-end">
+            <div className="relative shrink-0">
+              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2rem] border-4 border-white/15 bg-white/10 text-3xl font-bold shadow-2xl sm:h-32 sm:w-32">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  initials
+                )}
               </div>
 
               <button
-                type="button"
-                onClick={startEditing}
-                className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-4 border-[#171b28] bg-[#d9b86c] text-[#17130a] shadow-lg transition hover:scale-105"
-                aria-label="Change profile photo"
+                onClick={handleAvatarClick}
+                disabled={uploadingAvatar}
+                aria-label="Change profile picture"
+                className="absolute -bottom-2 -right-2 flex h-11 w-11 items-center justify-center rounded-2xl border-4 border-[#151923] bg-white text-[#202635] shadow-lg transition hover:scale-105 disabled:opacity-60"
               >
-                <Camera size={16} />
+                {uploadingAvatar ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Camera size={18} />
+                )}
               </button>
-
-              <div className="absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-[#171b28] bg-emerald-400" />
             </div>
 
-            <div className="min-w-0 flex-1 text-center sm:text-left">
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
                   {displayName}
                 </h1>
 
-                <div className="flex h-6 items-center gap-1 rounded-full bg-[#d9b86c]/15 px-2.5 text-[10px] font-bold uppercase tracking-wide text-[#d9b86c]">
-                  <Check size={11} />
-                  Member
-                </div>
-              </div>
-
-              <p className="mt-2 text-sm text-white/45">
-                {form.occupation || "MEC family member"}
-                {form.location ? ` · ${form.location}` : ""}
-              </p>
-
-              <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-white/55">
-                  <Mail size={13} />
-                  <span className="max-w-[220px] truncate">
-                    {user.email}
+                {profile.is_active && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                    Active
                   </span>
-                </div>
-
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/10 bg-emerald-400/[0.06] px-3 py-1.5 text-xs text-emerald-300/80">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Active
-                </div>
+                )}
               </div>
-            </div>
 
-            <div className="flex justify-center sm:justify-end">
-              {!editing && (
-                <button
-                  type="button"
-                  onClick={startEditing}
-                  className="flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#202635] transition hover:bg-[#f5f1e8]"
-                >
-                  <Edit3 size={16} />
-                  Edit profile
-                </button>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/60">
+                {profile.username && (
+                  <span>@{profile.username}</span>
+                )}
+
+                <span>{roleLabel}</span>
+
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays size={14} />
+                  Joined {formatDate(profile.created_at)}
+                </span>
+              </div>
+
+              {profile.bio && !editing && (
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
+                  {profile.bio}
+                </p>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* =========================================================
-          QUICK STATS
-      ========================================================== */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <Users size={18} className="text-[#b99543]" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#202635]/25">
-              Family
-            </span>
-          </div>
-          <p className="mt-4 text-2xl font-bold text-[#202635]">MEC</p>
-          <p className="mt-1 text-xs text-[#202635]/40">
-            Community
-          </p>
+      {/* STATUS */}
+      {(message || error) && (
+        <div
+          className={`mt-4 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm ${
+            error
+              ? "border-red-200 bg-red-50 text-red-800"
+              : "border-emerald-200 bg-emerald-50 text-emerald-800"
+          }`}
+        >
+          {error ? <X size={18} /> : <Check size={18} />}
+          <span className="flex-1">{error || message}</span>
         </div>
+      )}
 
-        <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <Zap size={18} className="text-[#b99543]" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#202635]/25">
-              Status
-            </span>
-          </div>
-          <p className="mt-4 text-2xl font-bold text-[#202635]">
-            Active
-          </p>
-          <p className="mt-1 text-xs text-[#202635]/40">
-            Member presence
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <CalendarDays size={18} className="text-[#b99543]" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#202635]/25">
-              Joined
-            </span>
-          </div>
-          <p className="mt-4 text-lg font-bold text-[#202635]">
-            {formatDate(user.created_at)}
-          </p>
-          <p className="mt-1 text-xs text-[#202635]/40">
-            Member since
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <Sparkles size={18} className="text-[#b99543]" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#202635]/25">
-              Profile
-            </span>
-          </div>
-          <p className="mt-4 text-2xl font-bold text-[#202635]">
-            {completion}%
-          </p>
-          <p className="mt-1 text-xs text-[#202635]/40">
-            Complete
-          </p>
-        </div>
-      </div>
-
-      {/* =========================================================
-          MAIN CONTENT
-      ========================================================== */}
-      <form onSubmit={handleSave} className="mt-4">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
-          <div className="space-y-4">
-            {/* About */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-7">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d9b86c]/10 text-[#b99543]">
-                      <User size={17} />
-                    </div>
-
-                    <h2 className="font-semibold text-[#202635]">
-                      About me
-                    </h2>
+      <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
+        <main className="space-y-5">
+          {editing ? (
+            <form
+              onSubmit={handleSave}
+              className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm sm:p-7"
+            >
+              <div className="mb-7">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-xl bg-[#202635] p-2 text-white">
+                    <User size={18} />
                   </div>
 
-                  <p className="mt-2 text-sm text-[#202635]/45">
-                    Your introduction to the MEC community.
-                  </p>
+                  <div>
+                    <h2 className="font-bold">
+                      Personal identity
+                    </h2>
+                    <p className="text-xs text-black/45">
+                      Keep your MEC profile current.
+                    </p>
+                  </div>
                 </div>
-
-                {!editing && (
-                  <button
-                    type="button"
-                    onClick={startEditing}
-                    className="flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[#b99543] transition hover:bg-[#d9b86c]/10"
-                  >
-                    <Pencil size={13} />
-                    Edit
-                  </button>
-                )}
               </div>
 
-              <div className="mt-6">
-                {editing ? (
+              <div className="grid gap-5 sm:grid-cols-2">
+                <label className="sm:col-span-2">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Full name
+                  </span>
+
+                  <input
+                    name="fullName"
+                    value={form.fullName}
+                    onChange={handleChange}
+                    placeholder="Your full name"
+                    className="w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-black/30 focus:bg-white"
+                  />
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Username
+                  </span>
+
+                  <div className="flex overflow-hidden rounded-2xl border border-black/10 bg-[#fafafa] focus-within:border-black/30">
+                    <span className="flex items-center pl-4 text-black/40">
+                      @
+                    </span>
+
+                    <input
+                      name="username"
+                      value={form.username}
+                      onChange={handleChange}
+                      placeholder="username"
+                      className="min-w-0 flex-1 bg-transparent px-2 py-3.5 text-sm outline-none"
+                    />
+                  </div>
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Phone
+                  </span>
+
+                  <input
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="Phone number"
+                    className="w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-black/30 focus:bg-white"
+                  />
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Location
+                  </span>
+
+                  <input
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    placeholder="City or location"
+                    className="w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-black/30 focus:bg-white"
+                  />
+                </label>
+
+                <div>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Email
+                  </span>
+
+                  <div className="flex items-center gap-3 rounded-2xl border border-black/5 bg-black/[0.03] px-4 py-3.5">
+                    <Mail size={17} className="text-black/40" />
+                    <span className="truncate text-sm text-black/55">
+                      {user.email}
+                    </span>
+                  </div>
+                </div>
+
+                <label className="sm:col-span-2">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    About you
+                  </span>
+
                   <textarea
                     name="bio"
                     value={form.bio}
                     onChange={handleChange}
-                    maxLength={500}
                     rows={5}
-                    placeholder="Tell the MEC family about yourself..."
-                    className="w-full resize-none rounded-2xl border border-black/[0.08] bg-[#faf8f3] px-4 py-3 text-sm leading-6 text-[#202635] outline-none transition placeholder:text-[#202635]/25 focus:border-[#b99543]/40 focus:ring-4 focus:ring-[#d9b86c]/10"
-                  />
-                ) : (
-                  <p className="whitespace-pre-wrap text-sm leading-7 text-[#202635]/65">
-                    {form.bio ||
-                      "Your story starts here. Add a short introduction so other MEC members can get to know you."}
-                  </p>
-                )}
-              </div>
-            </section>
-
-            {/* Personal details */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-7">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="font-semibold text-[#202635]">
-                    Personal details
-                  </h2>
-                  <p className="mt-1 text-sm text-[#202635]/45">
-                    Information connected to your MEC identity.
-                  </p>
-                </div>
-
-                {!editing && (
-                  <button
-                    type="button"
-                    onClick={startEditing}
-                    className="flex h-9 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-[#b99543] transition hover:bg-[#d9b86c]/10"
-                  >
-                    <Pencil size={13} />
-                    Edit
-                  </button>
-                )}
-              </div>
-
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <Field
-                  icon={<User size={16} />}
-                  label="Full name"
-                  name="fullName"
-                  value={form.fullName}
-                  editing={editing}
-                  onChange={handleChange}
-                  placeholder="Your full name"
-                />
-
-                <Field
-                  icon={<Mail size={16} />}
-                  label="Email"
-                  value={user.email || ""}
-                  editing={false}
-                  disabled
-                />
-
-                <Field
-                  icon={<Phone size={16} />}
-                  label="Phone"
-                  name="phone"
-                  value={form.phone}
-                  editing={editing}
-                  onChange={handleChange}
-                  placeholder="Phone number"
-                />
-
-                <Field
-                  icon={<MapPin size={16} />}
-                  label="Location"
-                  name="location"
-                  value={form.location}
-                  editing={editing}
-                  onChange={handleChange}
-                  placeholder="City, country"
-                />
-
-                <Field
-                  icon={<BriefcaseBusiness size={16} />}
-                  label="Occupation"
-                  name="occupation"
-                  value={form.occupation}
-                  editing={editing}
-                  onChange={handleChange}
-                  placeholder="What do you do?"
-                />
-
-                <Field
-                  icon={<Globe2 size={16} />}
-                  label="Website"
-                  name="website"
-                  value={form.website}
-                  editing={editing}
-                  onChange={handleChange}
-                  placeholder="yourwebsite.com"
-                />
-              </div>
-            </section>
-
-            {/* Interests */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-7">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d9b86c]/10 text-[#b99543]">
-                  <Heart size={17} />
-                </div>
-
-                <div>
-                  <h2 className="font-semibold text-[#202635]">
-                    Interests & passions
-                  </h2>
-                  <p className="mt-1 text-sm text-[#202635]/45">
-                    Find common ground with your family.
-                  </p>
-                </div>
-              </div>
-
-              {editing ? (
-                <div className="mt-5">
-                  <input
-                    name="interests"
-                    value={form.interests}
-                    onChange={handleChange}
-                    placeholder="Music, technology, football, business..."
-                    className="h-12 w-full rounded-xl border border-black/[0.08] bg-[#faf8f3] px-4 text-sm text-[#202635] outline-none transition placeholder:text-[#202635]/25 focus:border-[#b99543]/40 focus:ring-4 focus:ring-[#d9b86c]/10"
-                  />
-                  <p className="mt-2 text-xs text-[#202635]/35">
-                    Separate interests with commas.
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {interests.length > 0 ? (
-                    interests.map((interest) => (
-                      <span
-                        key={interest}
-                        className="rounded-full border border-[#d9b86c]/20 bg-[#d9b86c]/10 px-3 py-1.5 text-xs font-medium text-[#8c6b26]"
-                      >
-                        {interest}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-sm text-[#202635]/40">
-                      Add your interests to connect with more members.
-                    </p>
-                  )}
-                </div>
-              )}
-            </section>
-
-            {/* Social */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-7">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d9b86c]/10 text-[#b99543]">
-                  <Link2 size={17} />
-                </div>
-
-                <div>
-                  <h2 className="font-semibold text-[#202635]">
-                    Social presence
-                  </h2>
-                  <p className="mt-1 text-sm text-[#202635]/45">
-                    Let the family discover more of you.
-                  </p>
-                </div>
-              </div>
-
-              {editing ? (
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <Field
-                    icon={<Globe2 size={16} />}
-                    label="Instagram"
-                    name="instagram"
-                    value={form.instagram}
-                    editing
-                    onChange={handleChange}
-                    placeholder="@username"
+                    maxLength={500}
+                    placeholder="Tell your MEC community a little about yourself…"
+                    className="w-full resize-none rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm leading-6 outline-none transition focus:border-black/30 focus:bg-white"
                   />
 
-                  <Field
-                    icon={<Link2 size={16} />}
-                    label="LinkedIn"
-                    name="linkedin"
-                    value={form.linkedin}
-                    editing
-                    onChange={handleChange}
-                    placeholder="LinkedIn profile"
-                  />
-                </div>
-              ) : (
-                <div className="mt-5 flex flex-wrap gap-3">
-                  {form.instagram && (
-                    <SocialButton
-                      icon={<Globe2 size={16} />}
-                      label={form.instagram}
-                    />
-                  )}
-
-                  {form.linkedin && (
-                    <SocialButton
-                      icon={<Link2 size={16} />}
-                      label={form.linkedin}
-                    />
-                  )}
-
-                  {form.website && (
-                    <SocialButton
-                      icon={<Globe2 size={16} />}
-                      label={form.website}
-                    />
-                  )}
-
-                  {!form.instagram &&
-                    !form.linkedin &&
-                    !form.website && (
-                      <p className="text-sm text-[#202635]/40">
-                        Add your social links to make your profile more
-                        discoverable.
-                      </p>
-                    )}
-                </div>
-              )}
-            </section>
-          </div>
-
-          {/* =====================================================
-              SIDEBAR
-          ====================================================== */}
-          <aside className="space-y-4">
-            {/* Completion */}
-            <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-[#202635] p-5 text-white shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#d9b86c]">
-                    Profile health
-                  </p>
-                  <h3 className="mt-1 text-lg font-semibold">
-                    {completion === 100
-                      ? "You're all set"
-                      : "Complete your profile"}
-                  </h3>
-                </div>
-
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#d9b86c]/30 bg-[#d9b86c]/10 text-sm font-bold text-[#d9b86c]">
-                  {completion}%
-                </div>
+                  <span className="mt-1 block text-right text-xs text-black/35">
+                    {form.bio.length}/500
+                  </span>
+                </label>
               </div>
 
-              <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-[#d9b86c] transition-all duration-500"
-                  style={{ width: `${completion}%` }}
-                />
-              </div>
-
-              <p className="mt-3 text-xs leading-5 text-white/40">
-                A complete profile helps your family recognize and connect
-                with you.
-              </p>
-
-              {!editing && completion < 100 && (
+              <div className="mt-7 flex flex-col-reverse gap-3 border-t border-black/5 pt-5 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={startEditing}
-                  className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-left text-xs font-semibold text-white/75 transition hover:bg-white/[0.08]"
+                  onClick={cancelEditing}
+                  className="rounded-2xl border border-black/10 px-5 py-3 text-sm font-semibold transition hover:bg-black/[0.03]"
                 >
-                  Complete profile
-                  <ChevronRight size={15} />
+                  Cancel
                 </button>
-              )}
-            </section>
 
-            {/* Member identity */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d9b86c]/10 text-[#b99543]">
-                  <Shield size={18} />
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-[#202635] px-5 py-3 text-sm font-bold text-white shadow-lg transition disabled:opacity-60"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 size={17} className="animate-spin" />
+                      Saving…
+                    </>
+                  ) : (
+                    <>
+                      <Save size={17} />
+                      Save changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              {/* ABOUT */}
+              <section className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm sm:p-7">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-black/35">
+                      About
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-black">
+                      A little about me
+                    </h2>
+                  </div>
+
+                  <button
+                    onClick={startEditing}
+                    className="rounded-xl p-2 text-black/45 transition hover:bg-black/5 hover:text-black"
+                    aria-label="Edit about"
+                  >
+                    <Edit3 size={17} />
+                  </button>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-semibold text-[#202635]">
-                    Member identity
-                  </h3>
-                  <p className="text-xs text-[#202635]/40">
-                    Secure MEC account
+                <p className="mt-5 text-sm leading-7 text-black/60">
+                  {profile.bio ||
+                    "You haven't added a bio yet. Tell the MEC community something about yourself."}
+                </p>
+              </section>
+
+              {/* PERSONAL DETAILS */}
+              <section className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm sm:p-7">
+                <div className="mb-6">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-black/35">
+                    Personal details
                   </p>
-                </div>
-              </div>
 
-              <div className="mt-5 space-y-3">
-                <InfoRow
-                  label="Status"
-                  value="Active"
-                  positive
-                />
-
-                <InfoRow
-                  label="Joined"
-                  value={formatDate(user.created_at)}
-                />
-
-                <InfoRow
-                  label="Account"
-                  value="Verified"
-                />
-              </div>
-            </section>
-
-            {/* Family */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-[#b99543]">
-                    Your network
-                  </p>
-                  <h3 className="mt-1 font-semibold text-[#202635]">
-                    MEC family
-                  </h3>
+                  <h2 className="mt-1 text-xl font-black">
+                    Your information
+                  </h2>
                 </div>
 
-                <Users size={19} className="text-[#202635]/25" />
-              </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <DetailCard
+                    icon={<Mail size={17} />}
+                    label="Email"
+                    value={user.email}
+                  />
 
-              <p className="mt-4 text-sm leading-6 text-[#202635]/50">
-                Your family connections, shared spaces and community
-                activity will appear here as MEC grows.
-              </p>
+                  <DetailCard
+                    icon={<Phone size={17} />}
+                    label="Phone"
+                    value={profile.phone}
+                  />
 
-              <button
-                type="button"
-                onClick={() => navigate("/family-tree")}
-                className="mt-4 flex w-full items-center justify-between rounded-xl bg-[#faf8f3] px-4 py-3 text-xs font-semibold text-[#202635]/65 transition hover:bg-[#f1ede4]"
-              >
-                Explore family tree
-                <ArrowUpRight size={15} />
-              </button>
-            </section>
+                  <DetailCard
+                    icon={<MapPin size={17} />}
+                    label="Location"
+                    value={profile.location}
+                  />
 
-            {/* Quick links */}
-            <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#202635]/35">
-                Quick access
-              </p>
+                  <DetailCard
+                    icon={<ShieldCheck size={17} />}
+                    label="Membership"
+                    value={roleLabel}
+                  />
+                </div>
+              </section>
 
-              <div className="mt-3 divide-y divide-black/[0.05]">
-                <QuickLink
-                  icon={<MessageCircle size={16} />}
-                  label="Messages"
-                  onClick={() => navigate("/messages")}
-                />
+              {/* IDENTITY */}
+              <section className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm sm:p-7">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-black/[0.04] p-3">
+                    <Sparkles size={19} />
+                  </div>
 
-                <QuickLink
-                  icon={<Users size={16} />}
-                  label="Community"
-                  onClick={() => navigate("/community")}
-                />
+                  <div>
+                    <h2 className="font-black">MEC identity</h2>
+                    <p className="text-xs text-black/45">
+                      Your place in the community.
+                    </p>
+                  </div>
+                </div>
 
-                <QuickLink
-                  icon={<Bell size={16} />}
-                  label="Notifications"
-                />
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  <IdentityCard
+                    label="Username"
+                    value={
+                      profile.username
+                        ? `@${profile.username}`
+                        : "Not set"
+                    }
+                  />
 
-                <QuickLink
-                  icon={<Settings size={16} />}
-                  label="Account settings"
-                  onClick={() => navigate("/settings")}
-                />
-              </div>
-            </section>
-          </aside>
-        </div>
+                  <IdentityCard
+                    label="Status"
+                    value={
+                      profile.is_active
+                        ? "Active member"
+                        : "Inactive"
+                    }
+                  />
 
-        {/* Save bar */}
-        {editing && (
-          <div className="sticky bottom-4 z-40 mt-5 flex flex-col gap-3 rounded-2xl border border-black/[0.08] bg-white/95 p-3 shadow-[0_15px_50px_rgba(32,38,53,0.18)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3 px-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d9b86c]/15 text-[#b99543]">
-                <Sparkles size={16} />
-              </div>
+                  <IdentityCard
+                    label="Role"
+                    value={roleLabel}
+                  />
 
+                  <IdentityCard
+                    label="Member since"
+                    value={formatDate(profile.created_at)}
+                  />
+                </div>
+              </section>
+            </>
+          )}
+        </main>
+
+        {/* RIGHT RAIL */}
+        <aside className="space-y-5">
+          <section className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold text-[#202635]">
-                  You're editing your profile
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-black/35">
+                  Profile health
                 </p>
-                <p className="text-[11px] text-[#202635]/40">
-                  Changes will be saved to your MEC account.
+
+                <h2 className="mt-1 text-xl font-black">
+                  {completion}% complete
+                </h2>
+              </div>
+
+              <div className="rounded-xl bg-black/[0.04] p-2">
+                <Zap size={18} />
+              </div>
+            </div>
+
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-black/[0.06]">
+              <div
+                className="h-full rounded-full bg-[#202635] transition-all"
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+
+            <p className="mt-3 text-xs leading-5 text-black/45">
+              A complete profile makes it easier for people in your MEC
+              community to recognize and connect with you.
+            </p>
+
+            {completion < 100 && (
+              <button
+                onClick={startEditing}
+                className="mt-4 flex w-full items-center justify-between rounded-2xl bg-black/[0.04] px-4 py-3 text-sm font-semibold transition hover:bg-black/[0.07]"
+              >
+                Complete profile
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </section>
+
+          <section className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-black/35">
+              Quick access
+            </p>
+
+            <div className="mt-3 divide-y divide-black/5">
+              <QuickAction
+                icon={<Users size={18} />}
+                title="Community"
+                description="See what everyone is sharing"
+                onClick={() => navigate("/community")}
+              />
+
+              <QuickAction
+                icon={<MessageCircle size={18} />}
+                title="Messages"
+                description="Keep your conversations moving"
+                onClick={() => navigate("/messages")}
+              />
+
+              <QuickAction
+                icon={<Heart size={18} />}
+                title="Spaces"
+                description="Join live community spaces"
+                onClick={() => navigate("/spaces")}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="rounded-2xl bg-black/[0.04] p-3">
+                <Globe2 size={18} />
+              </div>
+
+              <div className="min-w-0">
+                <h3 className="font-bold">
+                  Your profile is live
+                </h3>
+
+                <p className="mt-1 text-xs leading-5 text-black/45">
+                  Changes to your profile appear across the MEC
+                  community.
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={cancelEditing}
-                disabled={saving}
-                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-black/[0.08] px-4 text-xs font-semibold text-[#202635]/60 transition hover:bg-black/[0.03] disabled:opacity-50 sm:flex-none"
-              >
-                <X size={15} />
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-[#202635] px-5 text-xs font-semibold text-white transition hover:bg-[#2c3345] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
-              >
-                <Save size={15} />
-                {saving ? "Saving..." : "Save changes"}
-              </button>
+            <div className="mt-4 rounded-2xl bg-black/[0.035] p-3.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-black/55">
+                <Check size={15} />
+                Profile connected to your MEC account
+              </div>
             </div>
-          </div>
-        )}
-      </form>
+          </section>
+        </aside>
+      </div>
 
-      {/* Success/error messages */}
-      {(message || error) && (
-        <div className="fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2">
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-xl ${
-              error
-                ? "border-red-200 bg-red-50 text-red-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700"
-            }`}
+      {editing && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#202635] px-5 py-3.5 text-sm font-bold text-white disabled:opacity-60"
           >
-            {error || message}
-          </div>
+            {saving ? (
+              <>
+                <Loader2 size={17} className="animate-spin" />
+                Saving…
+              </>
+            ) : (
+              <>
+                <Save size={17} />
+                Save profile
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>
   )
 }
 
-function Field({
-  icon,
-  label,
-  name,
-  value,
-  editing,
-  onChange,
-  placeholder,
-  disabled,
-}) {
+function DetailCard({ icon, label, value }) {
   return (
-    <div>
-      <label className="mb-2 block text-xs font-semibold text-[#202635]/55">
-        {label}
-      </label>
+    <div className="flex min-w-0 items-center gap-3 rounded-2xl bg-black/[0.025] p-4">
+      <div className="shrink-0 rounded-xl bg-white p-2.5 shadow-sm">
+        {icon}
+      </div>
 
-      {editing && !disabled ? (
-        <div className="relative">
-          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#b99543]">
-            {icon}
-          </div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-black/35">
+          {label}
+        </p>
 
-          <input
-            name={name}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className="h-12 w-full rounded-xl border border-black/[0.08] bg-[#faf8f3] pl-11 pr-4 text-sm text-[#202635] outline-none transition placeholder:text-[#202635]/25 focus:border-[#b99543]/40 focus:ring-4 focus:ring-[#d9b86c]/10"
-          />
-        </div>
-      ) : (
-        <div className="flex min-h-12 items-center gap-3 rounded-xl bg-[#faf8f3] px-4">
-          <span className="shrink-0 text-[#b99543]">
-            {icon}
-          </span>
-
-          <span className="truncate text-sm text-[#202635]/65">
-            {value || "Not provided"}
-          </span>
-        </div>
-      )}
+        <p className="mt-1 truncate text-sm font-semibold text-black/70">
+          {value || "Not added yet"}
+        </p>
+      </div>
     </div>
   )
 }
 
-function InfoRow({ label, value, positive }) {
+function IdentityCard({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-xs text-[#202635]/40">
+    <div className="rounded-2xl border border-black/5 bg-black/[0.02] p-4">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-black/35">
         {label}
-      </span>
+      </p>
 
-      <span
-        className={`text-xs font-semibold ${
-          positive ? "text-emerald-600" : "text-[#202635]/65"
-        }`}
-      >
-        {value}
-      </span>
+      <p className="mt-1 text-sm font-bold">{value}</p>
     </div>
   )
 }
 
-function SocialButton({ icon, label }) {
+function QuickAction({ icon, title, description, onClick }) {
   return (
     <button
-      type="button"
-      className="flex items-center gap-2 rounded-xl border border-black/[0.07] bg-[#faf8f3] px-3.5 py-2.5 text-xs font-medium text-[#202635]/65 transition hover:border-[#d9b86c]/30 hover:bg-[#d9b86c]/5"
-    >
-      <span className="text-[#b99543]">{icon}</span>
-      {label}
-    </button>
-  )
-}
-
-function QuickLink({ icon, label, onClick }) {
-  return (
-    <button
-      type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 py-3 text-left transition hover:text-[#b99543]"
+      className="flex w-full items-center gap-3 py-4 text-left transition hover:translate-x-0.5"
     >
-      <span className="text-[#202635]/35">{icon}</span>
-      <span className="flex-1 text-sm text-[#202635]/65">
-        {label}
-      </span>
-      <ChevronRight size={14} className="text-[#202635]/20" />
+      <div className="shrink-0 rounded-xl bg-black/[0.04] p-2.5">
+        {icon}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold">{title}</p>
+
+        <p className="mt-0.5 truncate text-xs text-black/40">
+          {description}
+        </p>
+      </div>
+
+      <ChevronRight size={16} className="shrink-0 text-black/25" />
     </button>
   )
 }
