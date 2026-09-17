@@ -229,3 +229,42 @@ export async function logCallEvent({
   if (error) throw error
   return data
 }
+
+/**
+ * Mark all messages in a conversation as read for the current user.
+ * Only marks messages sent by OTHERS (not your own).
+ */
+export async function markConversationAsRead(conversationId, userId) {
+  if (!conversationId || !userId) return
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", userId)
+    .is("read_at", null)
+
+  if (error) throw error
+}
+
+/**
+ * Get unread message count per conversation for a user.
+ * Returns { [conversationId]: count }
+ */
+export async function getUnreadCounts(userId) {
+  if (!userId) return {}
+
+  const { data, error } = await supabase
+    .from("messages")
+    .select("conversation_id, sender_id, read_at")
+    .neq("sender_id", userId)
+    .is("read_at", null)
+
+  if (error) throw error
+
+  const counts = {}
+  for (const row of data || []) {
+    counts[row.conversation_id] = (counts[row.conversation_id] || 0) + 1
+  }
+  return counts
+}
