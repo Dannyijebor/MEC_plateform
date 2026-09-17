@@ -13,6 +13,7 @@ import {
   sendMessage,
   subscribeToConversation,
   markConversationAsRead,
+  sendReplyMessage,
 } from "../../services/chat/chatService"
 import {
   broadcastCallCancelled,
@@ -265,6 +266,8 @@ function Messages() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
   const [incomingCall, setIncomingCall] = useState(null)
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [showMenuFor, setShowMenuFor] = useState(null)
   const [typingUsers, setTypingUsers] = useState([])
   const typingChannelRef = useRef(null)
   const [missedCall, setMissedCall] = useState(null)
@@ -471,17 +474,25 @@ function Messages() {
     setSending(true)
     setError("")
     try {
-      const newMessage = await sendMessage({
-        conversationId: selectedConversation.id,
-        senderId: user.id,
-        content,
-      })
+      const newMessage = replyingTo
+        ? await sendReplyMessage({
+            conversationId: selectedConversation.id,
+            senderId: user.id,
+            content,
+            replyToId: replyingTo.id,
+          })
+        : await sendMessage({
+            conversationId: selectedConversation.id,
+            senderId: user.id,
+            content,
+          })
 
       setMessages((current) => {
         if (current.some((m) => m.id === newMessage.id)) return current
         return [...current, newMessage]
       })
       setMessageText("")
+      setReplyingTo(null)
       textareaRef.current?.focus()
     } catch (err) {
       console.error("Unable to send message:", err)
