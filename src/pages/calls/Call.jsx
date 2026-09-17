@@ -1,21 +1,26 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   Camera,
   CameraOff,
   Mic,
   MicOff,
   PhoneOff,
+  Loader2,
   UserRound,
-  Wifi,
 } from "lucide-react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { motion } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
+import { supabase } from "../../lib/supabase"
 import {
   closeCallChannel,
   createCallChannel,
+  endCall,
   sendCallState,
+  sendSignal,
 } from "../../services/calls/callService"
 import {
+  addIceCandidate,
   addLocalTracks,
   closePeerConnection,
   createAnswer,
@@ -26,36 +31,80 @@ import {
   stopMediaStream,
 } from "../../services/calls/webrtcService"
 
-function Call() {
+const ICE_SERVERS = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+]
+
+export default function Call() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
 
-  const callId = searchParams.get("call")
+  const conversationId = searchParams.get("conversation")
   const mode = searchParams.get("mode") === "video" ? "video" : "audio"
 
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
+  const localStreamRef = useRef(null)
+  const remoteStreamRef = useRef(null)
   const peerRef = useRef(null)
   const channelRef = useRef(null)
-  const localStreamRef = useRef(null)
   const pendingCandidatesRef = useRef([])
+  const remoteDescSetRef = useRef(false)
 
   const [muted, setMuted] = useState(false)
   const [cameraOff, setCameraOff] = useState(mode !== "video")
   const [status, setStatus] = useState("Connecting...")
   const [error, setError] = useState("")
+  const [connected, setConnected] = useState(false)
+  const [otherUser, setOtherUser] = useState(null)
 
+  // ---------- Fetch other user's profile ----------
   useEffect(() => {
-    if (!callId || !user) {
-      setError("Invalid call.")
+    if (!conversationId || !user) return
+    let cancelled = false
+
+    async function loadOtherUser() {
+      // Find the other participant's user_id
+      const { data: members } = await supabase
+        .from("conversation_members")
+        .select("user_id")
+        .eq("conversation_id", conversationId)
+        .neq("user_id", user.id)
+        .limit(1)
+
+      if (!members?.[0]) return
+
+      const otherId = members[0].user_id
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, full_name, username, avatar_url")
+        .eq("id", otherId)
+        .single()
+
+      if (!cancelled) setOtherUser(profile)
+    }
+
+    loadOtherUser()
+    return () => {
+      cancelled = true
+    }
+  }, [conversationId, user])
+
+  // ---------- Main call flow ----------
+  useEffect(() => {
+    if (!conversationId || !user) {
+      setError("Invalid call session.")
       return
     }
 
     let mounted = true
+    const callId = conversationId
 
     async function startCall() {
       try {
+        // 1. Get local media
         const stream = await getLocalMedia({
           audio: true,
           video: mode === "video",
@@ -67,44 +116,30 @@ function Call() {
         }
 
         localStreamRef.current = stream
-
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream
         }
 
+        // 2. Create peer connection
         const peer = createPeerConnection({
-          onIceCandidate: async (candidate) => {
-            if (channelRef.current) {
-              await channelRef.current.send({
-                type: "broadcast",
-                event: "signal",
-                payload: {
-                  type: "ice-candidate",
-                  candidate,
-                  senderId: user.id,
-                },
-              })
-            }
+          iceServers: ICE_SERVERS,
+          onIceCandidate: (candidate) => {
+            sendSignal(channelRef.current, { type: "ice", candidate })
           },
-
           onTrack: (remoteStream) => {
+            remoteStreamRef.current = remoteStream
             if (remoteVideoRef.current) {
               remoteVideoRef.current.srcObject = remoteStream
             }
+            setConnected(true)
+            setStatus("Connected")
           },
-
-          onConnectionStateChange: (connectionState) => {
-            if (!mounted) return
-
-            if (connectionState === "connected") {
+          onConnectionStateChange: (state) => {
+            if (state === "connected") {
+              setConnected(true)
               setStatus("Connected")
-            } else if (
-              connectionState === "disconnected" ||
-              connectionState === "failed"
-            ) {
-              setStatus("Connection lost")
-            } else {
-              setStatus("Connecting...")
+            } else if (state === "failed" || state === "disconnected") {
+              setStatus("Disconnected")
             }
           },
         })
@@ -112,99 +147,81 @@ function Call() {
         peerRef.current = peer
         addLocalTracks(peer, stream)
 
+        // 3. Subscribe to signaling channel
         const channel = createCallChannel(callId, {
-          onSignal: async (signal) => {
-            if (!mounted || signal.senderId === user.id) return
+          onSignal: async (payload) => {
+            if (!peerRef.current || !mounted) return
 
-            try {
-              if (signal.type === "offer") {
-                await setRemoteDescription(peer, signal.offer)
+            if (payload.type === "offer") {
+              await setRemoteDescription(peerRef.current, payload.sdp)
+              remoteDescSetRef.current = true
 
-                for (const candidate of pendingCandidatesRef.current) {
-                  await peer.addIceCandidate(candidate)
+              // Flush pending ICE
+              for (const c of pendingCandidatesRef.current) {
+                try { await addIceCandidate(peerRef.current, c) } catch {}
+              }
+              pendingCandidatesRef.current = []
+
+              const answer = await createAnswer(peerRef.current)
+              await sendSignal(channelRef.current, { type: "answer", sdp: answer })
+              setStatus("Connecting...")
+            } else if (payload.type === "answer") {
+              await setRemoteDescription(peerRef.current, payload.sdp)
+              remoteDescSetRef.current = true
+
+              // Flush pending ICE
+              for (const c of pendingCandidatesRef.current) {
+                try { await addIceCandidate(peerRef.current, c) } catch {}
+              }
+              pendingCandidatesRef.current = []
+            } else if (payload.type === "ice" && payload.candidate) {
+              if (remoteDescSetRef.current) {
+                try {
+                  await addIceCandidate(peerRef.current, payload.candidate)
+                } catch (err) {
+                  console.warn("ICE failed:", err)
                 }
-
-                pendingCandidatesRef.current = []
-
-                const answer = await createAnswer(peer)
-
-                await channel.send({
-                  type: "broadcast",
-                  event: "signal",
-                  payload: {
-                    type: "answer",
-                    answer,
-                    senderId: user.id,
-                  },
-                })
+              } else {
+                pendingCandidatesRef.current.push(payload.candidate)
               }
-
-              if (signal.type === "answer") {
-                await setRemoteDescription(peer, signal.answer)
-
-                for (const candidate of pendingCandidatesRef.current) {
-                  await peer.addIceCandidate(candidate)
-                }
-
-                pendingCandidatesRef.current = []
-              }
-
-              if (signal.type === "ice-candidate") {
-                const candidate = new RTCIceCandidate(
-                  signal.candidate,
-                )
-
-                if (peer.remoteDescription) {
-                  await peer.addIceCandidate(candidate)
-                } else {
-                  pendingCandidatesRef.current.push(candidate)
-                }
-              }
-
-              if (signal.type === "end-call") {
-                endCall(false)
-              }
-            } catch (signalError) {
-              console.error("Call signaling error:", signalError)
             }
           },
-
           onCallState: (state) => {
-            if (state?.status === "ended") {
-              endCall(false)
+            if (state?.peerJoined && !peerRef.current?.localDescription) {
+              // Another peer joined — if we're alone, create the offer
+              // (handled below via the timeout check)
             }
+          },
+          onEnded: () => {
+            setStatus("Call ended")
+            cleanup()
+            setTimeout(() => navigate("/messages"), 800)
           },
         })
 
         channelRef.current = channel
 
-        await new Promise((resolve) => {
-          setTimeout(resolve, 500)
-        })
+        // 4. Announce we joined
+        setTimeout(async () => {
+          await sendCallState(channel, { peerJoined: true, userId: user.id })
+        }, 500)
 
-        const offer = await createOffer(peer)
-
-        await channel.send({
-          type: "broadcast",
-          event: "signal",
-          payload: {
-            type: "offer",
-            offer,
-            senderId: user.id,
-          },
-        })
-
-        setStatus("Calling...")
-      } catch (callError) {
-        console.error(callError)
-
-        if (mounted) {
-          setError(
-            callError?.message ||
-              "Unable to access your microphone or camera.",
-          )
-          setStatus("Call unavailable")
-        }
+        // 5. Create offer after a short delay so the other peer can subscribe
+        // If both peers create offers, the first one wins.
+        setTimeout(async () => {
+          if (!mounted || !peerRef.current) return
+          if (peerRef.current.localDescription) return
+          try {
+            const offer = await createOffer(peerRef.current)
+            await sendSignal(channelRef.current, { type: "offer", sdp: offer })
+            setStatus("Ringing...")
+          } catch (err) {
+            console.warn("Offer failed:", err)
+          }
+        }, 1200)
+      } catch (err) {
+        console.error("Call error:", err)
+        setError(err.message || "Could not start the call.")
       }
     }
 
@@ -212,217 +229,153 @@ function Call() {
 
     return () => {
       mounted = false
-
-      stopMediaStream(localStreamRef.current)
-      closePeerConnection(peerRef.current)
-      closeCallChannel(channelRef.current)
-
-      peerRef.current = null
-      channelRef.current = null
-      localStreamRef.current = null
+      cleanup()
     }
-  }, [callId, mode, user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, user, mode])
 
-  async function endCall(notify = true) {
-    if (notify && channelRef.current) {
-      await sendCallState(channelRef.current, {
-        status: "ended",
-        userId: user?.id,
-      })
-
-      await channelRef.current.send({
-        type: "broadcast",
-        event: "signal",
-        payload: {
-          type: "end-call",
-          senderId: user?.id,
-        },
-      })
-    }
-
+  // ---------- Cleanup ----------
+  function cleanup() {
     stopMediaStream(localStreamRef.current)
     closePeerConnection(peerRef.current)
     closeCallChannel(channelRef.current)
-
+    localStreamRef.current = null
     peerRef.current = null
     channelRef.current = null
-    localStreamRef.current = null
-
-    navigate("/messages")
+    remoteStreamRef.current = null
   }
 
+  // ---------- Actions ----------
   function toggleMute() {
-    const stream = localStreamRef.current
-    if (!stream) return
-
-    const audioTracks = stream.getAudioTracks()
-
-    audioTracks.forEach((track) => {
-      track.enabled = !track.enabled
-    })
-
-    setMuted((value) => !value)
+    if (!localStreamRef.current) return
+    const audio = localStreamRef.current.getAudioTracks()[0]
+    if (!audio) return
+    audio.enabled = !audio.enabled
+    setMuted(!audio.enabled)
   }
 
   function toggleCamera() {
-    if (mode !== "video") return
+    if (!localStreamRef.current) return
+    const video = localStreamRef.current.getVideoTracks()[0]
+    if (!video) return
+    video.enabled = !video.enabled
+    setCameraOff(!video.enabled)
+  }
 
-    const stream = localStreamRef.current
-    if (!stream) return
-
-    const videoTracks = stream.getVideoTracks()
-
-    videoTracks.forEach((track) => {
-      track.enabled = !track.enabled
-    })
-
-    setCameraOff((value) => !value)
+  async function hangUp() {
+    try {
+      await endCall(channelRef.current, "hangup")
+    } catch {}
+    cleanup()
+    navigate("/messages")
   }
 
   if (error) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-3xl border border-[#202635]/[0.09] bg-white/[0.05] p-8 text-center backdrop-blur-xl">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-300">
-            <Wifi size={28} />
-          </div>
-
-          <h1 className="text-xl font-semibold">
-            Call unavailable
-          </h1>
-
-          <p className="mt-3 text-sm text-white/55">{error}</p>
-
-          <button
-            type="button"
-            onClick={() => navigate("/messages")}
-            className="mt-6 rounded-xl bg-[#d9b86c] px-5 py-3 text-sm font-semibold text-[#17130c] transition hover:bg-[#e4c77f]"
-          >
-            Return to messages
-          </button>
-        </div>
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#0b1020] px-6 text-center text-white">
+        <p className="text-lg font-semibold">Call error</p>
+        <p className="text-sm text-white/60">{error}</p>
+        <button
+          onClick={() => navigate("/messages")}
+          className="mt-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"
+        >
+          Back to messages
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-120px)] overflow-hidden rounded-3xl border border-[#202635]/[0.09] bg-[#faf8f3]/92 shadow-2xl">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(217,184,108,0.12),transparent_35%)]" />
+    <div className="relative h-screen w-full overflow-hidden bg-[#0b1020] text-white">
+      {/* Remote video (full screen) */}
+      <video
+        ref={remoteVideoRef}
+        autoPlay
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover"
+      />
 
-      <div className="relative flex min-h-[calc(100vh-120px)] flex-col">
-        <header className="flex items-center justify-between border-b border-[#202635]/[0.09] px-4 py-4 sm:px-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#d9b86c]/70">
-              MEC Call
-            </p>
-
-            <h1 className="mt-1 text-lg font-semibold">
-              {mode === "video" ? "Video Call" : "Audio Call"}
-            </h1>
+      {/* Placeholder if no remote video yet */}
+      {!connected && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0b1020] via-[#1a1a3e] to-[#0b1020]">
+          <div className="mb-6 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-[#d9b86c]/30 bg-[#d9b86c]/10 text-4xl font-bold text-[#d9b86c]">
+            {otherUser?.avatar_url ? (
+              <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              otherUser?.full_name?.charAt(0) || <UserRound size={40} />
+            )}
           </div>
-
-          <div className="flex items-center gap-2 rounded-full border border-[#202635]/[0.09] bg-white/[0.05] px-3 py-1.5 text-xs text-white/65">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <p className="text-xl font-semibold">
+            {otherUser?.full_name || "Waiting for other user..."}
+          </p>
+          <p className="mt-2 flex items-center gap-2 text-sm text-white/60">
+            <Loader2 size={14} className="animate-spin" />
             {status}
-          </div>
-        </header>
+          </p>
+        </div>
+      )}
 
-        <main className="relative flex flex-1 items-center justify-center p-4 sm:p-8">
-          {mode === "video" ? (
-            <div className="relative h-full min-h-[420px] w-full max-w-5xl overflow-hidden rounded-3xl border border-[#202635]/[0.09] bg-black/40 shadow-2xl">
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="h-full min-h-[420px] w-full object-cover"
-              />
-
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full border border-[#202635]/[0.09] bg-white/[0.06] text-white/30">
-                  <UserRound size={40} />
-                </div>
-              </div>
-
-              <div className="absolute right-4 top-4 h-32 w-24 overflow-hidden rounded-2xl border border-white/15 bg-[#12182a] shadow-xl sm:h-44 sm:w-32">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="h-full w-full object-cover"
-                />
-
-                {cameraOff && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#12182a] text-white/50">
-                    <CameraOff size={24} />
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center text-center">
-              <div className="flex h-32 w-32 items-center justify-center rounded-full border border-[#d9b86c]/30 bg-[#d9b86c]/10 shadow-[0_0_80px_rgba(217,184,108,0.12)]">
-                <UserRound size={52} className="text-[#d9b86c]" />
-              </div>
-
-              <h2 className="mt-6 text-2xl font-semibold">
-                MEC Member
-              </h2>
-
-              <p className="mt-2 text-sm text-white/45">
-                {status}
-              </p>
+      {/* Local video (picture-in-picture) */}
+      {mode === "video" && (
+        <motion.div
+          drag
+          dragMomentum={false}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute right-4 top-4 z-20 h-40 w-28 cursor-grab overflow-hidden rounded-2xl border border-white/20 bg-black/50 shadow-2xl sm:h-48 sm:w-36"
+        >
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="h-full w-full object-cover"
+          />
+          {cameraOff && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#12182a]">
+              <CameraOff size={22} className="text-white/60" />
             </div>
           )}
-        </main>
+        </motion.div>
+      )}
 
-        <footer className="flex items-center justify-center gap-3 border-t border-[#202635]/[0.09] px-4 py-5 sm:gap-4">
+      {/* Top status */}
+      <div className="absolute left-4 top-4 z-10 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-md">
+        {status}
+      </div>
+
+      {/* Controls */}
+      <div className="absolute bottom-8 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-white/10 bg-black/40 p-3 backdrop-blur-xl">
+        <button
+          onClick={toggleMute}
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+            muted ? "bg-red-500/90 text-white" : "bg-white/15 text-white hover:bg-white/25"
+          }`}
+          aria-label={muted ? "Unmute" : "Mute"}
+        >
+          {muted ? <MicOff size={20} /> : <Mic size={20} />}
+        </button>
+
+        <button
+          onClick={hangUp}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition hover:bg-red-600"
+          aria-label="End call"
+        >
+          <PhoneOff size={22} />
+        </button>
+
+        {mode === "video" && (
           <button
-            type="button"
-            onClick={toggleMute}
-            className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${
-              muted
-                ? "border-red-400/30 bg-red-400/15 text-red-300"
-                : "border-[#202635]/[0.09] bg-white/[0.07] text-white hover:bg-white/[0.12]"
+            onClick={toggleCamera}
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+              cameraOff ? "bg-red-500/90 text-white" : "bg-white/15 text-white hover:bg-white/25"
             }`}
-            aria-label={muted ? "Unmute microphone" : "Mute microphone"}
+            aria-label={cameraOff ? "Turn camera on" : "Turn camera off"}
           >
-            {muted ? <MicOff size={20} /> : <Mic size={20} />}
+            {cameraOff ? <CameraOff size={20} /> : <Camera size={20} />}
           </button>
-
-          {mode === "video" && (
-            <button
-              type="button"
-              onClick={toggleCamera}
-              className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${
-                cameraOff
-                  ? "border-red-400/30 bg-red-400/15 text-red-300"
-                  : "border-[#202635]/[0.09] bg-white/[0.07] text-white hover:bg-white/[0.12]"
-              }`}
-              aria-label={
-                cameraOff ? "Turn camera on" : "Turn camera off"
-              }
-            >
-              {cameraOff ? (
-                <CameraOff size={20} />
-              ) : (
-                <Camera size={20} />
-              )}
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => endCall(true)}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white shadow-lg shadow-red-500/20 transition hover:bg-red-400"
-            aria-label="End call"
-          >
-            <PhoneOff size={22} />
-          </button>
-        </footer>
+        )}
       </div>
     </div>
   )
 }
-
-export default Call
