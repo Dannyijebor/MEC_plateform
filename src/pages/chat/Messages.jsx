@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { useAuth } from "../../hooks/useAuth"
 import {
   getMyConversations,
@@ -23,6 +24,10 @@ import {
   sendMessage,
   subscribeToConversation,
 } from "../../services/chat/chatService"
+import {
+  broadcastIncomingCall,
+  subscribeToIncomingCalls,
+} from "../../services/calls/callService"
 
 // ==========================================
 // 🎨 6 BEAUTIFUL THEMES
@@ -267,6 +272,7 @@ function Messages() {
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
+  const [incomingCall, setIncomingCall] = useState(null)
 
   const messagesEndRef = useRef(null)
   const textareaRef = useRef(null)
@@ -341,6 +347,33 @@ function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  // Subscribe to incoming call invitations
+  useEffect(() => {
+    if (!user) return
+    const channel = subscribeToIncomingCalls(user.id, (payload) => {
+      // Ignore our own calls
+      if (payload.callerId === user.id) return
+      setIncomingCall(payload)
+    })
+    return () => {
+      import("@supabase/supabase-js").then(({ createClient }) => {})
+      // Best-effort cleanup
+      if (channel) channel.unsubscribe?.()
+    }
+  }, [user])
+
+  // Accept/Decline handlers for incoming calls
+  const handleAcceptIncoming = () => {
+    if (!incomingCall) return
+    const { conversationId, mode } = incomingCall
+    setIncomingCall(null)
+    navigate(`/calls?conversation=${conversationId}&mode=${mode}`)
+  }
+
+  const handleDeclineIncoming = () => {
+    setIncomingCall(null)
+  }
+
   // Send message
   const handleSendMessage = async (e) => {
     e.preventDefault()
@@ -378,8 +411,27 @@ function Messages() {
   }
 
   // Call actions
-  const startCall = (type) => {
-    if (!selectedConversation) return
+  const startCall = async (type) => {
+    if (!selectedConversation || !user) return
+
+    // Find the other participant's user_id
+    const members = selectedConversation.conversation_members || []
+    const other = members.find((m) => m.user_id !== user.id)
+    if (other?.user_id) {
+      // Broadcast an invite to that user
+      try {
+        await broadcastIncomingCall(other.user_id, {
+          conversationId: selectedConversation.id,
+          callerId: user.id,
+          callerName: user.user_metadata?.full_name || user.email,
+          callerAvatar: user.user_metadata?.avatar_url,
+          mode: type,
+        })
+      } catch (err) {
+        console.warn("Failed to broadcast invite:", err)
+      }
+    }
+
     navigate(`/calls?conversation=${selectedConversation.id}&mode=${type}`)
   }
 
@@ -674,6 +726,12 @@ function Messages() {
           )}
         </main>
       </div>
+
+      <IncomingCallPopup
+        call={incomingCall}
+        onAccept={handleAcceptIncoming}
+        onDecline={handleDeclineIncoming}
+      />
     </div>
   )
 }
