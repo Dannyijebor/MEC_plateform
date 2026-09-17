@@ -1,29 +1,262 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
-  MessageCircle,
-  Phone,
-  Video,
+  ArrowLeft,
   Search,
   Send,
+  MessageCircle,
   Users,
-  ArrowLeft,
   MoreVertical,
+  Phone,
+  Video,
+  Palette,
+  Check,
+  Loader2,
+  Sparkles,
+  X,
 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
 import {
   getMyConversations,
   getConversationMessages,
   sendMessage,
   subscribeToConversation,
-  unsubscribeFromConversation,
 } from "../../services/chat/chatService"
 
+// ==========================================
+// 🎨 6 BEAUTIFUL THEMES
+// ==========================================
+const THEMES = {
+  classic: {
+    name: "Classic",
+    preview: "linear-gradient(135deg, #FCFBF7 0%, #D9B86C 100%)",
+    page: "bg-gradient-to-br from-[#F7F5EF] via-[#FCFBF7] to-[#F1EFE8]",
+    sidebar: "bg-[#FCFBF7]",
+    chatBg: "bg-[#FAF8F3]",
+    ownBubble: "bg-[#111827] text-white",
+    otherBubble: "bg-white text-[#111827] border border-[#DCD9D0]",
+    accent: "#111827",
+    accentText: "text-[#111827]",
+    accentBg: "bg-[#111827]",
+    accentHover: "hover:bg-[#1B2435]",
+    headerBg: "bg-[#FCFBF7]/95",
+    headerBorder: "border-[#DCD9D0]",
+    inputBg: "bg-white",
+    inputBorder: "border-[#DCD9D0]",
+    iconAccent: "text-[#A8873F]",
+    iconBg: "bg-[#F1E7CC]",
+    text: "text-[#111827]",
+    textMuted: "text-[#5F6673]",
+    textFaint: "text-[#8A8F98]",
+    dark: false,
+  },
+  sunset: {
+    name: "Warm Sunset",
+    preview: "linear-gradient(135deg, #FFE4CC 0%, #FF6B35 100%)",
+    page: "bg-gradient-to-br from-[#FFF4E6] via-[#FFE4CC] to-[#FFD1A3]",
+    sidebar: "bg-[#FFF8F0]",
+    chatBg: "bg-[#FFF8F0]",
+    ownBubble: "bg-gradient-to-br from-[#FF8C42] to-[#FF6B35] text-white",
+    otherBubble: "bg-white text-[#5C2E0E] border border-[#FFD1A3]",
+    accent: "#FF6B35",
+    accentText: "text-[#FF6B35]",
+    accentBg: "bg-[#FF6B35]",
+    accentHover: "hover:bg-[#E55A28]",
+    headerBg: "bg-[#FFF4E6]/95",
+    headerBorder: "border-[#FFD1A3]",
+    inputBg: "bg-white",
+    inputBorder: "border-[#FFD1A3]",
+    iconAccent: "text-[#FF8C42]",
+    iconBg: "bg-[#FFE4CC]",
+    text: "text-[#5C2E0E]",
+    textMuted: "text-[#8A5A2E]",
+    textFaint: "text-[#B8845A]",
+    dark: false,
+  },
+  ocean: {
+    name: "Ocean Blue",
+    preview: "linear-gradient(135deg, #BAE6FD 0%, #0284C7 100%)",
+    page: "bg-gradient-to-br from-[#E0F2FE] via-[#BAE6FD] to-[#7DD3FC]",
+    sidebar: "bg-[#F0F9FF]",
+    chatBg: "bg-[#F0F9FF]",
+    ownBubble: "bg-gradient-to-br from-[#0284C7] to-[#0369A1] text-white",
+    otherBubble: "bg-white text-[#0C4A6E] border border-[#BAE6FD]",
+    accent: "#0284C7",
+    accentText: "text-[#0284C7]",
+    accentBg: "bg-[#0284C7]",
+    accentHover: "hover:bg-[#0369A1]",
+    headerBg: "bg-[#E0F2FE]/95",
+    headerBorder: "border-[#BAE6FD]",
+    inputBg: "bg-white",
+    inputBorder: "border-[#BAE6FD]",
+    iconAccent: "text-[#0EA5E9]",
+    iconBg: "bg-[#E0F2FE]",
+    text: "text-[#0C4A6E]",
+    textMuted: "text-[#3E6B8A]",
+    textFaint: "text-[#6BA3C7]",
+    dark: false,
+  },
+  forest: {
+    name: "Forest Green",
+    preview: "linear-gradient(135deg, #D1FAE5 0%, #059669 100%)",
+    page: "bg-gradient-to-br from-[#ECFDF5] via-[#D1FAE5] to-[#A7F3D0]",
+    sidebar: "bg-[#F0FDF4]",
+    chatBg: "bg-[#F0FDF4]",
+    ownBubble: "bg-gradient-to-br from-[#059669] to-[#047857] text-white",
+    otherBubble: "bg-white text-[#064E3B] border border-[#A7F3D0]",
+    accent: "#059669",
+    accentText: "text-[#059669]",
+    accentBg: "bg-[#059669]",
+    accentHover: "hover:bg-[#047857]",
+    headerBg: "bg-[#ECFDF5]/95",
+    headerBorder: "border-[#A7F3D0]",
+    inputBg: "bg-white",
+    inputBorder: "border-[#A7F3D0]",
+    iconAccent: "text-[#10B981]",
+    iconBg: "bg-[#ECFDF5]",
+    text: "text-[#064E3B]",
+    textMuted: "text-[#3E6B5A]",
+    textFaint: "text-[#6BA39A]",
+    dark: false,
+  },
+  midnight: {
+    name: "Midnight",
+    preview: "linear-gradient(135deg, #4C1D95 0%, #8B5CF6 100%)",
+    page: "bg-gradient-to-br from-[#0F0D24] via-[#1E1B4B] to-[#0F0D24]",
+    sidebar: "bg-[#1A1633]",
+    chatBg: "bg-[#1A1633]",
+    ownBubble: "bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white",
+    otherBubble: "bg-[#2E2A50] text-white border border-[#4C4780]",
+    accent: "#8B5CF6",
+    accentText: "text-[#A78BFA]",
+    accentBg: "bg-[#8B5CF6]",
+    accentHover: "hover:bg-[#7C3AED]",
+    headerBg: "bg-[#1E1B4B]/95",
+    headerBorder: "border-[#4C4780]",
+    inputBg: "bg-[#2E2A50]",
+    inputBorder: "border-[#4C4780]",
+    iconAccent: "text-[#A78BFA]",
+    iconBg: "bg-[#2E2A50]",
+    text: "text-white",
+    textMuted: "text-white/70",
+    textFaint: "text-white/40",
+    dark: true,
+  },
+  rosegold: {
+    name: "Rose Gold",
+    preview: "linear-gradient(135deg, #FBCFE8 0%, #D9A86C 100%)",
+    page: "bg-gradient-to-br from-[#FDF2F8] via-[#FCE7F3] to-[#FBCFE8]",
+    sidebar: "bg-[#FEF5F8]",
+    chatBg: "bg-[#FEF5F8]",
+    ownBubble: "bg-gradient-to-br from-[#E11D48] to-[#BE123C] text-white",
+    otherBubble: "bg-white text-[#831843] border border-[#FBCFE8]",
+    accent: "#E11D48",
+    accentText: "text-[#E11D48]",
+    accentBg: "bg-[#E11D48]",
+    accentHover: "hover:bg-[#BE123C]",
+    headerBg: "bg-[#FDF2F8]/95",
+    headerBorder: "border-[#FBCFE8]",
+    inputBg: "bg-white",
+    inputBorder: "border-[#FBCFE8]",
+    iconAccent: "text-[#D9A86C]",
+    iconBg: "bg-[#FEF3C7]",
+    text: "text-[#831843]",
+    textMuted: "text-[#A8527A]",
+    textFaint: "text-[#C98BA8]",
+    dark: false,
+  },
+}
+
+function useChatTheme() {
+  const [themeKey, setThemeKey] = useState(() => {
+    if (typeof window === "undefined") return "classic"
+    return localStorage.getItem("mec-chat-theme") || "classic"
+  })
+  useEffect(() => {
+    localStorage.setItem("mec-chat-theme", themeKey)
+  }, [themeKey])
+  return [themeKey, setThemeKey, THEMES[themeKey] || THEMES.classic]
+}
+
+// ==========================================
+// 🎨 THEME PICKER
+// ==========================================
+function ThemePicker({ current, onChange }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white/80 backdrop-blur transition hover:bg-white/20"
+        aria-label="Change theme"
+        title="Change theme"
+      >
+        <Palette size={17} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-2xl border border-[#DCD9D0] bg-white p-2 shadow-2xl"
+          >
+            <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#8A8F98]">
+              Chat theme
+            </p>
+            {Object.entries(THEMES).map(([key, theme]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  onChange(key)
+                  setOpen(false)
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-[#F1EFE8]"
+              >
+                <span
+                  className="h-6 w-6 rounded-full border border-black/10 shadow-inner"
+                  style={{ background: theme.preview }}
+                />
+                <span className="flex-1 text-sm font-medium text-[#111827]">
+                  {theme.name}
+                </span>
+                {current === key && (
+                  <Check size={15} className="text-[#111827]" />
+                )}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// ==========================================
+// 💬 MAIN MESSAGES COMPONENT
+// ==========================================
 function Messages() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const targetConversationId = searchParams.get("conversation")
-  const navigate = useNavigate()
-  const { user } = useAuth()
+
+  const [themeKey, setThemeKey, theme] = useChatTheme()
 
   const [conversations, setConversations] = useState([])
   const [selectedConversation, setSelectedConversation] = useState(null)
@@ -33,118 +266,83 @@ function Messages() {
   const [loading, setLoading] = useState(true)
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState("")
+
+  const messagesEndRef = useRef(null)
+  const textareaRef = useRef(null)
+
+  // Load all conversations
+  const loadConversations = useCallback(async () => {
+    if (!user) return
+    setLoading(true)
+    setError("")
+    try {
+      const data = await getMyConversations(user.id)
+      setConversations(data)
+
+      if (targetConversationId && data) {
+        const target = data.find((c) => c.id === targetConversationId)
+        if (target) setSelectedConversation(target)
+      }
+    } catch (err) {
+      console.error("Unable to load conversations:", err)
+      setError("Could not load your conversations.")
+    }
+    setLoading(false)
+  }, [user, targetConversationId])
 
   useEffect(() => {
-    if (!user?.id) return
-
-    let active = true
-
-    async function loadConversations() {
-      try {
-        setLoading(true)
-
-        const data = await getMyConversations(user.id)
-
-        if (!active) return
-
-        setConversations(data)
-
-    if (targetConversationId && data) {
-      const target = data.find(c => c.id === targetConversationId)
-      if (target) setSelectedConversation(target)
-    }
-
-        if (data.length > 0) {
-          setSelectedConversation(data[0])
-        }
-      } catch (error) {
-        console.error("Unable to load conversations:", error)
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-
     loadConversations()
+  }, [loadConversations])
 
-    return () => {
-      active = false
+  // Load messages for selected conversation
+  const loadMessages = useCallback(async () => {
+    if (!selectedConversation) return
+    setMessagesLoading(true)
+    setError("")
+    try {
+      const data = await getConversationMessages(selectedConversation.id)
+      setMessages(data || [])
+    } catch (err) {
+      console.error("Unable to load messages:", err)
+      setError("Could not load messages.")
     }
-  }, [user?.id])
+    setMessagesLoading(false)
+  }, [selectedConversation])
 
   useEffect(() => {
-    if (!selectedConversation?.id) return
-
-    let active = true
-    let channel = null
-
-    async function loadMessages() {
-      try {
-        setMessagesLoading(true)
-
-        const data = await getConversationMessages(
-          selectedConversation.id,
-        )
-
-        if (!active) return
-
-        setMessages(data)
-
-        channel = subscribeToConversation(
-          selectedConversation.id,
-          (newMessage) => {
-            if (!active) return
-
-            setMessages((current) => {
-              if (current.some((message) => message.id === newMessage.id)) {
-                return current
-              }
-
-              return [...current, newMessage]
-            })
-          },
-        )
-      } catch (error) {
-        console.error("Unable to load messages:", error)
-      } finally {
-        if (active) setMessagesLoading(false)
-      }
-    }
-
-    loadMessages()
-
-    return () => {
-      active = false
-
-      if (channel) {
-        unsubscribeFromConversation(channel)
-      }
-    }
-  }, [selectedConversation?.id])
-
-  const filteredConversations = useMemo(() => {
-    const query = search.trim().toLowerCase()
-
-    if (!query) return conversations
-
-    return conversations.filter((conversation) =>
-      (conversation.display_name || "Conversation")
-        .toLowerCase()
-        .includes(query),
-    )
-  }, [conversations, search])
-
-  async function handleSendMessage(event) {
-    event.preventDefault()
-
-    const content = messageText.trim()
-
-    if (!content || !selectedConversation?.id || !user?.id || sending) {
+    if (!selectedConversation) {
+      setMessages([])
       return
     }
+    loadMessages()
 
+    const unsubscribe = subscribeToConversation(
+      selectedConversation.id,
+      (newMsg) => {
+        setMessages((current) => {
+          if (current.some((m) => m.id === newMsg.id)) return current
+          return [...current, newMsg]
+        })
+      }
+    )
+    return () => unsubscribe?.()
+  }, [selectedConversation, loadMessages])
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // Send message
+  const handleSendMessage = async (e) => {
+    e.preventDefault()
+    const content = messageText.trim()
+    if (!content || !selectedConversation || !user || sending) return
+
+    setSending(true)
+    setError("")
     try {
-      setSending(true)
-
       const newMessage = await sendMessage({
         conversationId: selectedConversation.id,
         senderId: user.id,
@@ -152,275 +350,319 @@ function Messages() {
       })
 
       setMessages((current) => {
-        if (current.some((message) => message.id === newMessage.id)) {
-          return current
-        }
-
+        if (current.some((m) => m.id === newMessage.id)) return current
         return [...current, newMessage]
       })
-
       setMessageText("")
-    } catch (error) {
-      console.error("Unable to send message:", error)
-    } finally {
-      setSending(false)
+      textareaRef.current?.focus()
+    } catch (err) {
+      console.error("Unable to send message:", err)
+      setError("Could not send your message.")
+    }
+    setSending(false)
+  }
+
+  // Keyboard: Enter to send, Shift+Enter for newline
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      e.currentTarget.form?.requestSubmit()
     }
   }
 
+  // Call actions
+  const startCall = (type) => {
+    if (!selectedConversation) return
+    navigate(`/calls?conversation=${selectedConversation.id}&type=${type}`)
+  }
+
+  // Filter conversations by search
+  const filteredConversations = useMemo(() => {
+    if (!search.trim()) return conversations
+    const q = search.toLowerCase()
+    return conversations.filter((c) =>
+      (c.display_name || "").toLowerCase().includes(q)
+    )
+  }, [conversations, search])
+
+  const formatTime = (dateString) => {
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = Math.floor((now - date) / 1000)
+    if (diff < 60) return "now"
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+  }
+
   return (
-    <div className="h-[calc(100vh-7rem)] min-h-[560px] overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-2xl backdrop-blur-xl">
+    <div className={`h-[calc(100vh-4rem)] w-full overflow-hidden ${theme.page}`}>
       <div className="flex h-full">
+        {/* ============================================
+            SIDEBAR — Conversation List
+            ============================================ */}
         <aside
-          className={`w-full border-r border-white/10 sm:w-[320px] lg:w-[360px] ${
-            selectedConversation ? "hidden sm:flex" : "flex"
-          } flex-col`}
+          className={`w-full flex-col border-r ${theme.headerBorder} ${theme.sidebar} ${
+            selectedConversation ? "hidden sm:flex sm:w-[340px]" : "flex"
+          }`}
         >
-          <div className="border-b border-white/10 p-5">
-            <div className="mb-4 flex items-center justify-between">
+          {/* Sidebar header */}
+          <div className={`border-b ${theme.headerBorder} p-4`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-[#d9b86c]">
-                  Private
-                </p>
-                <h1 className="mt-1 text-2xl font-semibold text-[#f7f3ea]">
-                  Messages
+                <div className="flex items-center gap-2">
+                  <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${theme.iconBg} ${theme.iconAccent}`}>
+                    <MessageCircle size={14} />
+                  </span>
+                  <span className={`text-[10px] font-bold uppercase tracking-[0.22em] ${theme.iconAccent}`}>
+                    Messages
+                  </span>
+                </div>
+                <h1 className={`mt-2 text-2xl font-semibold tracking-tight ${theme.text}`}>
+                  Your chats
                 </h1>
               </div>
-
-              <div className="rounded-2xl border border-[#d9b86c]/20 bg-[#d9b86c]/10 p-3">
-                <MessageCircle
-                  size={20}
-                  className="text-[#d9b86c]"
-                />
-              </div>
+              <ThemePicker current={themeKey} onChange={setThemeKey} />
             </div>
 
-            <div className="relative">
+            {/* Search */}
+            <div className="relative mt-4">
               <Search
-                size={17}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35"
+                size={16}
+                className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.textFaint}`}
               />
-
               <input
+                type="search"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full rounded-xl border border-white/10 bg-black/20 py-3 pl-10 pr-4 text-sm text-white outline-none transition focus:border-[#d9b86c]/50"
+                className={`w-full rounded-xl border ${theme.inputBorder} ${theme.inputBg} py-2.5 pl-9 pr-3 text-sm ${theme.text} outline-none transition focus:border-current placeholder:${theme.textFaint}`}
               />
             </div>
           </div>
 
+          {/* Conversation list */}
           <div className="flex-1 overflow-y-auto p-2">
             {loading ? (
-              <div className="flex h-40 items-center justify-center text-sm text-white/45">
-                Loading conversations...
+              <div className={`flex h-40 items-center justify-center text-sm ${theme.textMuted}`}>
+                <Loader2 size={18} className="mr-2 animate-spin" />
+                Loading...
               </div>
             ) : filteredConversations.length === 0 ? (
-              <div className="flex h-full min-h-64 flex-col items-center justify-center px-6 text-center">
-                <div className="mb-4 rounded-2xl bg-white/5 p-4">
-                  <Users size={24} className="text-[#d9b86c]" />
+              <div className={`flex h-full flex-col items-center justify-center px-6 text-center ${theme.textMuted}`}>
+                <div className={`mb-3 flex h-14 w-14 items-center justify-center rounded-2xl ${theme.iconBg}`}>
+                  <MessageCircle size={24} className={theme.iconAccent} />
                 </div>
-
-                <p className="font-medium text-white/80">
-                  No conversations yet
-                </p>
-
-                <p className="mt-1 text-sm text-white/40">
-                  Your private conversations will appear here.
+                <p className="text-sm font-semibold">No conversations yet</p>
+                <p className="mt-1 text-xs">
+                  Tap a member's profile to start chatting.
                 </p>
               </div>
             ) : (
-              filteredConversations.map((conversation) => {
-                const active =
-                  selectedConversation?.id === conversation.id
-
-                return (
-                  <button
-                    key={conversation.id}
-                    type="button"
-                    onClick={() => setSelectedConversation(conversation)}
-                    className={`mb-1 flex w-full items-center gap-3 rounded-2xl p-3 text-left transition ${
-                      active
-                        ? "bg-[#d9b86c]/10"
-                        : "hover:bg-white/[0.045]"
-                    }`}
-                  >
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#d9b86c]/30 to-[#5d3f55]/40 text-[#d9b86c]">
-                      {conversation.type === "group" ? (
-                        <Users size={18} />
-                      ) : (
-                        <MessageCircle size={18} />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-white/90">
-                        {conversation.display_name || "Conversation"}
-                      </p>
-
-                      <p className="mt-1 text-xs text-white/35">
-                        {conversation.type === "group"
-                          ? "Group conversation"
-                          : "Private conversation"}
-                      </p>
-                    </div>
-                  </button>
-                )
-              })
+              <div className="space-y-1">
+                {filteredConversations.map((conv) => {
+                  const active = selectedConversation?.id === conv.id
+                  return (
+                    <button
+                      key={conv.id}
+                      type="button"
+                      onClick={() => setSelectedConversation(conv)}
+                      className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${
+                        active
+                          ? theme.dark
+                            ? "bg-white/10"
+                            : "bg-black/5"
+                          : theme.dark
+                            ? "hover:bg-white/5"
+                            : "hover:bg-black/[0.03]"
+                      }`}
+                    >
+                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
+                        {conv.display_avatar ? (
+                          <img src={conv.display_avatar} alt="" className="h-full w-full object-cover" />
+                        ) : conv.is_direct ? (
+                          (conv.display_name || "?").charAt(0).toUpperCase()
+                        ) : (
+                          <Users size={20} />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`truncate text-sm font-semibold ${theme.text}`}>
+                          {conv.display_name || "Conversation"}
+                        </p>
+                        <p className={`mt-0.5 text-xs ${theme.textMuted}`}>
+                          {conv.is_direct ? "Private conversation" : "Group conversation"}
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             )}
           </div>
         </aside>
 
+        {/* ============================================
+            MAIN — Chat Area
+            ============================================ */}
         <main
-          className={`min-w-0 flex-1 ${
+          className={`min-w-0 flex-1 flex-col ${
             selectedConversation ? "flex" : "hidden sm:flex"
-          } flex-col`}
+          }`}
         >
           {!selectedConversation ? (
-            <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-              <div className="mb-5 rounded-3xl border border-[#d9b86c]/15 bg-[#d9b86c]/5 p-5">
-                <MessageCircle
-                  size={32}
-                  className="text-[#d9b86c]"
-                />
+            <div className={`flex h-full flex-col items-center justify-center px-6 text-center ${theme.chatBg}`}>
+              <div className={`mb-4 flex h-20 w-20 items-center justify-center rounded-3xl ${theme.iconBg}`}>
+                <Sparkles size={32} className={theme.iconAccent} />
               </div>
-
-              <h2 className="text-xl font-semibold text-white/90">
-                Your private space
+              <h2 className={`text-2xl font-semibold ${theme.text}`}>
+                Pick a conversation
               </h2>
-
-              <p className="mt-2 max-w-sm text-sm text-white/40">
-                Select a conversation to start messaging.
+              <p className={`mt-2 max-w-sm text-sm ${theme.textMuted}`}>
+                Choose a chat from the list or start a new one from someone's profile.
               </p>
             </div>
           ) : (
             <>
-              <header className="flex items-center gap-3 border-b border-white/10 px-4 py-4 sm:px-6">
+              {/* Chat header */}
+              <header className={`flex items-center gap-2 border-b ${theme.headerBorder} ${theme.headerBg} px-3 py-3 backdrop-blur-md sm:px-5 sm:py-4`}>
                 <button
                   type="button"
                   onClick={() => setSelectedConversation(null)}
-                  className="rounded-xl p-2 text-white/50 hover:bg-white/5 hover:text-white sm:hidden"
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"} sm:hidden`}
                   aria-label="Back to conversations"
                 >
-                  <ArrowLeft size={19} />
+                  <ArrowLeft size={18} />
                 </button>
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d9b86c]/10 text-[#d9b86c]">
-                  {selectedConversation.type === "group" ? (
-                    <Users size={18} />
+                <div className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
+                  {selectedConversation.display_avatar ? (
+                    <img src={selectedConversation.display_avatar} alt="" className="h-full w-full object-cover" />
+                  ) : selectedConversation.is_direct ? (
+                    (selectedConversation.display_name || "?").charAt(0).toUpperCase()
                   ) : (
-                    <MessageCircle size={18} />
+                    <Users size={20} />
                   )}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate font-semibold text-white/90">
+                  <h2 className={`truncate text-sm font-semibold ${theme.text}`}>
                     {selectedConversation.display_name || "Conversation"}
                   </h2>
-
-                  <p className="text-xs text-white/35">
-                    {selectedConversation.type === "group"
-                      ? "Group conversation"
-                      : "Private conversation"}
+                  <p className={`text-xs ${theme.textMuted}`}>
+                    {selectedConversation.is_direct ? "Private conversation" : "Group conversation"}
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  className="rounded-xl p-2 text-white/45 transition hover:bg-white/5 hover:text-white"
-                  aria-label="Conversation options"
-                >
-                  <MoreVertical size={19} />
-                </button>
+                {/* Call buttons */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => startCall("audio")}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Start audio call"
+                    title="Audio call"
+                  >
+                    <Phone size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => startCall("video")}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Start video call"
+                    title="Video call"
+                  >
+                    <Video size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Conversation options"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+                </div>
               </header>
 
-              <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+              {/* Messages area */}
+              <div className={`flex-1 overflow-y-auto px-3 py-5 sm:px-6 ${theme.chatBg}`}>
                 {messagesLoading ? (
-                  <div className="flex h-full items-center justify-center text-sm text-white/40">
+                  <div className={`flex h-full items-center justify-center text-sm ${theme.textMuted}`}>
+                    <Loader2 size={18} className="mr-2 animate-spin" />
                     Loading messages...
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center text-center">
-                    <div className="mb-4 rounded-2xl bg-white/5 p-4">
-                      <MessageCircle
-                        size={24}
-                        className="text-[#d9b86c]"
-                      />
+                  <div className={`flex h-full flex-col items-center justify-center text-center ${theme.textMuted}`}>
+                    <div className={`mb-3 flex h-16 w-16 items-center justify-center rounded-2xl ${theme.iconBg}`}>
+                      <MessageCircle size={28} className={theme.iconAccent} />
                     </div>
-
-                    <p className="font-medium text-white/75">
-                      No messages yet
-                    </p>
-
-                    <p className="mt-1 text-sm text-white/35">
-                      Start the conversation.
-                    </p>
+                    <p className="text-sm font-semibold">Start the conversation</p>
+                    <p className="mt-1 text-xs">Send the first message.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="mx-auto max-w-2xl space-y-3">
                     {messages.map((message) => {
                       const mine = message.sender_id === user?.id
-
                       return (
-                        <div
+                        <motion.div
                           key={message.id}
-                          className={`flex ${
-                            mine ? "justify-end" : "justify-start"
-                          }`}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex ${mine ? "justify-end" : "justify-start"}`}
                         >
-                          <div
-                            className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                              mine
-                                ? "rounded-br-md bg-[#d9b86c] text-[#17130b]"
-                                : "rounded-bl-md border border-white/10 bg-white/[0.055] text-white/80"
-                            }`}
-                          >
-                            {message.content}
+                          <div className="flex max-w-[80%] flex-col">
+                            <div
+                              className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                                mine ? theme.ownBubble : theme.otherBubble
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                            </div>
+                            <span className={`mt-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "text-right" : "text-left"}`}>
+                              {formatTime(message.created_at)}
+                            </span>
                           </div>
-                        </div>
+                        </motion.div>
                       )
                     })}
+                    <div ref={messagesEndRef} />
                   </div>
                 )}
               </div>
 
-              <form
-                onSubmit={handleSendMessage}
-                className="border-t border-white/10 p-3 sm:p-4"
-              >
-                <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-black/20 p-2">
-                  <textarea
-                    value={messageText}
-                    onChange={(event) =>
-                      setMessageText(event.target.value)
-                    }
-                    onKeyDown={(event) => {
-                      if (
-                        event.key === "Enter" &&
-                        !event.shiftKey
-                      ) {
-                        event.preventDefault()
-                        event.currentTarget.form?.requestSubmit()
-                      }
-                    }}
-                    rows={1}
-                    placeholder="Write a message..."
-                    className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-3 text-sm text-white outline-none placeholder:text-white/25"
-                  />
-
+              {/* Input */}
+              <div className={`border-t ${theme.headerBorder} ${theme.headerBg} px-3 py-3 backdrop-blur-md sm:px-5 sm:py-4`}>
+                {error && (
+                  <div className="mb-2 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600">
+                    {error}
+                  </div>
+                )}
+                <form onSubmit={handleSendMessage} className="mx-auto flex max-w-2xl items-end gap-2">
+                  <div className={`flex flex-1 items-end gap-2 rounded-2xl border ${theme.inputBorder} ${theme.inputBg} p-2`}>
+                    <textarea
+                      ref={textareaRef}
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      rows={1}
+                      placeholder="Write a message..."
+                      className={`max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm ${theme.text} outline-none placeholder:${theme.textFaint}`}
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={!messageText.trim() || sending}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#d9b86c] text-[#17130b] transition hover:bg-[#e4ca8c] disabled:cursor-not-allowed disabled:opacity-30"
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${theme.accentBg} text-white shadow-lg transition ${theme.accentHover} disabled:cursor-not-allowed disabled:opacity-40`}
                     aria-label="Send message"
                   >
-                    <Send size={18} />
+                    {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                   </button>
-                </div>
-
-                <p className="mt-2 px-2 text-[11px] text-white/25">
-                  Messages automatically disappear after 24 hours.
+                </form>
+                <p className={`mt-2 text-center text-[10px] ${theme.textFaint}`}>
+                  Messages disappear after 24 hours
                 </p>
-              </form>
+              </div>
             </>
           )}
         </main>
