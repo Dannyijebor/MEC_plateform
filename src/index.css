@@ -318,3 +318,16 @@ img {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Hide chrome when a chat is open on mobile */
+@media (max-width: 1023px) {
+  body.chat-open header.sticky,
+  body.chat-open header[class*="sticky"] {
+    display: none !important;
+  }
+  body.chat-open nav.fixed.inset-x-0.bottom-0,
+  body.chat-open nav[class*="fixed"][class*="bottom-0"] {
+    display: none !important;
+  }
+}

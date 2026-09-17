@@ -281,6 +281,57 @@ function Messages() {
   const typingChannelRef = useRef(null)
   const [missedCall, setMissedCall] = useState(null)
 
+  // Toggle a body class so the layout can hide its chrome on mobile
+  useEffect(() => {
+    if (selectedConversation) {
+      document.body.classList.add("chat-open")
+    } else {
+      document.body.classList.remove("chat-open")
+    }
+    return () => document.body.classList.remove("chat-open")
+  }, [selectedConversation])
+
+  // Edge-swipe-to-go-back gesture state
+  const swipeBackRef = useRef({ active: false, startX: 0, startY: 0 })
+
+  const handleSwipeStart = (e) => {
+    if (!selectedConversation) return
+    const touch = e.touches?.[0]
+    if (!touch) return
+    if (touch.clientX < 40) {
+      swipeBackRef.current = {
+        active: true,
+        startX: touch.clientX,
+        startY: touch.clientY,
+      }
+    }
+  }
+
+  const handleSwipeMove = (e) => {
+    if (!swipeBackRef.current.active) return
+    const touch = e.touches?.[0]
+    if (!touch) return
+    const dx = touch.clientX - swipeBackRef.current.startX
+    const dy = Math.abs(touch.clientY - swipeBackRef.current.startY)
+    if (dy > 30 && dy > dx) {
+      swipeBackRef.current.active = false
+    }
+  }
+
+  const handleSwipeEnd = (e) => {
+    if (!swipeBackRef.current.active) return
+    const touch = e.changedTouches?.[0]
+    if (!touch) {
+      swipeBackRef.current.active = false
+      return
+    }
+    const dx = touch.clientX - swipeBackRef.current.startX
+    if (dx > 80) {
+      setSelectedConversation(null)
+    }
+    swipeBackRef.current.active = false
+  }
+
   const handleAcceptIncoming = () => {
     if (!incomingCall) return
     const { conversationId, mode } = incomingCall
@@ -620,7 +671,16 @@ function Messages() {
   }
 
   return (
-    <div className={`h-[calc(100vh-4rem)] w-full overflow-hidden ${theme.page}`}>
+    <div
+      onTouchStart={handleSwipeStart}
+      onTouchMove={handleSwipeMove}
+      onTouchEnd={handleSwipeEnd}
+      className={`w-full overflow-hidden ${theme.page} ${
+        selectedConversation
+          ? "fixed inset-0 z-40 h-screen lg:static lg:z-auto lg:h-[calc(100vh-4rem)]"
+          : "h-[calc(100vh-4rem)]"
+      }`}
+    >
       <div className="flex h-full">
         {/* ============================================
             SIDEBAR — Conversation List
