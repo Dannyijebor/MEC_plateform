@@ -82,11 +82,6 @@ export default function MessageActionMenu({
             onClick={(e) => e.stopPropagation()}
             className="fixed z-[151] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_40px_-8px_rgba(0,0,0,0.25)]"
           >
-            {/* Visible debug banner */}
-            <div className="border-b border-yellow-200 bg-yellow-50 px-3 py-1 font-mono text-[9px] text-yellow-800">
-              DEBUG: {mine ? "MINE" : "THEIRS"} | canEdit: {String(canEdit)}
-            </div>
-
             <div className="p-1">
               {actions.map((action) => {
                 const Icon = action.icon
