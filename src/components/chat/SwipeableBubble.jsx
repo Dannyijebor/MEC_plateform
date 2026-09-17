@@ -1,11 +1,16 @@
 import { motion, useMotionValue, useTransform } from "framer-motion"
 import { Reply } from "lucide-react"
+import { useLongPress } from "../../hooks/useLongPress"
 
-export default function SwipeableBubble({ mine, onReply, children }) {
+export default function SwipeableBubble({ mine, onReply, onLongPress, children }) {
   const x = useMotionValue(0)
   const absX = useTransform(x, (v) => Math.abs(v))
   const opacity = useTransform(absX, [0, 20, 60], [0, 0.5, 1])
   const scale = useTransform(absX, [0, 60], [0.5, 1])
+
+  const longPressHandlers = useLongPress(() => {
+    onLongPress?.()
+  }, 500)
 
   return (
     <motion.div
@@ -15,7 +20,6 @@ export default function SwipeableBubble({ mine, onReply, children }) {
       dragSnapToOrigin
       style={{ x }}
       onDrag={(event, info) => {
-        // Lock the wrong direction entirely
         if (mine && info.offset.x > 0) x.set(0)
         else if (!mine && info.offset.x < 0) x.set(0)
       }}
@@ -23,7 +27,6 @@ export default function SwipeableBubble({ mine, onReply, children }) {
         if ((mine && info.offset.x < -60) || (!mine && info.offset.x > 60)) {
           onReply()
         }
-        // Always reset position after drag
         x.set(0)
       }}
       className={`relative w-fit touch-pan-y ${mine ? "self-end" : "self-start"}`}
@@ -37,7 +40,9 @@ export default function SwipeableBubble({ mine, onReply, children }) {
         <Reply size={16} className="text-white" strokeWidth={2.5} />
       </motion.div>
 
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10" {...longPressHandlers}>
+        {children}
+      </div>
     </motion.div>
   )
 }
