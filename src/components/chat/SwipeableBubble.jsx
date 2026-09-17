@@ -3,65 +3,41 @@ import { Reply } from "lucide-react"
 
 export default function SwipeableBubble({ mine, onReply, children }) {
   const x = useMotionValue(0)
+  const absX = useTransform(x, (v) => Math.abs(v))
 
-  // Icon opacity: 0 when not swiping, 1 when past threshold
-  const iconOpacity = useTransform(x, (value) => {
-    const abs = Math.abs(value)
-    return Math.min(abs / 50, 1)
-  })
+  // Opacity grows with swipe distance
+  const opacity = useTransform(absX, [0, 20, 60], [0, 0.5, 1])
 
-  // Icon scale grows as you swipe further
-  const iconScale = useTransform(x, (value) => {
-    const abs = Math.abs(value)
-    return 0.4 + Math.min(abs / 130, 0.9)
-  })
+  // Icon scales up as you swipe further
+  const scale = useTransform(absX, [0, 60], [0.5, 1])
 
-  // Icon horizontal position follows the swipe a bit
-  const iconX = useTransform(x, (value) => {
-    const abs = Math.abs(value)
-    return Math.min(abs * 0.6, 40)
-  })
-
-  const incoming = !mine // swipe right for others
-  const outgoing = mine  // swipe left for own
+  const incoming = !mine // others' messages → swipe right
+  const outgoing = mine  // your own messages → swipe left
 
   return (
     <motion.div
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.6}
+      dragElastic={0.5}
       style={{ x }}
-      onDragEnd={(event, info) => {
-        const threshold = 60
-        if (mine && info.offset.x < -threshold) {
-          onReply()
-        } else if (!mine && info.offset.x > threshold) {
+      onDragEnd={(e, info) => {
+        if ((mine && info.offset.x < -60) || (!mine && info.offset.x > 60)) {
           onReply()
         }
       }}
       className="relative touch-pan-y"
     >
-      {/* Reply indicator on the LEFT (for incoming/others' messages) */}
-      {incoming && (
-        <motion.div
-          style={{ opacity: iconOpacity, scale: iconScale, x: iconX }}
-          className="pointer-events-none absolute left-0 top-1/2 z-0 -translate-y-1/2 text-[#d9b86c]"
-        >
-          <Reply size={20} />
-        </motion.div>
-      )}
+      {/* Static reply icon — sits BEHIND the bubble, revealed as it slides away */}
+      <motion.div
+        style={{ opacity, scale }}
+        className={`pointer-events-none absolute top-1/2 z-0 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-[#d9b86c] shadow-lg ring-2 ring-white/60 ${
+          incoming ? "left-0" : "right-0"
+        }`}
+      >
+        <Reply size={16} className="text-white" strokeWidth={2.5} />
+      </motion.div>
 
-      {/* Reply indicator on the RIGHT (for outgoing/own messages) */}
-      {outgoing && (
-        <motion.div
-          style={{ opacity: iconOpacity, scale: iconScale, x: useTransform(iconX, (v) => -v) }}
-          className="pointer-events-none absolute right-0 top-1/2 z-0 -translate-y-1/2 text-[#d9b86c]"
-        >
-          <Reply size={20} />
-        </motion.div>
-      )}
-
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 w-fit">{children}</div>
     </motion.div>
   )
 }
