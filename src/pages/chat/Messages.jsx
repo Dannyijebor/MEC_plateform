@@ -677,8 +677,8 @@ function Messages() {
       onTouchEnd={handleSwipeEnd}
       className={`w-full overflow-hidden ${theme.page} ${
         selectedConversation
-          ? "fixed inset-0 z-40 h-screen lg:static lg:z-auto lg:h-[calc(100vh-4rem)]"
-          : "h-[calc(100vh-4rem)]"
+          ? "fixed inset-0 z-40 h-[100dvh] pt-[env(safe-area-inset-top)] lg:static lg:z-auto lg:h-[calc(100dvh-4rem)] lg:pt-0"
+          : "h-[calc(100dvh-4rem)]"
       }`}
     >
       <div className="flex h-full">
