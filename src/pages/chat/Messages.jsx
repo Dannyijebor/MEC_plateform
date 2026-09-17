@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { useAuth } from "../../hooks/useAuth"
+import { useOnlineUsers } from "../../context/PresenceContext"
 import { supabase } from "../../lib/supabase"
 import {
   getMyConversations,
@@ -259,6 +260,7 @@ function ThemePicker({ current, onChange }) {
 // ==========================================
 function Messages() {
   const { user } = useAuth()
+  const onlineUsers = useOnlineUsers()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const targetConversationId = searchParams.get("conversation")
@@ -605,13 +607,27 @@ function Messages() {
                             : "hover:bg-black/[0.03]"
                       }`}
                     >
-                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
-                        {conv.display_avatar ? (
-                          <img src={conv.display_avatar} alt="" className="h-full w-full object-cover" />
-                        ) : conv.is_direct ? (
-                          (conv.display_name || "?").charAt(0).toUpperCase()
-                        ) : (
-                          <Users size={20} />
+                      <div className="relative shrink-0">
+                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
+                          {conv.display_avatar ? (
+                            <img src={conv.display_avatar} alt="" className="h-full w-full object-cover" />
+                          ) : conv.is_direct ? (
+                            (conv.display_name || "?").charAt(0).toUpperCase()
+                          ) : (
+                            <Users size={20} />
+                          )}
+                        </div>
+                        {conv.is_direct && (
+                          <span
+                            className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
+                              Array.isArray(conv.conversation_members) &&
+                              conv.conversation_members.some(
+                                (m) => m?.user_id && m.user_id !== user?.id && onlineUsers.has(m.user_id)
+                              )
+                                ? "bg-emerald-500"
+                                : "bg-red-500"
+                            }`}
+                          />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -663,13 +679,27 @@ function Messages() {
                   <ArrowLeft size={18} />
                 </button>
 
-                <div className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
-                  {selectedConversation.display_avatar ? (
-                    <img src={selectedConversation.display_avatar} alt="" className="h-full w-full object-cover" />
-                  ) : selectedConversation.is_direct ? (
-                    (selectedConversation.display_name || "?").charAt(0).toUpperCase()
-                  ) : (
-                    <Users size={20} />
+                <div className="relative shrink-0">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
+                    {selectedConversation.display_avatar ? (
+                      <img src={selectedConversation.display_avatar} alt="" className="h-full w-full object-cover" />
+                    ) : selectedConversation.is_direct ? (
+                      (selectedConversation.display_name || "?").charAt(0).toUpperCase()
+                    ) : (
+                      <Users size={20} />
+                    )}
+                  </div>
+                  {selectedConversation.is_direct && (
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${
+                        Array.isArray(selectedConversation.conversation_members) &&
+                        selectedConversation.conversation_members.some(
+                          (m) => m?.user_id && m.user_id !== user?.id && onlineUsers.has(m.user_id)
+                        )
+                          ? "bg-emerald-500"
+                          : "bg-red-500"
+                      }`}
+                    />
                   )}
                 </div>
 
