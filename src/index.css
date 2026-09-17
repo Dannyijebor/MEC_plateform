@@ -335,3 +335,24 @@ img {
     display: none !important;
   }
 }
+
+
+/* Kill ALL focus outlines on form inputs (global) */
+textarea:focus,
+textarea:focus-visible,
+input:focus,
+input:focus-visible,
+button:focus,
+button:focus-visible,
+*:focus {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+
+textarea,
+input {
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+}
