@@ -4,26 +4,26 @@ import { Link } from "react-router-dom"
 
 function Navbar() {
   return (
-    <header className="sticky top-0 z-40 border-b border-[#202635]/[0.09] bg-[#faf8f3]/88 backdrop-blur-2xl lg:ml-64">
-      <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-[#202635]/[0.09] bg-[#faf8f3]/95 backdrop-blur-2xl lg:ml-64">
+      <div className="flex h-14 items-center justify-between gap-2 px-3 sm:h-16 sm:px-6 lg:px-8">
 
         {/* Mobile / tablet branding */}
         <Link
           to="/"
-          className="flex min-w-0 items-center gap-3 lg:hidden"
+          className="flex min-w-0 items-center gap-2.5 lg:hidden"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#d9b86c]/20 bg-[#d9b86c]/10">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#d9b86c]/20 bg-[#d9b86c]/10 sm:h-9 sm:w-9 sm:rounded-xl">
             <Sparkles
-              size={17}
-              className="text-[#d9b86c]"
+              size={16}
+              className="text-[#9b7a2f] sm:size-[17px]"
             />
           </div>
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-[#f7f3ea]">
+            <p className="truncate text-xs font-semibold text-[#111827] sm:text-sm">
               Mark Eselebor
             </p>
-            <p className="truncate text-[10px] text-[#f7f3ea]/40">
+            <p className="truncate text-[9px] text-[#111827]/45 sm:text-[10px]">
               Clan Community
             </p>
           </div>
@@ -33,39 +33,39 @@ function Navbar() {
         <div className="relative hidden w-full max-w-md lg:block">
           <Search
             size={17}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f7f3ea]/35"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#111827]/35"
           />
 
           <input
             type="search"
             placeholder="Search the clan..."
-            className="h-10 w-full rounded-xl border border-white/[0.07] bg-white/[0.035] pl-10 pr-4 text-sm text-[#f7f3ea] outline-none placeholder:text-[#f7f3ea]/30 transition focus:border-[#d9b86c]/30 focus:bg-white/[0.05]"
+            className="h-10 w-full rounded-xl border border-[#202635]/[0.09] bg-white/60 pl-10 pr-4 text-sm text-[#111827] outline-none placeholder:text-[#111827]/30 transition focus:border-[#d9b86c]/40 focus:bg-white"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <motion.button
             whileTap={{ scale: 0.92 }}
             type="button"
             aria-label="Notifications"
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#202635]/[0.09] bg-white/[0.035] text-[#f7f3ea]/65 transition hover:bg-white/[0.07] hover:text-[#f7f3ea]"
+            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[#202635]/[0.09] bg-white/70 text-[#111827]/65 transition hover:bg-white hover:text-[#111827] sm:h-10 sm:w-10 sm:rounded-xl"
           >
-            <Bell size={18} />
+            <Bell size={17} className="sm:size-[18px]" />
 
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#d9b86c]" />
+            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#d9b86c] sm:right-2 sm:top-2" />
           </motion.button>
 
           {/* Desktop profile */}
           <Link
             to="/settings"
-            className="hidden items-center gap-2 rounded-xl border border-[#202635]/[0.09] bg-white/[0.035] px-2 py-1.5 transition hover:bg-white/[0.07] sm:flex"
+            className="hidden items-center gap-2 rounded-xl border border-[#202635]/[0.09] bg-white/70 px-2 py-1.5 transition hover:bg-white sm:flex"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d9b86c] text-[10px] font-bold text-[#17130a]">
               ME
             </div>
 
-            <span className="hidden text-xs font-medium text-[#f7f3ea]/70 md:block">
+            <span className="hidden text-xs font-medium text-[#111827]/70 md:block">
               My Profile
             </span>
           </Link>
