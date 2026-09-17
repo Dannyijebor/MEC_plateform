@@ -330,4 +330,8 @@ img {
   body.chat-open nav[class*="fixed"][class*="bottom-0"] {
     display: none !important;
   }
+  /* Hide the floating hamburger button (top-left corner) */
+  body.chat-open button[class*="fixed"][class*="top-3"][class*="left-3"] {
+    display: none !important;
+  }
 }
