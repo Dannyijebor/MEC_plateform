@@ -77,6 +77,31 @@ export async function closeCallChannel(channel) {
  * Broadcast a global "someone is calling you" invite to all members of a conversation.
  * Used on the Messages page to detect incoming calls.
  */
+export async function broadcastIncomingCall(userId, payload) {
+  const channel = supabase.channel(`incoming-calls:${userId}`)
+
+  await new Promise((resolve) => {
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") resolve()
+    })
+  })
+
+  await channel.send({
+    type: "broadcast",
+    event: "incoming-call",
+    payload,
+  })
+
+  // Keep the channel alive briefly, then clean up
+  setTimeout(() => {
+    supabase.removeChannel(channel)
+  }, 1500)
+}
+
+/**
+ * Subscribe to incoming call invites for a user.
+ * Used by the receiver's Messages page.
+ */
 export function subscribeToIncomingCalls(userId, onIncoming) {
   const channel = supabase
     .channel(`incoming-calls:${userId}`)
@@ -84,21 +109,6 @@ export function subscribeToIncomingCalls(userId, onIncoming) {
       onIncoming?.(payload)
     })
     .subscribe()
-  return channel
-}
 
-export async function broadcastIncomingCall(userId, payload) {
-  const channel = supabase.channel(`incoming-calls:${userId}`)
-  // Subscribing momentarily before broadcasting ensures delivery
-  await new Promise((resolve) => {
-    channel.subscribe((status) => {
-      if (status === "SUBSCRIBED") resolve()
-    })
-  })
-  await channel.send({
-    type: "broadcast",
-    event: "incoming-call",
-    payload,
-  })
-  setTimeout(() => supabase.removeChannel(channel), 1000)
+  return channel
 }
