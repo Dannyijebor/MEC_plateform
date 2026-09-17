@@ -268,3 +268,57 @@ export async function getUnreadCounts(userId) {
   }
   return counts
 }
+
+/**
+ * Edit the content of an existing message.
+ */
+export async function editMessage(messageId, newContent) {
+  const { data, error } = await supabase
+    .from("messages")
+    .update({
+      content: newContent,
+      edited_at: new Date().toISOString(),
+    })
+    .eq("id", messageId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+/**
+ * Delete a message (only your own).
+ */
+export async function deleteMessage(messageId) {
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("id", messageId)
+
+  if (error) throw error
+}
+
+/**
+ * Send a message with an optional reply_to_id.
+ */
+export async function sendReplyMessage({
+  conversationId,
+  senderId,
+  content,
+  replyToId,
+}) {
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      content,
+      reply_to_id: replyToId,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
