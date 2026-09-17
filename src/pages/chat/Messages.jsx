@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { useAuth } from "../../hooks/useAuth"
+import { supabase } from "../../lib/supabase"
 import {
   getMyConversations,
   getConversationMessages,
@@ -274,6 +275,8 @@ function Messages() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
   const [incomingCall, setIncomingCall] = useState(null)
+  const [typingUsers, setTypingUsers] = useState([])
+  const typingChannelRef = useRef(null)
   const [missedCall, setMissedCall] = useState(null)
 
   const handleAcceptIncoming = () => {
@@ -354,6 +357,43 @@ function Messages() {
     }
     return () => unsubscribe?.()
   }, [selectedConversation, loadMessages])
+
+  // Typing indicator subscription
+  useEffect(() => {
+    if (!selectedConversation || !user) {
+      setTypingUsers([])
+      return
+    }
+    const channel = supabase
+      .channel(`typing:${selectedConversation.id}`)
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        if (!payload || payload.userId === user.id) return
+        setTypingUsers((current) => {
+          const others = current.filter((u) => u.userId !== payload.userId)
+          return [...others, { userId: payload.userId, name: payload.name, at: Date.now() }]
+        })
+      })
+      .subscribe()
+    typingChannelRef.current = channel
+    return () => {
+      try { supabase.removeChannel(channel) } catch {}
+      typingChannelRef.current = null
+      setTypingUsers([])
+    }
+  }, [selectedConversation, user])
+
+  // Expire typing users after 3s of inactivity
+  useEffect(() => {
+    if (typingUsers.length === 0) return
+    const t = setTimeout(() => {
+      const now = Date.now()
+      setTypingUsers((current) => {
+        const filtered = current.filter((u) => now - u.at < 3000)
+        return filtered.length === current.length ? current : filtered
+      })
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [typingUsers])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -784,12 +824,30 @@ function Messages() {
                     {error}
                   </div>
                 )}
+                {typingUsers.length > 0 && (
+                  <div className={`mb-2 text-center text-xs italic ${theme.textMuted}`}>
+                    {typingUsers.map((u) => u.name).join(", ")}{" "}
+                    {typingUsers.length === 1 ? "is" : "are"} typing...
+                  </div>
+                )}
                 <form onSubmit={handleSendMessage} className="mx-auto flex max-w-2xl items-end gap-2">
                   <div className={`flex flex-1 items-end gap-2 rounded-2xl border ${theme.inputBorder} ${theme.inputBg} p-2`}>
                     <textarea
                       ref={textareaRef}
                       value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
+                      onChange={(e) => {
+                        setMessageText(e.target.value)
+                        if (typingChannelRef.current && user?.id) {
+                          typingChannelRef.current.send({
+                            type: "broadcast",
+                            event: "typing",
+                            payload: {
+                              userId: user.id,
+                              name: user.user_metadata?.full_name || user.email || "MEC Member",
+                            },
+                          }).catch(() => {})
+                        }
+                      }}
                       onKeyDown={handleKeyDown}
                       rows={1}
                       placeholder="Write a message..."
