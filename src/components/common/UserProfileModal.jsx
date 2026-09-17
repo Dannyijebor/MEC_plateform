@@ -33,8 +33,8 @@ export default function UserProfileModal({ userId, onClose }) {
         navigate(`/messages?conversation=${conversationId}`)
       }
     } catch (error) { 
-      console.error("Failed to start chat:", error) 
-      alert("Could not start chat. Please check your database setup.")
+      console.error("Failed to start chat:", error)
+      alert(`Chat error: ${error?.message || error?.details || JSON.stringify(error) || "Unknown error"}`)
     } finally { 
       setStartingChat(false) 
     }
