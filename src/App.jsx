@@ -5,24 +5,27 @@ import Sidebar from "./components/layout/Sidebar"
 import MobileNav from "./components/layout/MobileNav"
 import PageContainer from "./components/layout/PageContainer"
 import AppRoutes from "./routes/AppRoutes"
+import { PresenceProvider } from "./context/PresenceContext"
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen overflow-x-hidden bg-[#faf8f3] text-[#202635]">
-        <Fireflies />
+      <PresenceProvider>
+        <div className="min-h-screen overflow-x-hidden bg-[#faf8f3] text-[#202635]">
+          <Fireflies />
 
-        <div className="relative z-10">
-          <Sidebar />
-          <Navbar />
+          <div className="relative z-10">
+            <Sidebar />
+            <Navbar />
 
-          <PageContainer>
-            <AppRoutes />
-          </PageContainer>
+            <PageContainer>
+              <AppRoutes />
+            </PageContainer>
 
-          <MobileNav />
+            <MobileNav />
+          </div>
         </div>
-      </div>
+      </PresenceProvider>
     </BrowserRouter>
   )
 }
