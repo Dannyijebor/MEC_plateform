@@ -293,6 +293,8 @@ export default function Call() {
           conversationId,
           callerId: user.id,
           callerName: user.user_metadata?.full_name || user.email || "MEC Member",
+          calleeId: otherUser?.id,
+          calleeName: otherUser?.full_name || otherUser?.username || "MEC Member",
           status: connected ? "answered" : "missed",
           mode,
           durationSeconds: connected

@@ -198,6 +198,8 @@ export async function logCallEvent({
   conversationId,
   callerId,
   callerName,
+  calleeId,
+  calleeName,
   status, // "missed" | "declined" | "answered"
   mode,   // "audio" | "video"
   durationSeconds = 0,
@@ -205,7 +207,10 @@ export async function logCallEvent({
   const payload = JSON.stringify({
     status,
     mode,
+    callerId,
     callerName,
+    calleeId,
+    calleeName,
     duration: durationSeconds,
   })
 

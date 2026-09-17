@@ -691,6 +691,8 @@ function Messages() {
                         const isMissed = callInfo.status === "missed"
                         const isAnswered = callInfo.status === "answered"
                         const isDeclined = callInfo.status === "declined"
+                        const iAmCaller = callInfo.callerId === user?.id
+                        const outgoing = iAmCaller
                         const durationLabel =
                           isAnswered && callInfo.duration
                             ? ` · ${Math.floor(callInfo.duration / 60)}:${String(callInfo.duration % 60).padStart(2, "0")}`
@@ -708,11 +710,17 @@ function Messages() {
                               <span>{callInfo.mode === "video" ? "📹" : "📞"}</span>
                               <span>
                                 {isMissed
-                                  ? "Missed call"
+                                  ? outgoing
+                                    ? "Outgoing call"
+                                    : "Missed call"
                                   : isDeclined
-                                    ? "Declined call"
+                                    ? outgoing
+                                      ? "Call declined"
+                                      : "Declined call"
                                     : isAnswered
-                                      ? "Call ended"
+                                      ? outgoing
+                                        ? "Outgoing call"
+                                        : "Incoming call"
                                       : "Call"}
                               </span>
                               <span className={isMissed ? "text-red-400" : theme.textFaint}>
