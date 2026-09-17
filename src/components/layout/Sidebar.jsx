@@ -14,6 +14,7 @@ import {
   Users,
   UsersRound,
   Video,
+  User,
 } from "lucide-react"
 
 const mainNavigation = [
@@ -22,6 +23,7 @@ const mainNavigation = [
   { label: "Messages", icon: MessageCircle, path: "/messages" },
   { label: "Spaces", icon: Video, path: "/spaces" },
   { label: "Family Tree", icon: UsersRound, path: "/family-tree" },
+  { label: "Profile", icon: User, path: "/profile" },
 ]
 
 const clanNavigation = [

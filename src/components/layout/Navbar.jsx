@@ -58,7 +58,7 @@ function Navbar() {
 
           {/* Desktop profile */}
           <Link
-            to="/settings"
+            to="/profile"
             className="hidden items-center gap-2 rounded-xl border border-[#202635]/[0.09] bg-white/70 px-2 py-1.5 transition hover:bg-white sm:flex"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d9b86c] text-[10px] font-bold text-[#17130a]">

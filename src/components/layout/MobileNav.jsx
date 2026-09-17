@@ -14,6 +14,7 @@ import {
   LogOut,
   X,
   Menu,
+  User,
 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 
@@ -38,6 +39,7 @@ function MobileNav() {
     { label: "Events", icon: CalendarDays, to: "/events" },
     { label: "Committees", icon: Shield, to: "/committees" },
     { label: "Documents", icon: FileText, to: "/documents" },
+    { label: "Profile", icon: User, to: "/profile" },
   ]
 
   const handleSignOut = async () => {
@@ -128,6 +130,21 @@ function MobileNav() {
           </nav>
 
           <div className="mt-auto border-t border-[#202635]/[0.09] pt-3">
+            <NavLink
+              to="/profile"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${
+                  isActive
+                    ? "bg-[#d9b86c] text-[#17130a]"
+                    : "text-[#111827]/65 hover:bg-[#d9b86c]/[0.08]"
+                }`
+              }
+            >
+              <User size={18} />
+              Profile
+            </NavLink>
+
             <NavLink
               to="/settings"
               onClick={() => setOpen(false)}
