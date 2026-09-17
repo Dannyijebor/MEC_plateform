@@ -29,7 +29,6 @@ export default function MessageActionMenu({
     let x = anchor.x - MENU_WIDTH / 2
     let y = anchor.y + 12
 
-    // Keep in viewport
     x = Math.max(pad, Math.min(vw - MENU_WIDTH - pad, x))
     if (y + MENU_HEIGHT_ESTIMATE > vh - pad) {
       y = anchor.y - MENU_HEIGHT_ESTIMATE - 12
@@ -58,7 +57,6 @@ export default function MessageActionMenu({
     <AnimatePresence>
       {position.visible && (
         <>
-          {/* Invisible full-screen backdrop to catch outside taps */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
@@ -73,7 +71,6 @@ export default function MessageActionMenu({
             }}
           />
 
-          {/* The popover menu */}
           <motion.div
             key="menu"
             ref={menuRef}
@@ -85,6 +82,11 @@ export default function MessageActionMenu({
             onClick={(e) => e.stopPropagation()}
             className="fixed z-[151] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_40px_-8px_rgba(0,0,0,0.25)]"
           >
+            {/* Visible debug banner */}
+            <div className="border-b border-yellow-200 bg-yellow-50 px-3 py-1 font-mono text-[9px] text-yellow-800">
+              DEBUG: {mine ? "MINE" : "THEIRS"} | canEdit: {String(canEdit)}
+            </div>
+
             <div className="p-1">
               {actions.map((action) => {
                 const Icon = action.icon
