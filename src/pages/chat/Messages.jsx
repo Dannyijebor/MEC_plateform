@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Vid
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
+import SwipeableBubble from "../../components/chat/SwipeableBubble"
 import { useAuth } from "../../hooks/useAuth"
 import { useOnlineUsers } from "../../context/PresenceContext"
 import { supabase } from "../../lib/supabase"
@@ -866,35 +867,17 @@ function Messages() {
                           className={`flex ${mine ? "justify-end" : "justify-start"}`}
                         >
                           <div className="relative flex max-w-[80%] flex-col">
-                            <motion.div
-                              drag="x"
-                              dragConstraints={{ left: 0, right: 0 }}
-                              dragElastic={0.35}
-                              onDragEnd={(event, info) => {
-                                const threshold = 60
-                                if (mine && info.offset.x < -threshold) {
-                                  setReplyingTo({
-                                    id: message.id,
-                                    content: message.content,
-                                    sender_id: message.sender_id,
-                                  })
-                                  textareaRef.current?.focus()
-                                } else if (!mine && info.offset.x > threshold) {
-                                  setReplyingTo({
-                                    id: message.id,
-                                    content: message.content,
-                                    sender_id: message.sender_id,
-                                  })
-                                  textareaRef.current?.focus()
-                                }
+                            <SwipeableBubble
+                              mine={mine}
+                              onReply={() => {
+                                setReplyingTo({
+                                  id: message.id,
+                                  content: message.content,
+                                  sender_id: message.sender_id,
+                                })
+                                textareaRef.current?.focus()
                               }}
-                              className="relative"
                             >
-                              {!mine && (
-                                <div className="pointer-events-none absolute left-1 top-1/2 -translate-y-1/2 text-[#d9b86c]/40">
-                                  ↩
-                                </div>
-                              )}
                             <button
                               type="button"
                               onClick={() => setShowMenuFor(showMenuFor === message.id ? null : message.id)}
@@ -950,7 +933,7 @@ function Messages() {
                                 </button>
                               </div>
                             )}
-                            </motion.div>
+                            </SwipeableBubble>
                             <span className={`mt-1 flex items-center gap-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "justify-end" : "justify-start"}`}>
                               <span>{formatTime(message.created_at)}</span>
                               {mine && (() => {
