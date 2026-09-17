@@ -9,6 +9,7 @@ import SpaceRoom from "../pages/spaces/SpaceRoom"
 import Login from "../pages/auth/Login"
 import Register from "../pages/auth/Register"
 import AuthLayout from "../pages/auth/AuthLayout"
+import Profile from "../pages/profile/Profile"
 
 import { useAuth } from "../hooks/useAuth"
 
@@ -61,6 +62,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DashboardHome />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         }
       />
