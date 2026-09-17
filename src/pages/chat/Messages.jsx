@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import SwipeableBubble from "../../components/chat/SwipeableBubble"
+import MessageActionMenu from "../../components/chat/MessageActionMenu"
 import { useAuth } from "../../hooks/useAuth"
 import { useOnlineUsers } from "../../context/PresenceContext"
 import { supabase } from "../../lib/supabase"
@@ -15,6 +16,8 @@ import {
   subscribeToConversation,
   markConversationAsRead,
   sendReplyMessage,
+  editMessage,
+  deleteMessage,
 } from "../../services/chat/chatService"
 import {
   broadcastCallCancelled,
@@ -268,6 +271,7 @@ function Messages() {
   const [error, setError] = useState("")
   const [incomingCall, setIncomingCall] = useState(null)
   const [replyingTo, setReplyingTo] = useState(null)
+  const [editingMessage, setEditingMessage] = useState(null)
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [typingUsers, setTypingUsers] = useState([])
   const typingChannelRef = useRef(null)
@@ -475,6 +479,18 @@ function Messages() {
     setSending(true)
     setError("")
     try {
+      if (editingMessage) {
+        const updated = await editMessage(editingMessage.id, content)
+        setMessages((current) =>
+          current.map((m) => (m.id === updated.id ? { ...m, ...updated } : m))
+        )
+        setMessageText("")
+        setEditingMessage(null)
+        textareaRef.current?.focus()
+        setSending(false)
+        return
+      }
+
       const newMessage = replyingTo
         ? await sendReplyMessage({
             conversationId: selectedConversation.id,
@@ -875,13 +891,13 @@ function Messages() {
                                   content: message.content,
                                   sender_id: message.sender_id,
                                 })
+                                setEditingMessage(null)
                                 textareaRef.current?.focus()
                               }}
+                              onLongPress={() => setShowMenuFor(message.id)}
                             >
-                            <button
-                              type="button"
-                              onClick={() => setShowMenuFor(showMenuFor === message.id ? null : message.id)}
-                              className={`text-left rounded-2xl px-4 py-2.5 text-sm shadow-sm transition ${
+                            <div
+                              className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm transition ${
                                 mine ? theme.ownBubble : theme.otherBubble
                               }`}
                             >
@@ -912,27 +928,8 @@ function Messages() {
                               {message.edited_at && (
                                 <p className="mt-1 text-[10px] opacity-60">(edited)</p>
                               )}
-                            </button>
+                            </div>
 
-                            {showMenuFor === message.id && (
-                              <div className={`absolute ${mine ? "right-0" : "left-0"} top-full z-20 mt-1 flex items-center gap-1 rounded-xl border ${theme.headerBorder} ${theme.sidebar} p-1 shadow-lg`}>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setReplyingTo({
-                                      id: message.id,
-                                      content: message.content,
-                                      sender_id: message.sender_id,
-                                    })
-                                    setShowMenuFor(null)
-                                    textareaRef.current?.focus()
-                                  }}
-                                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
-                                >
-                                  Reply
-                                </button>
-                              </div>
-                            )}
                             </SwipeableBubble>
                             <span className={`mt-1 flex items-center gap-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "justify-end" : "justify-start"}`}>
                               <span>{formatTime(message.created_at)}</span>
@@ -987,7 +984,30 @@ function Messages() {
                     {typingUsers.length === 1 ? "is" : "are"} typing...
                   </div>
                 )}
-                {replyingTo && (
+                {editingMessage && (
+                  <div className={`mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl border-l-4 border-l-sky-500 ${theme.inputBg} px-3 py-2 ${theme.headerBorder} border`}>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-500">
+                        Editing message
+                      </p>
+                      <p className={`mt-0.5 truncate text-xs ${theme.textMuted}`}>
+                        {editingMessage.content}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingMessage(null)
+                        setMessageText("")
+                      }}
+                      className={`shrink-0 rounded-lg p-1.5 ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                      aria-label="Cancel edit"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+                {!editingMessage && replyingTo && (
                   <div className={`mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl border-l-4 border-l-[#d9b86c] ${theme.inputBg} px-3 py-2 ${theme.headerBorder} border`}>
                     <div className="min-w-0 flex-1">
                       <p className={`text-[10px] font-bold uppercase tracking-wider ${theme.iconAccent}`}>
@@ -1062,6 +1082,60 @@ function Messages() {
         onAccept={handleAcceptIncoming}
         onDecline={handleDeclineIncoming}
       />
+
+      {showMenuFor && (() => {
+        const targetMsg = messages.find((m) => m.id === showMenuFor)
+        if (!targetMsg) return null
+        const targetMine = targetMsg.sender_id === user?.id
+        const targetSender = (selectedConversation?.conversation_members || []).find(
+          (m) => m?.user_id === targetMsg.sender_id
+        )
+        const targetName = targetMine
+          ? "You"
+          : targetSender?.profiles?.full_name || targetSender?.profiles?.username || "MEC Member"
+        const canEdit = targetMine && !targetMsg.content?.startsWith("[MEC_CALL]")
+        return (
+          <MessageActionMenu
+            message={targetMsg}
+            mine={targetMine}
+            canEdit={canEdit}
+            senderName={targetName}
+            onClose={() => setShowMenuFor(null)}
+            onReply={() => {
+              setReplyingTo({
+                id: targetMsg.id,
+                content: targetMsg.content,
+                sender_id: targetMsg.sender_id,
+              })
+              setEditingMessage(null)
+              setShowMenuFor(null)
+              setTimeout(() => textareaRef.current?.focus(), 200)
+            }}
+            onCopy={() => {
+              navigator.clipboard?.writeText(targetMsg.content || "").catch(() => {})
+              setShowMenuFor(null)
+            }}
+            onEdit={() => {
+              setEditingMessage({ id: targetMsg.id, content: targetMsg.content })
+              setMessageText(targetMsg.content || "")
+              setReplyingTo(null)
+              setShowMenuFor(null)
+              setTimeout(() => textareaRef.current?.focus(), 200)
+            }}
+            onDelete={async () => {
+              setShowMenuFor(null)
+              if (!window.confirm("Delete this message? This cannot be undone.")) return
+              try {
+                await deleteMessage(targetMsg.id)
+                setMessages((current) => current.filter((m) => m.id !== targetMsg.id))
+              } catch (err) {
+                console.warn("Delete failed:", err)
+                alert("Could not delete the message.")
+              }
+            }}
+          />
+        )
+      })()}
 
       {missedCall && (
         <div className="fixed left-1/2 top-4 z-[195] -translate-x-1/2 rounded-2xl border border-red-500/30 bg-[#0b1020]/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
