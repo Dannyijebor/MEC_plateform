@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
+  Hand,
+  Smile,
   Camera,
   CameraOff,
   Mic,
@@ -63,6 +65,10 @@ export default function Call() {
   const [audioOutput, setAudioOutput] = useState("speaker") // "speaker" | "earpiece" | "bluetooth"
   const [showAudioMenu, setShowAudioMenu] = useState(false)
   const [hasBluetooth, setHasBluetooth] = useState(false)
+  const [handRaised, setHandRaised] = useState(false)
+  const [remoteHandRaised, setRemoteHandRaised] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [floatingEmojis, setFloatingEmojis] = useState([])
   const [cameraOff, setCameraOff] = useState(mode !== "video")
   const [status, setStatus] = useState("Connecting...")
   const [error, setError] = useState("")
@@ -196,6 +202,16 @@ export default function Call() {
               }
             }
           },
+          onRaiseHand: (payload) => {
+            setRemoteHandRaised?.(payload?.raised || false)
+          },
+          onEmoji: (payload) => {
+            const id = `${Date.now()}-${Math.random()}`
+            setFloatingEmojis((c) => [...c, { id, emoji: payload.emoji, from: "them" }])
+            setTimeout(() => {
+              setFloatingEmojis((c) => c.filter((e) => e.id !== id))
+            }, 3000)
+          },
           onCallState: (state) => {
             if (state?.peerJoined && !peerRef.current?.localDescription) {
               // Another peer joined — if we're alone, create the offer
@@ -306,6 +322,37 @@ export default function Call() {
     }
     applySink()
   }, [audioOutput])
+
+  // Broadcast an arbitrary event to the other peer
+  const broadcastEvent = async (event, payload = {}) => {
+    try {
+      if (channelRef.current) {
+        await channelRef.current.send({
+          type: "broadcast",
+          event,
+          payload,
+        })
+      }
+    } catch (err) {
+      console.warn("Broadcast failed:", err)
+    }
+  }
+
+  const toggleRaiseHand = () => {
+    const next = !handRaised
+    setHandRaised(next)
+    broadcastEvent("raise-hand", { raised: next, userId: user?.id })
+  }
+
+  const sendEmoji = (emoji) => {
+    setShowEmojiPicker(false)
+    const id = `${Date.now()}-${Math.random()}`
+    setFloatingEmojis((c) => [...c, { id, emoji, from: "me" }])
+    setTimeout(() => {
+      setFloatingEmojis((c) => c.filter((e) => e.id !== id))
+    }, 3000)
+    broadcastEvent("emoji", { emoji, userId: user?.id })
+  }
 
   // ---------- Actions ----------
   function toggleMute() {
@@ -451,7 +498,11 @@ export default function Call() {
       )}
 
       {/* Top status */}
-      <div className="absolute left-4 top-4 z-10 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-md">
+      <div className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-md transition ${
+        connected
+          ? "bg-black/40 text-white/80"
+          : "border border-gray-200 bg-white/95 text-gray-700 shadow-sm"
+      }`}>
         {status}
       </div>
 
@@ -466,6 +517,51 @@ export default function Call() {
         >
           {muted ? <MicOff size={20} /> : <Mic size={20} />}
         </button>
+
+        {/* Raise hand */}
+        <button
+          onClick={toggleRaiseHand}
+          className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+            handRaised
+              ? "bg-[#d9b86c] text-[#17130a]"
+              : "bg-white/15 text-white hover:bg-white/25"
+          }`}
+          aria-label="Raise hand"
+          title="Raise hand"
+        >
+          <Hand size={20} />
+        </button>
+
+        {/* Emoji */}
+        <div className="relative">
+          <button
+            onClick={() => setShowEmojiPicker((v) => !v)}
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+              showEmojiPicker
+                ? "bg-[#d9b86c] text-[#17130a]"
+                : "bg-white/15 text-white hover:bg-white/25"
+            }`}
+            aria-label="Send emoji"
+            title="Send emoji"
+          >
+            <Smile size={20} />
+          </button>
+
+          {showEmojiPicker && (
+            <div className="absolute bottom-16 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/85 p-2 shadow-2xl backdrop-blur-xl">
+              {["👍", "👏", "😂", "❤️", "🎉", "😮"].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => sendEmoji(emoji)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-xl transition hover:scale-125 hover:bg-white/10"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <button
           onClick={hangUp}
