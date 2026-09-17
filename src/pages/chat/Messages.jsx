@@ -380,7 +380,7 @@ function Messages() {
   // Call actions
   const startCall = (type) => {
     if (!selectedConversation) return
-    navigate(`/calls?conversation=${selectedConversation.id}&type=${type}`)
+    alert(`${type === "video" ? "Video" : "Audio"} calling is coming soon to MEC!`)
   }
 
   // Filter conversations by search
