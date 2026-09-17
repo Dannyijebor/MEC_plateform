@@ -1,19 +1,24 @@
 import { motion, useMotionValue, useTransform } from "framer-motion"
 import { Reply } from "lucide-react"
+import { useRef } from "react"
 import { useLongPress } from "../../hooks/useLongPress"
 
-export default function SwipeableBubble({ mine, onReply, onLongPress, children }) {
+export default function SwipeableBubble({ mine, onReply, onLongPress, messageId, children }) {
   const x = useMotionValue(0)
   const absX = useTransform(x, (v) => Math.abs(v))
   const opacity = useTransform(absX, [0, 20, 60], [0, 0.5, 1])
   const scale = useTransform(absX, [0, 60], [0.5, 1])
+  const wrapperRef = useRef(null)
 
-  const longPressHandlers = useLongPress(() => {
-    onLongPress?.()
+  const longPressHandlers = useLongPress((event) => {
+    const rect = wrapperRef.current?.getBoundingClientRect?.()
+    onLongPress?.({ rect, event })
   }, 500)
 
   return (
     <motion.div
+      ref={wrapperRef}
+      data-message-id={messageId}
       drag="x"
       dragConstraints={mine ? { left: -120, right: 0 } : { left: 0, right: 120 }}
       dragElastic={0.2}

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Reply, Copy, Edit3, Trash2 } from "lucide-react"
 
-const MENU_WIDTH = 180
-const MENU_HEIGHT_ESTIMATE = 200
+const MENU_WIDTH = 190
+const MENU_HEIGHT_ESTIMATE = 190
 
 export default function MessageActionMenu({
   message,
@@ -25,18 +25,32 @@ export default function MessageActionMenu({
     const vw = window.innerWidth
     const vh = window.innerHeight
     const pad = 12
+    const rect = anchor.rect
 
-    let x = anchor.x - MENU_WIDTH / 2
-    let y = anchor.y + 12
+    let x, y
+
+    if (rect) {
+      // Horizontal: align with the message bubble edge
+      x = mine ? rect.right - MENU_WIDTH : rect.left
+      // Vertical: prefer below, flip above if not enough space
+      y = rect.bottom + 8
+      if (y + MENU_HEIGHT_ESTIMATE > vh - pad) {
+        y = rect.top - MENU_HEIGHT_ESTIMATE - 8
+      }
+    } else {
+      // Fallback to touch coordinates
+      x = anchor.x - MENU_WIDTH / 2
+      y = anchor.y + 12
+      if (y + MENU_HEIGHT_ESTIMATE > vh - pad) {
+        y = anchor.y - MENU_HEIGHT_ESTIMATE - 12
+      }
+    }
 
     x = Math.max(pad, Math.min(vw - MENU_WIDTH - pad, x))
-    if (y + MENU_HEIGHT_ESTIMATE > vh - pad) {
-      y = anchor.y - MENU_HEIGHT_ESTIMATE - 12
-    }
     y = Math.max(pad, y)
 
     setPosition({ x, y, visible: true })
-  }, [anchor, message])
+  }, [anchor, message, mine])
 
   if (!message) return null
 
@@ -57,13 +71,15 @@ export default function MessageActionMenu({
     <AnimatePresence>
       {position.visible && (
         <>
+          {/* Dim backdrop that locks scroll */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            className="fixed inset-0 z-[150]"
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[150] bg-black/25 backdrop-blur-[3px]"
+            style={{ touchAction: "none", overscrollBehavior: "contain" }}
             onClick={onClose}
             onContextMenu={(e) => {
               e.preventDefault()
@@ -71,16 +87,17 @@ export default function MessageActionMenu({
             }}
           />
 
+          {/* The popover menu */}
           <motion.div
             key="menu"
             ref={menuRef}
-            initial={{ opacity: 0, scale: 0.9, y: -4 }}
+            initial={{ opacity: 0, scale: 0.85, y: -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            exit={{ opacity: 0, scale: 0.95, y: -6 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
             style={{ left: position.x, top: position.y, width: MENU_WIDTH }}
             onClick={(e) => e.stopPropagation()}
-            className="fixed z-[151] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_40px_-8px_rgba(0,0,0,0.25)]"
+            className="fixed z-[151] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)]"
           >
             <div className="p-1">
               {actions.map((action) => {

@@ -886,6 +886,7 @@ function Messages() {
                           <div className="relative flex max-w-[80%] flex-col">
                             <SwipeableBubble
                               mine={mine}
+                              messageId={message.id}
                               onReply={() => {
                                 setReplyingTo({
                                   id: message.id,
@@ -895,17 +896,21 @@ function Messages() {
                                 setEditingMessage(null)
                                 textareaRef.current?.focus()
                               }}
-                              onLongPress={(event) => {
+                              onLongPress={({ rect, event }) => {
                                 const touch = event?.touches?.[0] || event || {}
                                 const x = touch.clientX ?? window.innerWidth / 2
                                 const y = touch.clientY ?? window.innerHeight / 2
-                                setMenuAnchor({ x, y })
+                                setMenuAnchor({ rect, x, y })
                                 setShowMenuFor(message.id)
                               }}
                             >
                             <div
-                              className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm transition ${
+                              className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-all duration-200 ${
                                 mine ? theme.ownBubble : theme.otherBubble
+                              } ${
+                                showMenuFor === message.id
+                                  ? "ring-2 ring-[#d9b86c] ring-offset-2 ring-offset-white/60 scale-[1.02]"
+                                  : ""
                               }`}
                             >
                               {message.reply_to_id && (() => {
