@@ -81,6 +81,7 @@ export async function getConversationMessages(conversationId) {
       created_at
     `)
     .eq("conversation_id", conversationId)
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: true })
 
