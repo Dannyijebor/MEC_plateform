@@ -824,20 +824,34 @@ function Messages() {
                             </div>
                             <span className={`mt-1 flex items-center gap-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "justify-end" : "justify-start"}`}>
                               <span>{formatTime(message.created_at)}</span>
-                              {mine && (
-                                <span
-                                  className={
-                                    message.read_at ? "text-sky-500" : "opacity-60"
-                                  }
-                                  title={message.read_at ? "Read" : "Sent"}
-                                >
-                                  {message.read_at ? (
-                                    <CheckCheck size={13} />
-                                  ) : (
-                                    <Check size={13} />
-                                  )}
-                                </span>
-                              )}
+                              {mine && (() => {
+                                const otherMember = (selectedConversation?.conversation_members || []).find(
+                                  (m) => m?.user_id && m.user_id !== user?.id
+                                )
+                                const recipientOnline = otherMember?.user_id
+                                  ? onlineUsers.has(otherMember.user_id)
+                                  : false
+                                const isRead = Boolean(message.read_at)
+                                const isDelivered = isRead || recipientOnline
+                                return (
+                                  <span
+                                    className={
+                                      isRead
+                                        ? "text-sky-500"
+                                        : isDelivered
+                                          ? "text-gray-400"
+                                          : "opacity-50"
+                                    }
+                                    title={isRead ? "Read" : isDelivered ? "Delivered" : "Sent"}
+                                  >
+                                    {isDelivered ? (
+                                      <CheckCheck size={13} />
+                                    ) : (
+                                      <Check size={13} />
+                                    )}
+                                  </span>
+                                )
+                              })()}
                             </span>
                           </div>
                         </motion.div>
