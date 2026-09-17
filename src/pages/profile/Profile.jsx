@@ -411,18 +411,18 @@ function Profile() {
       />
 
       {/* HERO */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-[#151923] text-white shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.12),transparent_30%),radial-gradient(circle_at_85%_0%,rgba(255,255,255,0.08),transparent_30%)]" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-white text-[#202635] shadow-sm">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(0,0,0,0.025),transparent_30%),radial-gradient(circle_at_85%_0%,rgba(0,0,0,0.02),transparent_30%)]" />
 
         <div className="relative px-5 pb-7 pt-7 sm:px-8 sm:pb-9 sm:pt-9 lg:px-10">
           <div className="flex items-start justify-between gap-4">
-            <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold backdrop-blur">
+            <div className="rounded-full border border-black/10 bg-black/[0.03] px-3 py-1.5 text-xs font-semibold">
               MEC PROFILE
             </div>
 
             <button
               onClick={editing ? cancelEditing : startEditing}
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3.5 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/15"
+              className="flex items-center gap-2 rounded-xl border border-black/10 bg-black/[0.03] px-3.5 py-2 text-sm font-semibold transition hover:bg-black/[0.06]"
             >
               {editing ? <X size={16} /> : <Edit3 size={16} />}
               <span className="hidden sm:inline">
@@ -433,7 +433,7 @@ function Profile() {
 
           <div className="mt-9 flex flex-col gap-6 sm:flex-row sm:items-end">
             <div className="relative shrink-0">
-              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2rem] border-4 border-white/15 bg-white/10 text-3xl font-bold shadow-2xl sm:h-32 sm:w-32">
+              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2rem] border-4 border-white bg-black/[0.03] text-3xl font-bold shadow-lg sm:h-32 sm:w-32">
                 {profile.avatar_url ? (
                   <img
                     src={profile.avatar_url}
@@ -449,7 +449,7 @@ function Profile() {
                 onClick={handleAvatarClick}
                 disabled={uploadingAvatar}
                 aria-label="Change profile picture"
-                className="absolute -bottom-2 -right-2 flex h-11 w-11 items-center justify-center rounded-2xl border-4 border-[#151923] bg-white text-[#202635] shadow-lg transition hover:scale-105 disabled:opacity-60"
+                className="absolute -bottom-2 -right-2 flex h-11 w-11 items-center justify-center rounded-2xl border-4 border-white bg-[#202635] text-white shadow-lg transition hover:scale-105 disabled:opacity-60"
               >
                 {uploadingAvatar ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -466,14 +466,14 @@ function Profile() {
                 </h1>
 
                 {profile.is_active && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     Active
                   </span>
                 )}
               </div>
 
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/60">
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-black/50">
                 {profile.username && (
                   <span>@{profile.username}</span>
                 )}
@@ -487,7 +487,7 @@ function Profile() {
               </div>
 
               {profile.bio && !editing && (
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-black/60">
                   {profile.bio}
                 </p>
               )}
