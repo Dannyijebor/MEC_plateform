@@ -11,6 +11,7 @@ import Register from "../pages/auth/Register"
 import AuthLayout from "../pages/auth/AuthLayout"
 import Profile from "../pages/profile/Profile"
 import Call from "../pages/calls/Call"
+import CallHistory from "../pages/calls/CallHistory"
 
 import { useAuth } from "../hooks/useAuth"
 
@@ -162,6 +163,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <div className="p-8">Documents coming soon.</div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/calls/history"
+        element={
+          <ProtectedRoute>
+            <CallHistory />
           </ProtectedRoute>
         }
       />

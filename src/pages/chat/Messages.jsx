@@ -13,8 +13,7 @@ import {
   Check,
   Loader2,
   Sparkles,
-  X,
-} from "lucide-react"
+  X, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
@@ -500,7 +499,18 @@ function Messages() {
                   Your chats
                 </h1>
               </div>
-              <ThemePicker current={themeKey} onChange={setThemeKey} />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/calls/history")}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl border ${theme.headerBorder} ${theme.sidebar} ${theme.textMuted} transition hover:opacity-80`}
+                  aria-label="Call history"
+                  title="Call history"
+                >
+                  <Clock size={17} />
+                </button>
+                <ThemePicker current={themeKey} onChange={setThemeKey} />
+              </div>
             </div>
 
             {/* Search */}
