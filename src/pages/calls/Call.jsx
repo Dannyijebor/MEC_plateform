@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
-  Hand,
-  Smile,
   Camera,
   CameraOff,
   Mic,
@@ -13,275 +11,131 @@ import {
   Volume2,
   VolumeX,
   Bluetooth,
+  Hand,
+  Smile,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
-import { logCallEvent } from "../../services/chat/chatService"
+import { useCall } from "../../context/CallContext"
 import { supabase } from "../../lib/supabase"
-import {
-  broadcastCallCancelled,
-  closeCallChannel,
-  createCallChannel,
-  endCall,
-  sendCallState,
-  sendSignal,
-} from "../../services/calls/callService"
-import {
-  addIceCandidate,
-  addLocalTracks,
-  closePeerConnection,
-  createAnswer,
-  createOffer,
-  createPeerConnection,
-  getLocalMedia,
-  setRemoteDescription,
-  stopMediaStream,
-} from "../../services/calls/webrtcService"
-
-const ICE_SERVERS = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-]
 
 export default function Call() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
+  const {
+    call,
+    status,
+    connected,
+    muted,
+    cameraOff,
+    handRaised,
+    remoteHandRaised,
+    floatingEmojis,
+    endedReason,
+    localStreamRef,
+    remoteStreamRef,
+    startCall,
+    hangUp,
+    toggleMute,
+    toggleCamera,
+    toggleRaiseHand,
+    sendEmoji,
+  } = useCall()
 
   const conversationId = searchParams.get("conversation")
   const mode = searchParams.get("mode") === "video" ? "video" : "audio"
 
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
-  const localStreamRef = useRef(null)
-  const remoteStreamRef = useRef(null)
-  const peerRef = useRef(null)
-  const channelRef = useRef(null)
-  const pendingCandidatesRef = useRef([])
-  const startTimeRef = useRef(Date.now())
-  const remoteDescSetRef = useRef(false)
 
-  const [muted, setMuted] = useState(false)
-  const [audioOutput, setAudioOutput] = useState("speaker") // "speaker" | "earpiece" | "bluetooth"
   const [showAudioMenu, setShowAudioMenu] = useState(false)
-  const [hasBluetooth, setHasBluetooth] = useState(false)
-  const [handRaised, setHandRaised] = useState(false)
-  const [remoteHandRaised, setRemoteHandRaised] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [floatingEmojis, setFloatingEmojis] = useState([])
-  const [cameraOff, setCameraOff] = useState(mode !== "video")
-  const [status, setStatus] = useState("Connecting...")
-  const [error, setError] = useState("")
-  const [connected, setConnected] = useState(false)
-  const [otherUser, setOtherUser] = useState(null)
-  const [callEnded, setCallEnded] = useState(false)
+  const [audioOutput, setAudioOutput] = useState("speaker")
+  const [hasBluetooth, setHasBluetooth] = useState(false)
 
-  // ---------- Fetch other user's profile ----------
+  // Boot the call if not already running
   useEffect(() => {
-    if (!conversationId || !user) return
+    if (!conversationId || !user?.id) return
+    if (call?.conversationId === conversationId) return
+
     let cancelled = false
+    async function boot() {
+      try {
+        const { data: members } = await supabase
+          .from("conversation_members")
+          .select("user_id")
+          .eq("conversation_id", conversationId)
+          .neq("user_id", user.id)
+          .limit(1)
 
-    async function loadOtherUser() {
-      // Find the other participant's user_id
-      const { data: members } = await supabase
-        .from("conversation_members")
-        .select("user_id")
-        .eq("conversation_id", conversationId)
-        .neq("user_id", user.id)
-        .limit(1)
+        if (!members?.[0] || cancelled) return
 
-      if (!members?.[0]) return
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, full_name, username, avatar_url")
+          .eq("id", members[0].user_id)
+          .single()
 
-      const otherId = members[0].user_id
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, full_name, username, avatar_url")
-        .eq("id", otherId)
-        .single()
-
-      if (!cancelled) setOtherUser(profile)
+        if (cancelled) return
+        startCall({ conversationId, mode, otherUser: profile })
+      } catch (err) {
+        console.warn("Failed to boot call:", err)
+      }
     }
-
-    loadOtherUser()
+    boot()
     return () => {
       cancelled = true
     }
-  }, [conversationId, user])
+  }, [conversationId, user?.id, call?.conversationId, mode, startCall])
 
-  // ---------- Main call flow ----------
+  // Bind video streams continuously (streams become available at different times)
   useEffect(() => {
-    if (!conversationId || !user) {
-      setError("Invalid call session.")
-      return
-    }
-
-    let mounted = true
-    const callId = conversationId
-
-    async function startCall() {
-      try {
-        // 1. Get local media
-        const stream = await getLocalMedia({
-          audio: true,
-          video: mode === "video",
-        })
-
-        if (!mounted) {
-          stopMediaStream(stream)
-          return
-        }
-
-        localStreamRef.current = stream
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream
-        }
-
-        // 2. Create peer connection
-        const peer = createPeerConnection({
-          iceServers: ICE_SERVERS,
-          onIceCandidate: (candidate) => {
-            sendSignal(channelRef.current, { type: "ice", candidate })
-          },
-          onTrack: (remoteStream) => {
-            remoteStreamRef.current = remoteStream
-            if (remoteVideoRef.current) {
-              remoteVideoRef.current.srcObject = remoteStream
-            }
-            setConnected(true)
-            setStatus("Connected")
-          },
-          onConnectionStateChange: (state) => {
-            if (state === "connected") {
-              setConnected(true)
-              setStatus("Connected")
-            } else if (state === "failed" || state === "disconnected") {
-              setStatus("Disconnected")
-            }
-          },
-        })
-
-        peerRef.current = peer
-        addLocalTracks(peer, stream)
-
-        // 3. Subscribe to signaling channel
-        const channel = createCallChannel(callId, {
-          onSignal: async (payload) => {
-            if (!peerRef.current || !mounted) return
-
-            if (payload.type === "offer") {
-              await setRemoteDescription(peerRef.current, payload.sdp)
-              remoteDescSetRef.current = true
-
-              // Flush pending ICE
-              for (const c of pendingCandidatesRef.current) {
-                try { await addIceCandidate(peerRef.current, c) } catch {}
-              }
-              pendingCandidatesRef.current = []
-
-              const answer = await createAnswer(peerRef.current)
-              await sendSignal(channelRef.current, { type: "answer", sdp: answer })
-              setStatus("Connecting...")
-            } else if (payload.type === "answer") {
-              await setRemoteDescription(peerRef.current, payload.sdp)
-              remoteDescSetRef.current = true
-
-              // Flush pending ICE
-              for (const c of pendingCandidatesRef.current) {
-                try { await addIceCandidate(peerRef.current, c) } catch {}
-              }
-              pendingCandidatesRef.current = []
-            } else if (payload.type === "ice" && payload.candidate) {
-              if (remoteDescSetRef.current) {
-                try {
-                  await addIceCandidate(peerRef.current, payload.candidate)
-                } catch (err) {
-                  console.warn("ICE failed:", err)
-                }
-              } else {
-                pendingCandidatesRef.current.push(payload.candidate)
-              }
-            }
-          },
-          onRaiseHand: (payload) => {
-            setRemoteHandRaised?.(payload?.raised || false)
-          },
-          onEmoji: (payload) => {
-            const id = `${Date.now()}-${Math.random()}`
-            setFloatingEmojis((c) => [...c, { id, emoji: payload.emoji, from: "them" }])
-            setTimeout(() => {
-              setFloatingEmojis((c) => c.filter((e) => e.id !== id))
-            }, 3000)
-          },
-          onCallState: (state) => {
-            if (state?.peerJoined && !peerRef.current?.localDescription) {
-              // Another peer joined — if we're alone, create the offer
-              // (handled below via the timeout check)
-            }
-          },
-          onEnded: () => {
-            setStatus("Call ended")
-            setCallEnded(true)
-            cleanup()
-            setTimeout(() => navigate("/messages"), 1500)
-          },
-        })
-
-        channelRef.current = channel
-
-        // 4. Announce we joined
-        setTimeout(async () => {
-          await sendCallState(channel, { peerJoined: true, userId: user.id })
-        }, 500)
-
-        // 5. Create offer after a short delay so the other peer can subscribe
-        // If both peers create offers, the first one wins.
-        setTimeout(async () => {
-          if (!mounted || !peerRef.current) return
-          if (peerRef.current.localDescription) return
-          try {
-            const offer = await createOffer(peerRef.current)
-            await sendSignal(channelRef.current, { type: "offer", sdp: offer })
-            setStatus("Ringing...")
-          } catch (err) {
-            console.warn("Offer failed:", err)
-          }
-        }, 1200)
-      } catch (err) {
-        console.error("Call error:", err)
-        setError(err.message || "Could not start the call.")
+    const bind = () => {
+      if (
+        localVideoRef.current &&
+        localStreamRef.current &&
+        localVideoRef.current.srcObject !== localStreamRef.current
+      ) {
+        localVideoRef.current.srcObject = localStreamRef.current
+      }
+      if (
+        remoteVideoRef.current &&
+        remoteStreamRef.current &&
+        remoteVideoRef.current.srcObject !== remoteStreamRef.current
+      ) {
+        remoteVideoRef.current.srcObject = remoteStreamRef.current
+        remoteVideoRef.current.play().catch(() => {})
       }
     }
+    bind()
+    const timer = setInterval(bind, 300)
+    return () => clearInterval(timer)
+  }, [call, connected, localStreamRef, remoteStreamRef])
 
-    startCall()
-
-    return () => {
-      mounted = false
-      cleanup()
+  // Auto-navigate away after a call ends
+  useEffect(() => {
+    if (endedReason) {
+      const t = setTimeout(() => navigate("/messages"), 1200)
+      return () => clearTimeout(t)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, user, mode])
+  }, [endedReason, navigate])
 
-  // ---------- Cleanup ----------
-  function cleanup() {
-    stopMediaStream(localStreamRef.current)
-    closePeerConnection(peerRef.current)
-    closeCallChannel(channelRef.current)
-    localStreamRef.current = null
-    peerRef.current = null
-    channelRef.current = null
-    remoteStreamRef.current = null
-  }
-
-  // ---------- Audio output management ----------
+  // Bluetooth detection
   useEffect(() => {
     if (!navigator.mediaDevices?.enumerateDevices) return
     let mounted = true
     const check = () => {
-      navigator.mediaDevices.enumerateDevices().then((devices) => {
-        if (!mounted) return
-        const hasBt = devices.some((d) => d.kind === "audiooutput" && /bluetooth/i.test(d.label))
-        setHasBluetooth(hasBt)
-      }).catch(() => {})
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then((devices) => {
+          if (!mounted) return
+          const hasBt = devices.some(
+            (d) => d.kind === "audiooutput" && /bluetooth/i.test(d.label)
+          )
+          setHasBluetooth(hasBt)
+        })
+        .catch(() => {})
     }
     check()
     navigator.mediaDevices.addEventListener?.("devicechange", check)
@@ -291,196 +145,156 @@ export default function Call() {
     }
   }, [])
 
-  // Apply the selected output device to the remote video element
+  // Apply audio output device
   useEffect(() => {
     const el = remoteVideoRef.current
-    if (!el) return
-    if (typeof el.setSinkId !== "function") return
-
+    if (!el || typeof el.setSinkId !== "function") return
     const applySink = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices()
         const outputs = devices.filter((d) => d.kind === "audiooutput")
-
         let target = null
         if (audioOutput === "speaker") {
-          // Default device
           target = outputs.find((d) => d.deviceId === "default") || outputs[0]
         } else if (audioOutput === "earpiece") {
           target = outputs.find((d) => /earpiece|receiver|phone/i.test(d.label))
         } else if (audioOutput === "bluetooth") {
           target = outputs.find((d) => /bluetooth/i.test(d.label))
         }
-        if (target?.deviceId) {
-          await el.setSinkId(target.deviceId)
-        } else if (audioOutput === "speaker") {
-          await el.setSinkId("")
-        }
+        if (target?.deviceId) await el.setSinkId(target.deviceId)
+        else if (audioOutput === "speaker") await el.setSinkId("")
       } catch (err) {
         console.warn("setSinkId failed:", err)
       }
     }
     applySink()
-  }, [audioOutput])
+  }, [audioOutput, connected])
 
-  // Broadcast an arbitrary event to the other peer
-  const broadcastEvent = async (event, payload = {}) => {
-    try {
-      if (channelRef.current) {
-        await channelRef.current.send({
-          type: "broadcast",
-          event,
-          payload,
-        })
-      }
-    } catch (err) {
-      console.warn("Broadcast failed:", err)
-    }
+  const handleHangUp = () => {
+    hangUp("user-ended")
   }
 
-  const toggleRaiseHand = () => {
-    const next = !handRaised
-    setHandRaised(next)
-    broadcastEvent("raise-hand", { raised: next, userId: user?.id })
-  }
-
-  const sendEmoji = (emoji) => {
-    setShowEmojiPicker(false)
-    const id = `${Date.now()}-${Math.random()}`
-    setFloatingEmojis((c) => [...c, { id, emoji, from: "me" }])
-    setTimeout(() => {
-      setFloatingEmojis((c) => c.filter((e) => e.id !== id))
-    }, 3000)
-    broadcastEvent("emoji", { emoji, userId: user?.id })
-  }
-
-  // ---------- Actions ----------
-  function toggleMute() {
-    if (!localStreamRef.current) return
-    const audio = localStreamRef.current.getAudioTracks()[0]
-    if (!audio) return
-    audio.enabled = !audio.enabled
-    setMuted(!audio.enabled)
-  }
-
-  function toggleCamera() {
-    if (!localStreamRef.current) return
-    const video = localStreamRef.current.getVideoTracks()[0]
-    if (!video) return
-    video.enabled = !video.enabled
-    setCameraOff(!video.enabled)
-  }
-
-  async function hangUp() {
-    try {
-      await endCall(channelRef.current, "hangup")
-    } catch (err) {
-      console.warn("Failed to broadcast hangup:", err)
-    }
-
-    // Also notify callee's Messages page (in case they haven't joined yet)
-    if (otherUser?.id) {
-      try {
-        await broadcastCallCancelled(otherUser.id, {
-          callerId: user?.id,
-          callerName: user?.user_metadata?.full_name || user?.email || "MEC Member",
-        })
-      } catch (err) {
-        console.warn("Failed to broadcast cancel:", err)
-      }
-    }
-
-    // Log the call event as a persistent message
-    if (conversationId && user?.id) {
-      try {
-        await logCallEvent({
-          conversationId,
-          callerId: user.id,
-          callerName: user.user_metadata?.full_name || user.email || "MEC Member",
-          calleeId: otherUser?.id,
-          calleeName: otherUser?.full_name || otherUser?.username || "MEC Member",
-          status: connected ? "answered" : "missed",
-          mode,
-          durationSeconds: connected
-            ? Math.floor((Date.now() - startTimeRef.current) / 1000)
-            : 0,
-        })
-      } catch (err) {
-        console.warn("Failed to log call event:", err)
-      }
-    }
-
-    setCallEnded(true)
-    cleanup()
-    setTimeout(() => navigate("/messages"), 800)
-  }
-
-  if (error) {
+  // "Call ended" screen
+  if (endedReason) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#0b1020] px-6 text-center text-white">
-        <p className="text-lg font-semibold">Call error</p>
-        <p className="text-sm text-white/60">{error}</p>
-        <button
-          onClick={() => navigate("/messages")}
-          className="mt-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"
-        >
-          Back to messages
-        </button>
-      </div>
-    )
-  }
-
-  // Show "Call ended" screen briefly
-  if (callEnded) {
-    return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0b1020] text-white">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-500/15">
-          <PhoneOff size={32} className="text-red-400" />
+      <div className="flex h-[100dvh] flex-col items-center justify-center bg-white text-gray-900">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
+          <PhoneOff size={32} className="text-red-500" />
         </div>
         <p className="mt-5 text-xl font-semibold">Call ended</p>
-        <p className="mt-1 text-sm text-white/50">Returning to messages...</p>
+        <p className="mt-1 text-sm text-gray-400">Returning to messages...</p>
       </div>
     )
   }
 
+  // Loading state
+  if (!call) {
+    return (
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-white">
+        <Loader2 size={28} className="animate-spin text-[#a8873f]" />
+      </div>
+    )
+  }
+
+  const otherUser = call.otherUser
+  const initial = (otherUser?.full_name || "?").charAt(0).toUpperCase()
+
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#0b1020] text-white">
-      {/* Remote video (full screen) */}
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-white text-gray-900">
+      {/* Remote video */}
       <video
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        className="absolute inset-0 h-full w-full object-cover"
+        className={`absolute inset-0 h-full w-full object-cover ${
+          connected ? "" : "opacity-0"
+        }`}
       />
 
-      {/* Placeholder if no remote video yet */}
+      {/* Placeholder while connecting */}
       {!connected && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#0b1020] via-[#1a1a3e] to-[#0b1020]">
-          <div className="mb-6 flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-[#d9b86c]/30 bg-[#d9b86c]/10 text-4xl font-bold text-[#d9b86c]">
-            {otherUser?.avatar_url ? (
-              <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              otherUser?.full_name?.charAt(0) || <UserRound size={40} />
+        <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-white" />
+          {otherUser?.avatar_url && (
+            <div
+              className="absolute inset-0 scale-125 opacity-10 blur-3xl"
+              style={{
+                backgroundImage: `url(${otherUser.avatar_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          )}
+          <div className="absolute inset-0 bg-white/40" />
+
+          <div className="relative flex flex-col items-center px-6 text-center">
+            <div className="relative mb-8 flex h-40 w-40 items-center justify-center">
+              <motion.div
+                animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/40"
+              />
+              <motion.div
+                animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                  delay: 0.7,
+                }}
+                className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/30"
+              />
+              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#f1e7cc] shadow-[0_20px_60px_-15px_rgba(217,184,108,0.5)]">
+                {otherUser?.avatar_url ? (
+                  <img
+                    src={otherUser.avatar_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-5xl font-bold text-[#a8873f]">
+                    {otherUser?.full_name?.charAt(0) || <UserRound size={48} />}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl font-semibold tracking-tight text-gray-900"
+            >
+              {otherUser?.full_name || "Connecting..."}
+            </motion.p>
+            {otherUser?.username && (
+              <p className="mt-1 text-sm text-[#a8873f]">
+                @{otherUser.username}
+              </p>
             )}
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mt-5 flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm"
+            >
+              <Loader2 size={13} className="animate-spin text-[#a8873f]" />
+              <span className="text-xs font-medium tracking-wide text-gray-600">
+                {status}
+              </span>
+            </motion.div>
           </div>
-          <p className="text-xl font-semibold">
-            {otherUser?.full_name || "Waiting for other user..."}
-          </p>
-          <p className="mt-2 flex items-center gap-2 text-sm text-white/60">
-            <Loader2 size={14} className="animate-spin" />
-            {status}
-          </p>
         </div>
       )}
 
-      {/* Local video (picture-in-picture) */}
+      {/* Local video PiP */}
       {mode === "video" && (
         <motion.div
           drag
           dragMomentum={false}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute right-4 top-4 z-20 h-40 w-28 cursor-grab overflow-hidden rounded-2xl border border-white/20 bg-black/50 shadow-2xl sm:h-48 sm:w-36"
+          className="absolute right-4 top-4 z-20 h-40 w-28 cursor-grab overflow-hidden rounded-2xl border border-white/60 bg-black/50 shadow-2xl sm:h-48 sm:w-36"
         >
           <video
             ref={localVideoRef}
@@ -490,98 +304,180 @@ export default function Call() {
             className="h-full w-full object-cover"
           />
           {cameraOff && (
-            <div className="absolute inset-0 flex items-center justify-center bg-[#12182a]">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
               <CameraOff size={22} className="text-white/60" />
             </div>
           )}
         </motion.div>
       )}
 
-      {/* Top status */}
-      <div className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-md transition ${
-        connected
-          ? "bg-black/40 text-white/80"
-          : "border border-gray-200 bg-white/95 text-gray-700 shadow-sm"
-      }`}>
+      {/* Top status pill */}
+      <div
+        className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-md ${
+          connected
+            ? "bg-black/40 text-white/80"
+            : "border border-gray-200 bg-white/95 text-gray-700 shadow-sm"
+        }`}
+      >
         {status}
       </div>
 
+      {/* Remote raised hand indicator */}
+      {remoteHandRaised && (
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="absolute bottom-32 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-[#d9b86c]/30 bg-[#d9b86c]/20 backdrop-blur-xl"
+        >
+          <Hand size={20} className="text-[#d9b86c]" />
+        </motion.div>
+      )}
+
+      {/* Floating emojis */}
+      {floatingEmojis.map((e) => (
+        <motion.div
+          key={e.id}
+          initial={{ opacity: 0, y: 0, scale: 0.5 }}
+          animate={{ opacity: 1, y: -180, scale: 1.4 }}
+          transition={{ duration: 2.5, ease: "easeOut" }}
+          className="pointer-events-none absolute bottom-32 z-30 text-4xl"
+          style={{ left: e.from === "me" ? "25%" : "65%" }}
+        >
+          {e.emoji}
+        </motion.div>
+      ))}
+
       {/* Controls */}
-      <div className="absolute bottom-8 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-white/10 bg-black/40 p-3 backdrop-blur-xl">
+      <div className="absolute bottom-8 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/10 bg-black/50 p-2 backdrop-blur-xl">
         <button
           onClick={toggleMute}
-          className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
-            muted ? "bg-red-500/90 text-white" : "bg-white/15 text-white hover:bg-white/25"
+          className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
+            muted
+              ? "bg-red-500/90 text-white"
+              : "bg-white/15 text-white hover:bg-white/25"
           }`}
           aria-label={muted ? "Unmute" : "Mute"}
         >
-          {muted ? <MicOff size={20} /> : <Mic size={20} />}
+          {muted ? <MicOff size={18} /> : <Mic size={18} />}
         </button>
 
-        {/* Raise hand */}
+        <div className="relative">
+          <button
+            onClick={() => setShowAudioMenu((v) => !v)}
+            className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
+              audioOutput === "speaker"
+                ? "bg-white/15 text-white hover:bg-white/25"
+                : "bg-[#d9b86c] text-[#17130a]"
+            }`}
+            aria-label="Audio output"
+          >
+            {audioOutput === "bluetooth" ? (
+              <Bluetooth size={18} />
+            ) : audioOutput === "earpiece" ? (
+              <VolumeX size={18} />
+            ) : (
+              <Volume2 size={18} />
+            )}
+          </button>
+          {showAudioMenu && (
+            <div className="absolute bottom-14 left-1/2 z-40 w-40 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-black/85 shadow-2xl backdrop-blur-xl">
+              {[
+                { key: "speaker", label: "Speaker", icon: Volume2 },
+                { key: "earpiece", label: "Earpiece", icon: VolumeX },
+                ...(hasBluetooth
+                  ? [{ key: "bluetooth", label: "Bluetooth", icon: Bluetooth }]
+                  : []),
+              ].map((opt) => {
+                const OI = opt.icon
+                const active = audioOutput === opt.key
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => {
+                      setAudioOutput(opt.key)
+                      setShowAudioMenu(false)
+                    }}
+                    className={`flex w-full items-center gap-3 px-3 py-2 text-left text-xs font-medium transition ${
+                      active
+                        ? "bg-[#d9b86c]/20 text-[#d9b86c]"
+                        : "text-white/80 hover:bg-white/10"
+                    }`}
+                  >
+                    <OI size={13} />
+                    <span>{opt.label}</span>
+                    {active && <span className="ml-auto text-[10px]">&#9679;</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         <button
           onClick={toggleRaiseHand}
-          className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+          className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
             handRaised
               ? "bg-[#d9b86c] text-[#17130a]"
               : "bg-white/15 text-white hover:bg-white/25"
           }`}
           aria-label="Raise hand"
-          title="Raise hand"
         >
-          <Hand size={20} />
+          <Hand size={18} />
         </button>
 
-        {/* Emoji */}
         <div className="relative">
           <button
             onClick={() => setShowEmojiPicker((v) => !v)}
-            className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+            className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
               showEmojiPicker
                 ? "bg-[#d9b86c] text-[#17130a]"
                 : "bg-white/15 text-white hover:bg-white/25"
             }`}
             aria-label="Send emoji"
-            title="Send emoji"
           >
-            <Smile size={20} />
+            <Smile size={18} />
           </button>
-
           {showEmojiPicker && (
-            <div className="absolute bottom-16 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/85 p-2 shadow-2xl backdrop-blur-xl">
-              {["👍", "👏", "😂", "❤️", "🎉", "😮"].map((emoji) => (
+            <div className="absolute bottom-14 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/85 p-2 shadow-2xl backdrop-blur-xl">
+              {["👍", "👏", "😂", "❤️", "🎉", "😮"].map((e) => (
                 <button
-                  key={emoji}
+                  key={e}
                   type="button"
-                  onClick={() => sendEmoji(emoji)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-xl transition hover:scale-125 hover:bg-white/10"
+                  onClick={() => {
+                    sendEmoji(e)
+                    setShowEmojiPicker(false)
+                  }}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-lg transition hover:scale-110 hover:bg-white/10"
                 >
-                  {emoji}
+                  {e}
                 </button>
               ))}
             </div>
           )}
         </div>
 
+        {mode === "video" && (
+          <button
+            onClick={toggleCamera}
+            className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
+              cameraOff
+                ? "bg-red-500/90 text-white"
+                : "bg-white/15 text-white hover:bg-white/25"
+            }`}
+            aria-label={cameraOff ? "Camera on" : "Camera off"}
+          >
+            {cameraOff ? <CameraOff size={18} /> : <Camera size={18} />}
+          </button>
+        )}
+
         <button
-          onClick={hangUp}
+          onClick={handleHangUp}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition hover:bg-red-600"
           aria-label="End call"
         >
           <PhoneOff size={22} />
         </button>
-
-        {mode === "video" && (
-          <button
-            onClick={toggleCamera}
-            className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
-              cameraOff ? "bg-red-500/90 text-white" : "bg-white/15 text-white hover:bg-white/25"
-            }`}
-            aria-label={cameraOff ? "Turn camera on" : "Turn camera off"}
-          >
-            {cameraOff ? <CameraOff size={20} /> : <Camera size={20} />}
-          </button>
-        )}
       </div>
     </div>
   )
