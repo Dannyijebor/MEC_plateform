@@ -127,7 +127,7 @@ function Messages() {
     if (!query) return conversations
 
     return conversations.filter((conversation) =>
-      (conversation.name || "Conversation")
+      (conversation.display_name || "Conversation")
         .toLowerCase()
         .includes(query),
     )
@@ -254,7 +254,7 @@ function Messages() {
 
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-white/90">
-                        {conversation.name || "Conversation"}
+                        {conversation.display_name || "Conversation"}
                       </p>
 
                       <p className="mt-1 text-xs text-white/35">
@@ -314,7 +314,7 @@ function Messages() {
 
                 <div className="min-w-0 flex-1">
                   <h2 className="truncate font-semibold text-white/90">
-                    {selectedConversation.name || "Conversation"}
+                    {selectedConversation.display_name || "Conversation"}
                   </h2>
 
                   <p className="text-xs text-white/35">

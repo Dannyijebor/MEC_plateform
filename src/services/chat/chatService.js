@@ -1,15 +1,15 @@
 import { supabase } from "../../lib/supabase"
 
 export async function getMyConversations(userId) {
+  // Get conversation IDs this user belongs to
   const { data, error } = await supabase
     .from("conversation_members")
     .select(`
       conversation_id,
-      conversations (
+      conversations!inner (
         id,
-        name,
         type,
-        created_by,
+        name,
         created_at,
         updated_at
       )
@@ -18,14 +18,53 @@ export async function getMyConversations(userId) {
 
   if (error) throw error
 
-  return (data || [])
-    .map((item) => item.conversations)
-    .filter(Boolean)
-    .sort(
-      (a, b) =>
-        new Date(b.updated_at || b.created_at) -
-        new Date(a.updated_at || a.created_at),
-    )
+  const conversationIds = (data ?? []).map((d) => d.conversation_id)
+  if (conversationIds.length === 0) return []
+
+  // Fetch ALL members of those conversations with their profiles
+  const { data: members } = await supabase
+    .from("conversation_members")
+    .select(`
+      conversation_id,
+      user_id,
+      profiles:user_id (
+        id,
+        full_name,
+        username,
+        avatar_url
+      )
+    `)
+    .in("conversation_id", conversationIds)
+
+  // Group members by conversation_id
+  const membersByConv = {}
+  for (const m of members ?? []) {
+    if (!membersByConv[m.conversation_id]) membersByConv[m.conversation_id] = []
+    membersByConv[m.conversation_id].push(m)
+  }
+
+  // Build clean conversation objects with display info
+  return (data ?? []).map((item) => {
+    const conv = item.conversations
+    const convMembers = membersByConv[conv.id] ?? []
+    const other = convMembers.find((m) => m.user_id !== userId)
+    const otherProfile = other?.profiles
+
+    return {
+      id: conv.id,
+      type: conv.type,
+      name: conv.name,
+      created_at: conv.created_at,
+      updated_at: conv.updated_at,
+      conversation_members: convMembers,
+      display_name:
+        conv.type === "direct"
+          ? otherProfile?.full_name || otherProfile?.username || "Unknown member"
+          : conv.name || "Group chat",
+      display_avatar: conv.type === "direct" ? otherProfile?.avatar_url : null,
+      is_direct: conv.type === "direct",
+    }
+  })
 }
 
 export async function getConversationMessages(conversationId) {
