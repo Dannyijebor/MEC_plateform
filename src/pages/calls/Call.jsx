@@ -8,6 +8,9 @@ import {
   PhoneOff,
   Loader2,
   UserRound,
+  Volume2,
+  VolumeX,
+  Bluetooth,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
@@ -57,6 +60,9 @@ export default function Call() {
   const remoteDescSetRef = useRef(false)
 
   const [muted, setMuted] = useState(false)
+  const [audioOutput, setAudioOutput] = useState("speaker") // "speaker" | "earpiece" | "bluetooth"
+  const [showAudioMenu, setShowAudioMenu] = useState(false)
+  const [hasBluetooth, setHasBluetooth] = useState(false)
   const [cameraOff, setCameraOff] = useState(mode !== "video")
   const [status, setStatus] = useState("Connecting...")
   const [error, setError] = useState("")
@@ -249,6 +255,57 @@ export default function Call() {
     channelRef.current = null
     remoteStreamRef.current = null
   }
+
+  // ---------- Audio output management ----------
+  useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return
+    let mounted = true
+    const check = () => {
+      navigator.mediaDevices.enumerateDevices().then((devices) => {
+        if (!mounted) return
+        const hasBt = devices.some((d) => d.kind === "audiooutput" && /bluetooth/i.test(d.label))
+        setHasBluetooth(hasBt)
+      }).catch(() => {})
+    }
+    check()
+    navigator.mediaDevices.addEventListener?.("devicechange", check)
+    return () => {
+      mounted = false
+      navigator.mediaDevices.removeEventListener?.("devicechange", check)
+    }
+  }, [])
+
+  // Apply the selected output device to the remote video element
+  useEffect(() => {
+    const el = remoteVideoRef.current
+    if (!el) return
+    if (typeof el.setSinkId !== "function") return
+
+    const applySink = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const outputs = devices.filter((d) => d.kind === "audiooutput")
+
+        let target = null
+        if (audioOutput === "speaker") {
+          // Default device
+          target = outputs.find((d) => d.deviceId === "default") || outputs[0]
+        } else if (audioOutput === "earpiece") {
+          target = outputs.find((d) => /earpiece|receiver|phone/i.test(d.label))
+        } else if (audioOutput === "bluetooth") {
+          target = outputs.find((d) => /bluetooth/i.test(d.label))
+        }
+        if (target?.deviceId) {
+          await el.setSinkId(target.deviceId)
+        } else if (audioOutput === "speaker") {
+          await el.setSinkId("")
+        }
+      } catch (err) {
+        console.warn("setSinkId failed:", err)
+      }
+    }
+    applySink()
+  }, [audioOutput])
 
   // ---------- Actions ----------
   function toggleMute() {
