@@ -10,9 +10,14 @@ export default function SwipeableBubble({ mine, onReply, children }) {
   return (
     <motion.div
       drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.5}
+      dragConstraints={mine ? { left: -120, right: 0 } : { left: 0, right: 120 }}
+      dragElastic={0}
       style={{ x }}
+      onDrag={(event, info) => {
+        // Lock the wrong direction entirely — no budging
+        if (mine && info.offset.x > 0) x.set(0)
+        else if (!mine && info.offset.x < 0) x.set(0)
+      }}
       onDragEnd={(e, info) => {
         if ((mine && info.offset.x < -60) || (!mine && info.offset.x > 60)) {
           onReply()
@@ -20,7 +25,6 @@ export default function SwipeableBubble({ mine, onReply, children }) {
       }}
       className={`relative w-fit touch-pan-y ${mine ? "self-end" : "self-start"}`}
     >
-      {/* Reply icon — visible behind the bubble */}
       <motion.div
         style={{ opacity, scale }}
         className={`pointer-events-none absolute top-1/2 z-0 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-[#d9b86c] shadow-lg ${
