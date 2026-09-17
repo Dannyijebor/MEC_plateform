@@ -1100,7 +1100,13 @@ function Messages() {
         const targetName = targetMine
           ? "You"
           : targetSender?.profiles?.full_name || targetSender?.profiles?.username || "MEC Member"
-        const canEdit = targetMine && !targetMsg.content?.startsWith("[MEC_CALL]")
+        const EDIT_WINDOW_MS = 30 * 60 * 1000
+        const messageAge = Date.now() - new Date(targetMsg.created_at).getTime()
+        const withinEditWindow = messageAge < EDIT_WINDOW_MS
+        const canEdit =
+          targetMine &&
+          !targetMsg.content?.startsWith("[MEC_CALL]") &&
+          withinEditWindow
         return (
           <MessageActionMenu
             message={targetMsg}
