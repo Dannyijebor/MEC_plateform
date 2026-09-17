@@ -11,10 +11,11 @@ export default function SwipeableBubble({ mine, onReply, children }) {
     <motion.div
       drag="x"
       dragConstraints={mine ? { left: -120, right: 0 } : { left: 0, right: 120 }}
-      dragElastic={0}
+      dragElastic={0.2}
+      dragSnapToOrigin
       style={{ x }}
       onDrag={(event, info) => {
-        // Lock the wrong direction entirely — no budging
+        // Lock the wrong direction entirely
         if (mine && info.offset.x > 0) x.set(0)
         else if (!mine && info.offset.x < 0) x.set(0)
       }}
@@ -22,6 +23,8 @@ export default function SwipeableBubble({ mine, onReply, children }) {
         if ((mine && info.offset.x < -60) || (!mine && info.offset.x > 60)) {
           onReply()
         }
+        // Always reset position after drag
+        x.set(0)
       }}
       className={`relative w-fit touch-pan-y ${mine ? "self-end" : "self-start"}`}
     >
