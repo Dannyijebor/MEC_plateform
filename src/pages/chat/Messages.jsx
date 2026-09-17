@@ -254,6 +254,59 @@ function ThemePicker({ current, onChange }) {
   )
 }
 
+function MessageRenderer({ message, mine, theme }) {
+  // Detect call event messages
+  if (message.content?.startsWith("[MEC_CALL]")) {
+    let info = {}
+    try {
+      info = JSON.parse(message.content.slice(10))
+    } catch {}
+
+    const isMissed = info.status === "missed"
+    const isDeclined = info.status === "declined"
+    const isAnswered = info.status === "answered"
+
+    let label = "Call"
+    if (isMissed) label = "Missed call"
+    else if (isDeclined) label = "Declined call"
+    else if (isAnswered) label = "Call ended"
+
+    const icon = info.mode === "video" ? "📹" : "📞"
+    const durationLabel =
+      isAnswered && info.duration
+        ? ` · ${Math.floor(info.duration / 60)}:${String(info.duration % 60).padStart(2, "0")}`
+        : ""
+
+    return (
+      <div className="flex justify-center py-2">
+        <div
+          className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium ${theme.headerBorder} ${theme.sidebar} ${theme.textMuted}`}
+        >
+          <span>{icon}</span>
+          <span>{label}</span>
+          <span className={isMissed ? "text-red-400" : theme.textFaint}>
+            {info.mode === "video" ? "video" : "audio"}{durationLabel}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+      <div className="flex max-w-[80%] flex-col">
+        <div
+          className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+            mine ? theme.ownBubble : theme.otherBubble
+          }`}
+        >
+          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ==========================================
 // 💬 MAIN MESSAGES COMPONENT
 // ==========================================
@@ -686,20 +739,8 @@ function Messages() {
                           key={message.id}
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`flex ${mine ? "justify-end" : "justify-start"}`}
                         >
-                          <div className="flex max-w-[80%] flex-col">
-                            <div
-                              className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                                mine ? theme.ownBubble : theme.otherBubble
-                              }`}
-                            >
-                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                            </div>
-                            <span className={`mt-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "text-right" : "text-left"}`}>
-                              {formatTime(message.created_at)}
-                            </span>
-                          </div>
+                          <MessageRenderer message={message} mine={mine} theme={theme} />
                         </motion.div>
                       )
                     })}
@@ -751,23 +792,7 @@ function Messages() {
         onDecline={handleDeclineIncoming}
       />
 
-      {missedCall && (
-        <div className="fixed left-1/2 top-4 z-[195] -translate-x-1/2 rounded-2xl border border-red-500/30 bg-[#0b1020]/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/15">
-              <PhoneOff size={16} className="text-red-400" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-red-400">
-                Missed call
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-white">
-                from {missedCall.callerName}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   )
 }

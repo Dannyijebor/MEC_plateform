@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
+import { logCallEvent } from "../../services/chat/chatService"
 import { supabase } from "../../lib/supabase"
 import {
   broadcastCallCancelled,
@@ -281,6 +282,22 @@ export default function Call() {
         })
       } catch (err) {
         console.warn("Failed to broadcast cancel:", err)
+      }
+    }
+
+    // Log the call event as a persistent message in the conversation
+    if (conversationId && user) {
+      try {
+        await logCallEvent({
+          conversationId,
+          callerId: user.id,
+          callerName: user.user_metadata?.full_name || user.email || "MEC Member",
+          status: connected ? "answered" : "missed",
+          mode,
+          durationSeconds: connected ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0,
+        })
+      } catch (err) {
+        console.warn("Failed to log call event:", err)
       }
     }
 
