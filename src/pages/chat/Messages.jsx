@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { useAuth } from "../../hooks/useAuth"
 import {
@@ -25,6 +26,7 @@ import {
   subscribeToConversation,
 } from "../../services/chat/chatService"
 import {
+  broadcastCallCancelled,
   broadcastIncomingCall,
   subscribeToIncomingCalls,
 } from "../../services/calls/callService"
@@ -273,6 +275,7 @@ function Messages() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
   const [incomingCall, setIncomingCall] = useState(null)
+  const [missedCall, setMissedCall] = useState(null)
 
   const handleAcceptIncoming = () => {
     if (!incomingCall) return
@@ -363,10 +366,19 @@ function Messages() {
     if (!user) return
     let channel = null
     try {
-      channel = subscribeToIncomingCalls(user.id, (payload) => {
-        if (!payload || payload.callerId === user.id) return
-        console.log("📞 Incoming call from", payload.callerName, "mode:", payload.mode)
-        setIncomingCall(payload)
+      channel = subscribeToIncomingCalls(user.id, {
+        onIncoming: (payload) => {
+          if (!payload || payload.callerId === user.id) return
+          console.log("📞 Incoming call from", payload.callerName)
+          setIncomingCall(payload)
+        },
+        onCancelled: (payload) => {
+          if (!payload || payload.callerId === user.id) return
+          console.log("📵 Missed call from", payload.callerName)
+          setIncomingCall(null)
+          setMissedCall({ callerName: payload.callerName || "MEC Member" })
+          setTimeout(() => setMissedCall(null), 4000)
+        },
       })
     } catch (err) {
       console.warn("Incoming calls unavailable:", err)
@@ -738,6 +750,24 @@ function Messages() {
         onAccept={handleAcceptIncoming}
         onDecline={handleDeclineIncoming}
       />
+
+      {missedCall && (
+        <div className="fixed left-1/2 top-4 z-[195] -translate-x-1/2 rounded-2xl border border-red-500/30 bg-[#0b1020]/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/15">
+              <PhoneOff size={16} className="text-red-400" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-red-400">
+                Missed call
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-white">
+                from {missedCall.callerName}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

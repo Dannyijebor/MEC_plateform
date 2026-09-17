@@ -102,11 +102,39 @@ export async function broadcastIncomingCall(userId, payload) {
  * Subscribe to incoming call invites for a user.
  * Used by the receiver's Messages page.
  */
-export function subscribeToIncomingCalls(userId, onIncoming) {
+export async function broadcastCallCancelled(userId, payload) {
+  const channel = supabase.channel(`incoming-calls:${userId}`)
+
+  await new Promise((resolve) => {
+    channel.subscribe((status) => {
+      if (status === "SUBSCRIBED") resolve()
+    })
+  })
+
+  await channel.send({
+    type: "broadcast",
+    event: "call-cancelled",
+    payload,
+  })
+
+  setTimeout(() => {
+    supabase.removeChannel(channel)
+  }, 1500)
+}
+
+export function subscribeToIncomingCalls(userId, callbacks) {
+  const { onIncoming, onCancelled } =
+    typeof callbacks === "function"
+      ? { onIncoming: callbacks, onCancelled: null }
+      : callbacks || {}
+
   const channel = supabase
     .channel(`incoming-calls:${userId}`)
     .on("broadcast", { event: "incoming-call" }, ({ payload }) => {
       onIncoming?.(payload)
+    })
+    .on("broadcast", { event: "call-cancelled" }, ({ payload }) => {
+      onCancelled?.(payload)
     })
     .subscribe()
 

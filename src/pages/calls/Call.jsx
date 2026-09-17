@@ -13,6 +13,7 @@ import { motion } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
 import { supabase } from "../../lib/supabase"
 import {
+  broadcastCallCancelled,
   closeCallChannel,
   createCallChannel,
   endCall,
@@ -270,6 +271,19 @@ export default function Call() {
     } catch (err) {
       console.warn("Failed to broadcast hangup:", err)
     }
+
+    // Also notify callee's Messages page (in case they haven't joined yet)
+    if (otherUser?.id) {
+      try {
+        await broadcastCallCancelled(otherUser.id, {
+          callerId: user?.id,
+          callerName: user?.user_metadata?.full_name || user?.email || "MEC Member",
+        })
+      } catch (err) {
+        console.warn("Failed to broadcast cancel:", err)
+      }
+    }
+
     setCallEnded(true)
     cleanup()
     setTimeout(() => navigate("/messages"), 800)
