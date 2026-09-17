@@ -215,7 +215,6 @@ export async function logCallEvent({
       sender_id: callerId,
       content: `[MEC_CALL]${payload}`,
       type: "call_event",
-      event: "call_event",
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     })
     .select()
