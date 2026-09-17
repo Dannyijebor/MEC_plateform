@@ -727,6 +727,15 @@ function Messages() {
                                 {callInfo.mode === "video" ? "video" : "audio"}
                                 {durationLabel}
                               </span>
+                              <button
+                                type="button"
+                                onClick={() => startCall(callInfo.mode || "audio")}
+                                className={`ml-1 flex h-7 w-7 items-center justify-center rounded-full ${theme.iconBg} ${theme.iconAccent} transition hover:scale-110`}
+                                aria-label="Call back"
+                                title="Call back"
+                              >
+                                <Phone size={12} />
+                              </button>
                             </div>
                           </motion.div>
                         )
