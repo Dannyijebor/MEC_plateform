@@ -12,6 +12,7 @@ import {
   getConversationMessages,
   sendMessage,
   subscribeToConversation,
+  markConversationAsRead,
 } from "../../services/chat/chatService"
 import {
   broadcastCallCancelled,
