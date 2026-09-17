@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   MessageCircle,
   Phone,
@@ -20,6 +20,8 @@ import {
 } from "../../services/chat/chatService"
 
 function Messages() {
+  const [searchParams] = useSearchParams()
+  const targetConversationId = searchParams.get("conversation")
   const navigate = useNavigate()
   const { user } = useAuth()
 
@@ -46,6 +48,11 @@ function Messages() {
         if (!active) return
 
         setConversations(data)
+
+    if (targetConversationId && data) {
+      const target = data.find(c => c.id === targetConversationId)
+      if (target) setSelectedConversation(target)
+    }
 
         if (data.length > 0) {
           setSelectedConversation(data[0])

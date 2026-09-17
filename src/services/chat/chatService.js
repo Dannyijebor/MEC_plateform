@@ -97,3 +97,50 @@ export async function unsubscribeFromConversation(channel) {
 
   await supabase.removeChannel(channel)
 }
+
+export async function getOrCreateConversation(currentUserId, targetUserId) {
+  const { data: existing, error } = await supabase
+    .from("conversation_participants")
+    .select(`
+      conversation_id,
+      conversations!inner(type)
+    `)
+    .eq("user_id", currentUserId)
+    .eq("conversations.type", "direct")
+
+  if (error) throw error
+
+  if (existing && existing.length > 0) {
+    const conversationIds = existing.map((c) => c.conversation_id)
+    
+    const { data: match } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", targetUserId)
+      .in("conversation_id", conversationIds)
+      .single()
+
+    if (match) {
+      return match.conversation_id 
+    }
+  }
+
+  const { data: newConv, error: createError } = await supabase
+    .from("conversations")
+    .insert({ type: "direct" })
+    .select()
+    .single()
+
+  if (createError) throw createError
+
+  const { error: participantError } = await supabase
+    .from("conversation_participants")
+    .insert([
+      { conversation_id: newConv.id, user_id: currentUserId },
+      { conversation_id: newConv.id, user_id: targetUserId }
+    ])
+
+  if (participantError) throw participantError
+
+  return newConv.id
+}
