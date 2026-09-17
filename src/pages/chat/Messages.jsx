@@ -273,6 +273,7 @@ function Messages() {
   const [replyingTo, setReplyingTo] = useState(null)
   const [editingMessage, setEditingMessage] = useState(null)
   const [showMenuFor, setShowMenuFor] = useState(null)
+  const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
   const [typingUsers, setTypingUsers] = useState([])
   const typingChannelRef = useRef(null)
   const [missedCall, setMissedCall] = useState(null)
@@ -894,7 +895,13 @@ function Messages() {
                                 setEditingMessage(null)
                                 textareaRef.current?.focus()
                               }}
-                              onLongPress={() => setShowMenuFor(message.id)}
+                              onLongPress={(event) => {
+                                const touch = event?.touches?.[0] || event || {}
+                                const x = touch.clientX ?? window.innerWidth / 2
+                                const y = touch.clientY ?? window.innerHeight / 2
+                                setMenuAnchor({ x, y })
+                                setShowMenuFor(message.id)
+                              }}
                             >
                             <div
                               className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm transition ${
@@ -1100,6 +1107,7 @@ function Messages() {
             mine={targetMine}
             canEdit={canEdit}
             senderName={targetName}
+            anchor={menuAnchor}
             onClose={() => setShowMenuFor(null)}
             onReply={() => {
               setReplyingTo({
