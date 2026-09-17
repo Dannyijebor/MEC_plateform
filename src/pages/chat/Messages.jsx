@@ -1,19 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import {
-  ArrowLeft,
-  Search,
-  Send,
-  MessageCircle,
-  Users,
-  MoreVertical,
-  Phone,
-  Video,
-  Palette,
-  Check,
-  Loader2,
-  Sparkles,
-  X, Clock } from "lucide-react"
+import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
@@ -835,8 +822,22 @@ function Messages() {
                             >
                               <p className="whitespace-pre-wrap break-words">{message.content}</p>
                             </div>
-                            <span className={`mt-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "text-right" : "text-left"}`}>
-                              {formatTime(message.created_at)}
+                            <span className={`mt-1 flex items-center gap-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "justify-end" : "justify-start"}`}>
+                              <span>{formatTime(message.created_at)}</span>
+                              {mine && (
+                                <span
+                                  className={
+                                    message.read_at ? "text-sky-500" : "opacity-60"
+                                  }
+                                  title={message.read_at ? "Read" : "Sent"}
+                                >
+                                  {message.read_at ? (
+                                    <CheckCheck size={13} />
+                                  ) : (
+                                    <Check size={13} />
+                                  )}
+                                </span>
+                              )}
                             </span>
                           </div>
                         </motion.div>
