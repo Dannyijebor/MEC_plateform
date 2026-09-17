@@ -441,6 +441,32 @@ function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  // Realtime reaction subscription
+  useEffect(() => {
+    if (!selectedConversation) return
+    const channel = supabase
+      .channel(`reactions:${selectedConversation.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "message_reactions",
+        },
+        () => {
+          if (messages.length === 0) return
+          const ids = messages.map((m) => m.id)
+          getReactionsForMessages(ids)
+            .then((grouped) => setReactions(grouped || {}))
+            .catch(() => {})
+        }
+      )
+      .subscribe()
+    return () => {
+      try { supabase.removeChannel(channel) } catch {}
+    }
+  }, [selectedConversation, messages])
+
   // Load reactions whenever messages change
   useEffect(() => {
     if (!messages || messages.length === 0) {
@@ -966,6 +992,48 @@ function Messages() {
                             </div>
 
                             </SwipeableBubble>
+                            {(() => {
+                              const list = reactions[message.id] || []
+                              if (list.length === 0) return null
+                              // Group by emoji
+                              const grouped = {}
+                              for (const r of list) {
+                                if (!grouped[r.emoji]) grouped[r.emoji] = []
+                                grouped[r.emoji].push(r)
+                              }
+                              return (
+                                <div className={`mt-1 flex flex-wrap items-center gap-1 px-1 ${mine ? "justify-end" : "justify-start"}`}>
+                                  {Object.entries(grouped).map(([emoji, arr]) => {
+                                    const iReacted = arr.some((r) => r.user_id === user?.id)
+                                    return (
+                                      <button
+                                        key={emoji}
+                                        type="button"
+                                        onClick={() =>
+                                          toggleReaction({
+                                            messageId: message.id,
+                                            userId: user.id,
+                                            emoji,
+                                          }).catch(() => {})
+                                        }
+                                        className={`flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[11px] transition ${
+                                          iReacted
+                                            ? "border-[#d9b86c] bg-[#d9b86c]/15"
+                                            : "border-gray-200 bg-white/70 hover:bg-white"
+                                        }`}
+                                      >
+                                        <span>{emoji}</span>
+                                        {arr.length > 1 && (
+                                          <span className="text-[9px] opacity-70">
+                                            {arr.length}
+                                          </span>
+                                        )}
+                                      </button>
+                                    )
+                                  })}
+                                </div>
+                              )
+                            })()}
                             <span className={`mt-1 flex items-center gap-1 px-1 text-[10px] ${theme.textFaint} ${mine ? "justify-end" : "justify-start"}`}>
                               <span>{formatTime(message.created_at)}</span>
                               {mine && (() => {
@@ -1142,7 +1210,48 @@ function Messages() {
             canEdit={canEdit}
             senderName={targetName}
             anchor={menuAnchor}
+            myReaction={(() => {
+              const list = reactions[targetMsg.id] || []
+              const mineReaction = list.find((r) => r.user_id === user?.id)
+              return mineReaction?.emoji || null
+            })()}
             onClose={() => setShowMenuFor(null)}
+            onReact={async (emoji) => {
+              setShowMenuFor(null)
+              if (!user?.id) return
+
+              // Optimistic update
+              setReactions((current) => {
+                const list = current[targetMsg.id] || []
+                const existing = list.find(
+                  (r) => r.user_id === user.id && r.emoji === emoji
+                )
+                if (existing) {
+                  return {
+                    ...current,
+                    [targetMsg.id]: list.filter((r) => r.id !== existing.id),
+                  }
+                }
+                const withoutMyOld = list.filter((r) => r.user_id !== user.id)
+                return {
+                  ...current,
+                  [targetMsg.id]: [
+                    ...withoutMyOld,
+                    { id: `temp-${Date.now()}`, user_id: user.id, emoji },
+                  ],
+                }
+              })
+
+              try {
+                await toggleReaction({
+                  messageId: targetMsg.id,
+                  userId: user.id,
+                  emoji,
+                })
+              } catch (err) {
+                console.warn("Reaction failed:", err)
+              }
+            }}
             onReply={() => {
               setReplyingTo({
                 id: targetMsg.id,
