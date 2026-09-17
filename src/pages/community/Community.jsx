@@ -17,6 +17,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import UserProfileModal from "../../components/common/UserProfileModal"
 import { useAuth } from "../../hooks/useAuth"
 
 function Community() {
@@ -26,6 +27,7 @@ function Community() {
   const [selectedMedia, setSelectedMedia] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
 
+  const [viewingProfileId, setViewingProfileId] = useState(null)
   const [posts, setPosts] = useState([])
   const [reactionCounts, setReactionCounts] = useState({})
   const [userReactions, setUserReactions] = useState({})
@@ -1071,7 +1073,7 @@ function Community() {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-[#111827]">
+                          <p onClick={() => setViewingProfileId(post.author_id)} className="cursor-pointer hover:underline truncate text-sm font-semibold text-[#111827]">
                             {name}
                           </p>
 
@@ -1607,4 +1609,8 @@ function Community() {
   )
 }
 
+      <UserProfileModal
+        userId={viewingProfileId}
+        onClose={() => setViewingProfileId(null)}
+      />
 export default Community
