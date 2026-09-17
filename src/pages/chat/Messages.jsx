@@ -317,15 +317,22 @@ function Messages() {
     }
     loadMessages()
 
-    const unsubscribe = subscribeToConversation(
-      selectedConversation.id,
-      (newMsg) => {
-        setMessages((current) => {
-          if (current.some((m) => m.id === newMsg.id)) return current
-          return [...current, newMsg]
-        })
+    let unsubscribe
+    try {
+      if (typeof subscribeToConversation === "function") {
+        unsubscribe = subscribeToConversation(
+          selectedConversation.id,
+          (newMsg) => {
+            setMessages((current) => {
+              if (current.some((m) => m.id === newMsg.id)) return current
+              return [...current, newMsg]
+            })
+          }
+        )
       }
-    )
+    } catch (err) {
+      console.warn("Realtime not available:", err)
+    }
     return () => unsubscribe?.()
   }, [selectedConversation, loadMessages])
 

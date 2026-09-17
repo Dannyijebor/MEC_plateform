@@ -114,7 +114,7 @@ export async function sendMessage({
 }
 
 export function subscribeToConversation(conversationId, onMessage) {
-  return supabase
+  const channel = supabase
     .channel(`messages:${conversationId}`)
     .on(
       "postgres_changes",
@@ -129,6 +129,11 @@ export function subscribeToConversation(conversationId, onMessage) {
       },
     )
     .subscribe()
+
+  // Return a proper cleanup function instead of the raw channel
+  return () => {
+    supabase.removeChannel(channel)
+  }
 }
 
 export async function unsubscribeFromConversation(channel) {
