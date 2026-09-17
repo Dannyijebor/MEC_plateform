@@ -322,3 +322,56 @@ export async function sendReplyMessage({
   if (error) throw error
   return data
 }
+
+/**
+ * Fetch all reactions for a set of messages.
+ * Returns { [messageId]: [{ emoji, user_id, id }, ...] }
+ */
+export async function getReactionsForMessages(messageIds) {
+  if (!messageIds || messageIds.length === 0) return {}
+
+  const { data, error } = await supabase
+    .from("message_reactions")
+    .select("id, message_id, user_id, emoji")
+    .in("message_id", messageIds)
+
+  if (error) throw error
+
+  const grouped = {}
+  for (const r of data || []) {
+    if (!grouped[r.message_id]) grouped[r.message_id] = []
+    grouped[r.message_id].push(r)
+  }
+  return grouped
+}
+
+/**
+ * Toggle a reaction on a message for the current user.
+ * If the reaction already exists, remove it. Otherwise, add it.
+ */
+export async function toggleReaction({ messageId, userId, emoji }) {
+  // Check if exists
+  const { data: existing } = await supabase
+    .from("message_reactions")
+    .select("id")
+    .eq("message_id", messageId)
+    .eq("user_id", userId)
+    .eq("emoji", emoji)
+    .maybeSingle()
+
+  if (existing) {
+    const { error } = await supabase
+      .from("message_reactions")
+      .delete()
+      .eq("id", existing.id)
+    if (error) throw error
+    return { action: "removed", emoji }
+  }
+
+  const { error } = await supabase
+    .from("message_reactions")
+    .insert({ message_id: messageId, user_id: userId, emoji })
+
+  if (error) throw error
+  return { action: "added", emoji }
+}
