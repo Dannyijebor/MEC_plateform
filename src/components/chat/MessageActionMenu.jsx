@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Reply, Copy, Edit3, Trash2 } from "lucide-react"
 
-const MENU_WIDTH = 190
-const MENU_HEIGHT_ESTIMATE = 190
+const MENU_WIDTH = 220
+const MENU_HEIGHT_ESTIMATE = 260
+const EMOJIS = ["❤️", "😂", "👍", "😮", "😢", "🎉"]
 
 export default function MessageActionMenu({
   message,
@@ -11,11 +12,13 @@ export default function MessageActionMenu({
   canEdit,
   senderName,
   anchor,
+  myReaction,
   onClose,
   onReply,
   onCopy,
   onEdit,
   onDelete,
+  onReact,
 }) {
   const menuRef = useRef(null)
   const [position, setPosition] = useState({ x: 0, y: 0, visible: false })
@@ -30,15 +33,12 @@ export default function MessageActionMenu({
     let x, y
 
     if (rect) {
-      // Horizontal: align with the message bubble edge
       x = mine ? rect.right - MENU_WIDTH : rect.left
-      // Vertical: prefer below, flip above if not enough space
       y = rect.bottom + 8
       if (y + MENU_HEIGHT_ESTIMATE > vh - pad) {
         y = rect.top - MENU_HEIGHT_ESTIMATE - 8
       }
     } else {
-      // Fallback to touch coordinates
       x = anchor.x - MENU_WIDTH / 2
       y = anchor.y + 12
       if (y + MENU_HEIGHT_ESTIMATE > vh - pad) {
@@ -71,7 +71,6 @@ export default function MessageActionMenu({
     <AnimatePresence>
       {position.visible && (
         <>
-          {/* Dim backdrop that locks scroll */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
@@ -87,7 +86,6 @@ export default function MessageActionMenu({
             }}
           />
 
-          {/* The popover menu */}
           <motion.div
             key="menu"
             ref={menuRef}
@@ -99,6 +97,28 @@ export default function MessageActionMenu({
             onClick={(e) => e.stopPropagation()}
             className="fixed z-[151] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_60px_-10px_rgba(0,0,0,0.4)]"
           >
+            <div className="flex items-center justify-around border-b border-gray-100 bg-gray-50/70 px-2 py-2">
+              {EMOJIS.map((emoji) => {
+                const isActive = myReaction === emoji
+                return (
+                  <motion.button
+                    key={emoji}
+                    type="button"
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => onReact(emoji)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-full text-lg transition ${
+                      isActive
+                        ? "bg-[#d9b86c]/20 ring-2 ring-[#d9b86c]"
+                        : "hover:bg-white"
+                    }`}
+                  >
+                    {emoji}
+                  </motion.button>
+                )
+              })}
+            </div>
+
             <div className="p-1">
               {actions.map((action) => {
                 const Icon = action.icon
