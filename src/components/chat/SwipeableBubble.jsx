@@ -4,15 +4,8 @@ import { Reply } from "lucide-react"
 export default function SwipeableBubble({ mine, onReply, children }) {
   const x = useMotionValue(0)
   const absX = useTransform(x, (v) => Math.abs(v))
-
-  // Opacity grows with swipe distance
   const opacity = useTransform(absX, [0, 20, 60], [0, 0.5, 1])
-
-  // Icon scales up as you swipe further
   const scale = useTransform(absX, [0, 60], [0.5, 1])
-
-  const incoming = !mine // others' messages → swipe right
-  const outgoing = mine  // your own messages → swipe left
 
   return (
     <motion.div
@@ -25,19 +18,19 @@ export default function SwipeableBubble({ mine, onReply, children }) {
           onReply()
         }
       }}
-      className="relative touch-pan-y"
+      className={`relative w-fit touch-pan-y ${mine ? "self-end" : "self-start"}`}
     >
-      {/* Static reply icon — sits BEHIND the bubble, revealed as it slides away */}
+      {/* Reply icon — visible behind the bubble */}
       <motion.div
         style={{ opacity, scale }}
-        className={`pointer-events-none absolute top-1/2 z-0 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-[#d9b86c] shadow-lg ring-2 ring-white/60 ${
-          incoming ? "left-0" : "right-0"
+        className={`pointer-events-none absolute top-1/2 z-0 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-[#d9b86c] shadow-lg ${
+          mine ? "-right-12" : "-left-12"
         }`}
       >
         <Reply size={16} className="text-white" strokeWidth={2.5} />
       </motion.div>
 
-      <div className="relative z-10 w-fit">{children}</div>
+      <div className="relative z-10">{children}</div>
     </motion.div>
   )
 }
