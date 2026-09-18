@@ -609,3 +609,92 @@ body.dark [class*="border-[#DCD9D0]"]:not([data-chat-view]):not([data-chat-view]
 body.dark [class*="border-white"]:not([data-chat-view]):not([data-chat-view] *) {
   border-color: #2a3441 !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   MEC DARK MODE VARIABLES
+   Overrides the design system tokens so all pages that use
+   var(--mec-*) switch to dark automatically.
+   ═══════════════════════════════════════════════════════ */
+
+body.dark {
+  /* Core surfaces */
+  --mec-bg: #0a0f18;
+  --mec-surface: #131a26;
+  --mec-surface-2: #1a2232;
+  --mec-surface-3: #232d3f;
+
+  /* Typography */
+  --mec-text: #f3f4f6;
+  --mec-text-secondary: #9ca3af;
+  --mec-text-muted: #6b7280;
+  --mec-text-faint: #4b5563;
+
+  /* Borders */
+  --mec-border: #1f2937;
+  --mec-border-soft: rgba(255, 255, 255, 0.06);
+  --mec-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Gold (blue accent in dark mode) — keep same */
+  --mec-gold: #60A5FA;
+  --mec-gold-dark: #93C5FD;
+  --mec-gold-soft: rgba(96, 165, 250, 0.15);
+  --mec-gold-wash: rgba(96, 165, 250, 0.10);
+
+  /* Blue */
+  --mec-blue: #60a5fa;
+  --mec-blue-soft: rgba(96, 165, 250, 0.15);
+  --mec-blue-wash: rgba(96, 165, 250, 0.10);
+
+  /* Supporting accents */
+  --mec-violet: #a78bfa;
+  --mec-violet-soft: rgba(167, 139, 250, 0.15);
+  --mec-coral: #f87171;
+  --mec-coral-soft: rgba(248, 113, 113, 0.15);
+
+  /* Shadows — deepen for dark surfaces */
+  --mec-shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+
+  --mec-shadow-md:
+    0 8px 28px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+
+  --mec-shadow-lg:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+
+  color: var(--mec-text);
+  background: var(--mec-bg);
+}
+
+/* The .mec-surface uses rgba() directly — override it too */
+body.dark .mec-surface {
+  background: rgba(19, 26, 38, 0.92) !important;
+  border-color: var(--mec-border-soft) !important;
+}
+
+body.dark .mec-surface-elevated {
+  background: var(--mec-surface) !important;
+  border-color: var(--mec-border) !important;
+}
+
+body.dark .mec-surface-soft {
+  background: var(--mec-surface-2) !important;
+}
+
+body.dark .mec-card {
+  background: var(--mec-surface) !important;
+  border-color: var(--mec-border) !important;
+}
+
+body.dark .mec-page {
+  background: var(--mec-bg) !important;
+  color: var(--mec-text) !important;
+}
+
+/* Any "white" backgrounds on the dashboard should use --mec-surface */
+body.dark [class*="bg-white"]:not([data-chat-view]):not([data-chat-view] *):not([class*="chat-conversation"]) {
+  background-color: var(--mec-surface) !important;
+}
