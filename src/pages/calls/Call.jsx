@@ -332,56 +332,128 @@ export default function Call() {
         </div>
       )}
 
-      {/* Profile overlay when connected but no video shown (audio call OR camera off) */}
+      {/* Premium connected view (when no remote video) */}
       {connected && mode === "audio" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-white">
-          {otherUser?.avatar_url && (
-            <div
-              className="absolute inset-0 scale-125 opacity-10 blur-3xl"
-              style={{
-                backgroundImage: `url(${otherUser.avatar_url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
-          )}
-          <div className="relative flex flex-col items-center px-6 text-center">
-            <div className="relative mb-6 flex h-40 w-40 items-center justify-center">
-              <motion.div
-                animate={{ scale: [1, 1.08, 1] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#DBEAFE] shadow-[0_20px_60px_-15px_rgba(59,130,246,0.5)]"
-              >
-                {otherUser?.avatar_url ? (
-                  <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-5xl font-bold text-[#2563EB]">
-                    {otherUser?.full_name?.charAt(0) || <UserRound size={48} />}
-                  </span>
-                )}
-              </motion.div>
-            </div>
-            <p className="text-3xl font-semibold tracking-tight text-gray-900">
-              {otherUser?.full_name || "Connected"}
-            </p>
-            {otherUser?.username && (
-              <p className="mt-1 text-sm text-[#2563EB]">@{otherUser.username}</p>
-            )}
-            <div className="mt-4 flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-medium tracking-wide text-gray-600">
-                Connected · Audio call
+        <div className="absolute inset-0 flex flex-col overflow-hidden">
+          {/* Layered premium background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1628] via-[#0d1f3d] to-[#050a14]" />
+
+          {/* Aurora blobs */}
+          <motion.div
+            animate={{
+              x: [0, 60, -30, 0],
+              y: [0, -40, 30, 0],
+              scale: [1, 1.15, 0.95, 1],
+            }}
+            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -left-40 -top-20 h-[500px] w-[500px] rounded-full bg-[#3B82F6]/25 blur-[120px]"
+          />
+          <motion.div
+            animate={{
+              x: [0, -50, 40, 0],
+              y: [0, 50, -30, 0],
+            }}
+            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -right-40 -bottom-20 h-[500px] w-[500px] rounded-full bg-[#6366F1]/25 blur-[120px]"
+          />
+          <div className="absolute inset-0 bg-black/20" />
+
+          {/* ─── TOP: Live timer pill ─── */}
+          <div className="relative z-10 flex items-center justify-between px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-2 backdrop-blur-xl">
+              <motion.span
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+                className="flex h-2 w-2 rounded-full bg-emerald-400"
+              />
+              <span className="text-xs font-semibold tabular-nums tracking-wider text-white">
+                {formatDuration(callDuration)}
               </span>
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#93C5FD] backdrop-blur-xl">
+              {mode === "video" ? "Video" : "Voice"}
             </div>
           </div>
 
+          {/* ─── MIDDLE: Avatar with live audio wave ─── */}
+          <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6">
+            <div className="relative flex h-48 w-48 items-center justify-center">
+              {/* Pulsing rings when there is audio activity */}
+              <motion.div
+                animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
+                className="absolute inset-0 rounded-full border border-[#60A5FA]/40"
+              />
+              <motion.div
+                animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
+                className="absolute inset-0 rounded-full border border-[#60A5FA]/30"
+              />
+
+              {/* Glow halo */}
+              <div className="absolute inset-4 rounded-full bg-gradient-to-br from-[#3B82F6]/40 to-[#8B5CF6]/40 blur-2xl" />
+
+              {/* Avatar */}
+              <div className="relative flex h-40 w-40 items-center justify-center overflow-hidden rounded-full border-[3px] border-white/30 bg-gradient-to-br from-[#1e3a8a] to-[#0f172a] shadow-[0_0_80px_rgba(96,165,250,0.5)]">
+                {otherUser?.avatar_url ? (
+                  <img
+                    src={otherUser.avatar_url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-6xl font-bold text-white">
+                    {otherUser?.full_name?.charAt(0) || <UserRound size={56} />}
+                  </span>
+                )}
+                <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-t from-black/30 via-transparent to-white/10" />
+              </div>
+            </div>
+
+            {/* Name */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-7 text-center"
+            >
+              <h2 className="text-[26px] font-semibold leading-tight tracking-tight text-white">
+                {otherUser?.full_name || "Connected"}
+              </h2>
+              {otherUser?.username && (
+                <p className="mt-1 text-sm font-medium text-[#93C5FD]">
+                  @{otherUser.username}
+                </p>
+              )}
+            </motion.div>
+
+            {/* Live audio wave beneath name */}
+            <div className="mt-6 h-12 w-64 max-w-full">
+              <AudioWave
+                stream={remoteStreamRef?.current}
+                active={connected}
+                color="#60A5FA"
+                bars={28}
+                height={40}
+                barWidth={3}
+              />
+            </div>
+
+            {/* Live caption */}
+            <div className="mt-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] text-white/40">
+              <span>Live</span>
+              <span className="h-1 w-1 rounded-full bg-white/30" />
+              <span>End-to-end encrypted</span>
+            </div>
+          </div>
+
+          {/* ─── Raise hand badge ─── */}
           {remoteHandRaised && (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="absolute bottom-32 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-[#3B82F6]/30 bg-[#DBEAFE] backdrop-blur-xl"
+              className="absolute right-5 top-24 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-[#3B82F6]/30 bg-white/95 shadow-2xl backdrop-blur-xl"
             >
-              <Hand size={24} className="text-[#2563EB]" />
+              <Hand size={22} className="text-[#2563EB]" />
             </motion.div>
           )}
         </div>
