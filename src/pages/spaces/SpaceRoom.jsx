@@ -75,7 +75,7 @@ function initials(name = "MEC") {
     .toUpperCase()
 }
 
-function ParticipantCard({ participant, active, videoElement, isLocal = false, onTap }) {
+function ParticipantCard({ participant, active, isLocal = false, onTap }) {
   const name =
     participant?.profile?.full_name ||
     participant?.profile?.username ||
@@ -85,64 +85,70 @@ function ParticipantCard({ participant, active, videoElement, isLocal = false, o
 
   const avatar = participant?.profile?.avatar_url
   const role = participant?.role || "listener"
-
-  const ROLE_STYLES = {
-    host: "border-amber-300 bg-amber-50 text-amber-700",
-    cohost: "border-blue-300 bg-blue-50 text-blue-700",
-    speaker: "border-emerald-300 bg-emerald-50 text-emerald-700",
-    listener: "border-gray-200 bg-gray-50 text-gray-600",
-  }
+  const micOn = participant?.isMicrophoneEnabled
 
   return (
-    <div data-space-room-page
+    <button
+      type="button"
       onClick={(e) => onTap?.(e)}
-      className={`relative flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-md ${
-        active ? "border-blue-400 shadow-md shadow-blue-100" : "border-gray-200"
+      className={`group flex w-full flex-col items-center gap-2 rounded-2xl p-3 text-center transition ${
+        active ? "bg-emerald-50" : "hover:bg-gray-50"
       }`}
     >
-      <div className="relative h-11 w-11 shrink-0">
-        <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#DBEAFE] text-sm font-bold text-[#2563EB]">
+      {/* Avatar */}
+      <div className="relative">
+        <div
+          className={`flex h-20 w-20 items-center justify-center overflow-hidden rounded-full text-xl font-bold ${
+            active
+              ? "ring-4 ring-emerald-400 ring-offset-2 ring-offset-white"
+              : "ring-2 ring-gray-200"
+          } bg-[#F1E7CC] text-[#A8873F]`}
+        >
           {avatar ? (
             <img src={avatar} alt={name} className="h-full w-full object-cover" />
           ) : (
             initials(name)
           )}
         </div>
-        <div className={`absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white ${
-          participant?.isMicrophoneEnabled ? "bg-emerald-500" : "bg-gray-400"
-        }`}>
-          {participant?.isMicrophoneEnabled ? (
-            <Mic size={8} className="text-white" strokeWidth={3} />
+        {/* Mic badge */}
+        <div
+          className={`absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white ${
+            micOn ? "bg-emerald-500" : "bg-red-500"
+          }`}
+        >
+          {micOn ? (
+            <Mic size={12} className="text-white" strokeWidth={3} />
           ) : (
-            <MicOff size={8} className="text-white" strokeWidth={3} />
+            <MicOff size={12} className="text-white" strokeWidth={3} />
           )}
         </div>
       </div>
 
-      <div className="min-w-0 flex-1">
+      {/* Name */}
+      <div className="min-w-0 w-full">
         <p className="truncate text-sm font-semibold text-gray-900">
           {name}
           {isLocal ? " · You" : ""}
         </p>
-        <span className={`mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize ${ROLE_STYLES[role] || ROLE_STYLES.listener}`}>
-          {role}
-        </span>
-      </div>
 
-      {videoElement && (
-        <video
-          ref={(node) => {
-            if (node && videoElement && !videoElement.attached) {
-              videoElement.attach(node)
-            }
-          }}
-          autoPlay
-          playsInline
-          muted={isLocal}
-          className="hidden"
-        />
-      )}
-    </div>
+        {/* Role with mic icon */}
+        <div className="mt-0.5 flex items-center justify-center gap-1 text-xs">
+          {micOn ? (
+            <Mic size={11} className="text-emerald-600" />
+          ) : (
+            <MicOff size={11} className="text-red-500" />
+          )}
+          <span className={`font-medium capitalize ${
+            role === "host" ? "text-amber-600" :
+            role === "cohost" ? "text-gray-700" :
+            role === "speaker" ? "text-emerald-600" :
+            "text-gray-500"
+          }`}>
+            {role}
+          </span>
+        </div>
+      </div>
+    </button>
   )
 }
 
@@ -762,7 +768,7 @@ function SpaceRoom() {
         )}
 
         {isVideoSpace && remoteVideoTracks.length > 0 ? (
-          <div className="mb-6 grid gap-3 sm:grid-cols-2">
+          <div className="mb-6 grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
             {remoteVideoTracks.map((item) => (
               <div
                 key={item.trackSid}
@@ -781,7 +787,7 @@ function SpaceRoom() {
           </div>
         ) : (
           <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
               {liveParticipants
                 .filter((participant) =>
                   ["host", "cohost", "speaker"].includes(
@@ -823,7 +829,7 @@ function SpaceRoom() {
 
         {isVideoSpace && (
           <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
               {liveParticipants
                 .filter((participant) =>
                   ["host", "cohost", "speaker"].includes(

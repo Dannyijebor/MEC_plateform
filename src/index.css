@@ -1038,3 +1038,87 @@ body:not(.dark) [data-space-room-page] [class*="text-blue-2"],
 body:not(.dark) [data-space-room-page] [class*="text-slate"] {
   color: #111827 !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   SPACES FORCE WHITE — NO BLUE ANYWHERE
+   ═══════════════════════════════════════════════════════ */
+
+[data-space-room-page],
+[data-space-room-page] * {
+  --tw-gradient-from: transparent !important;
+}
+
+/* Page background */
+[data-space-room-page] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111827 !important;
+}
+
+/* Kill every blue/slate background */
+[data-space-room-page] [class*="bg-blue-"],
+[data-space-room-page] [class*="bg-sky-"],
+[data-space-room-page] [class*="bg-indigo-"],
+[data-space-room-page] [class*="bg-slate-9"],
+[data-space-room-page] [class*="bg-[#0"],
+[data-space-room-page] [class*="bg-[#1"] {
+  background-color: #f3f4f6 !important;
+  background-image: none !important;
+}
+
+/* Kill blue gradients */
+[data-space-room-page] [class*="from-blue-"],
+[data-space-room-page] [class*="via-blue-"],
+[data-space-room-page] [class*="to-blue-"],
+[data-space-room-page] [class*="from-slate-"],
+[data-space-room-page] [class*="via-slate-"],
+[data-space-room-page] [class*="to-slate-"],
+[data-space-room-page] [class*="from-[#0"],
+[data-space-room-page] [class*="from-[#1"],
+[data-space-room-page] [class*="via-[#0"],
+[data-space-room-page] [class*="via-[#1"],
+[data-space-room-page] [class*="to-[#0"],
+[data-space-room-page] [class*="to-[#1"] {
+  background-image: none !important;
+  background-color: #ffffff !important;
+}
+
+/* Kill blue borders */
+[data-space-room-page] [class*="border-blue-"],
+[data-space-room-page] [class*="border-sky-"],
+[data-space-room-page] [class*="border-indigo-"] {
+  border-color: #e5e7eb !important;
+}
+
+/* Kill blue text */
+[data-space-room-page] [class*="text-blue-"],
+[data-space-room-page] [class*="text-sky-"],
+[data-space-room-page] [class*="text-indigo-"] {
+  color: #374151 !important;
+}
+
+/* Kill blur/glow effects */
+[data-space-room-page] [class*="blur-3xl"],
+[data-space-room-page] [class*="blur-2xl"],
+[data-space-room-page] [class*="blur-xl"] {
+  display: none !important;
+}
+
+/* Force white text to dark */
+[data-space-room-page] .text-white,
+[data-space-room-page] [class*="text-white/"] {
+  color: #111827 !important;
+}
+
+/* Dimmed text */
+[data-space-room-page] [class*="text-white/4"],
+[data-space-room-page] [class*="text-white/5"],
+[data-space-room-page] [class*="text-white/6"] {
+  color: #6b7280 !important;
+}
+
+/* Thin light borders for white bg */
+[data-space-room-page] [class*="border-white/"] {
+  border-color: #e5e7eb !important;
+}
