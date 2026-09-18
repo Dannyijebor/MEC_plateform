@@ -14,7 +14,6 @@ import { supabase } from "../../lib/supabase"
 import { createSpace } from "../../services/spaces/spaceService"
 
 const themes = [
-  { id: "gold", name: "Gold", className: "bg-amber-400" },
   { id: "gold", name: "Gold", className: "bg-[#A8873F]" },
   { id: "purple", name: "Purple", className: "bg-purple-500" },
   { id: "green", name: "Green", className: "bg-emerald-500" },
@@ -117,19 +116,19 @@ function CreateSpace() {
   }
 
   return (
-    <main className="min-h-screen bg-[#07111f] px-4 py-6 text-white sm:px-6 lg:px-8">
+    <main data-create-space className="min-h-screen bg-white px-4 py-6 text-gray-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <button
           type="button"
           onClick={() => navigate("/spaces")}
-          className="mb-6 flex items-center gap-2 text-sm text-white/60 transition hover:text-white"
+          className="mb-6 flex items-center gap-2 text-sm text-gray-600 transition hover:text-gray-900"
         >
           <ArrowLeft size={18} />
           Back to Spaces
         </button>
 
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl">
-          <div className="border-b border-white/10 bg-gradient-to-r from-amber-400/10 via-[#A8873F]/5 to-amber-400/5 p-6 sm:p-8">
+        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white/[0.04] shadow-2xl">
+          <div className="border-b border-gray-200 bg-gradient-to-r from-amber-400/10 via-[#A8873F]/5 to-amber-400/5 p-6 sm:p-8">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300/10 text-amber-300">
               <Sparkles size={24} />
             </div>
@@ -138,7 +137,7 @@ function CreateSpace() {
               Create a Space
             </h1>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-900/55 sm:text-base">
               Bring the family together for a live conversation, discussion,
               celebration, or video gathering.
             </p>
@@ -146,7 +145,7 @@ function CreateSpace() {
 
           <form onSubmit={handleCreate} className="space-y-8 p-6 sm:p-8">
             <section>
-              <label className="mb-2 block text-sm font-semibold text-white/80">
+              <label className="mb-2 block text-sm font-semibold text-gray-800">
                 Space title
               </label>
 
@@ -155,12 +154,12 @@ function CreateSpace() {
                 onChange={(event) => setTitle(event.target.value)}
                 maxLength={120}
                 placeholder="What are you talking about?"
-                className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-white outline-none transition placeholder:text-white/30 focus:border-amber-300/50 focus:bg-white/[0.07]"
+                className="w-full rounded-2xl border border-gray-200 bg-white/[0.05] px-4 py-4 text-gray-900 outline-none transition placeholder:text-gray-900/30 focus:border-amber-300/50 focus:bg-white/[0.07]"
               />
             </section>
 
             <section>
-              <label className="mb-2 block text-sm font-semibold text-white/80">
+              <label className="mb-2 block text-sm font-semibold text-gray-800">
                 Description
               </label>
 
@@ -170,12 +169,12 @@ function CreateSpace() {
                 maxLength={500}
                 rows={4}
                 placeholder="Tell your family what this Space is about..."
-                className="w-full resize-none rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-white outline-none transition placeholder:text-white/30 focus:border-amber-300/50 focus:bg-white/[0.07]"
+                className="w-full resize-none rounded-2xl border border-gray-200 bg-white/[0.05] px-4 py-4 text-gray-900 outline-none transition placeholder:text-gray-900/30 focus:border-amber-300/50 focus:bg-white/[0.07]"
               />
             </section>
 
             <section>
-              <div className="mb-3 text-sm font-semibold text-white/80">
+              <div className="mb-3 text-sm font-semibold text-gray-800">
                 Space type
               </div>
 
@@ -211,18 +210,18 @@ function CreateSpace() {
                       className={`rounded-2xl border p-5 text-left transition ${
                         selected
                           ? "border-amber-300/60 bg-amber-300/10"
-                          : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
+                          : "border-gray-200 bg-gray-50 hover:bg-white/[0.06]"
                       }`}
                     >
                       <Icon
                         size={22}
                         className={
-                          selected ? "text-amber-300" : "text-white/60"
+                          selected ? "text-amber-300" : "text-gray-600"
                         }
                       />
 
                       <div className="mt-4 font-semibold">{item.title}</div>
-                      <div className="mt-1 text-xs text-white/45">
+                      <div className="mt-1 text-xs text-gray-900/45">
                         {item.description}
                       </div>
                     </button>
@@ -232,7 +231,7 @@ function CreateSpace() {
             </section>
 
             <section>
-              <div className="mb-3 text-sm font-semibold text-white/80">
+              <div className="mb-3 text-sm font-semibold text-gray-800">
                 Who can join?
               </div>
 
@@ -243,13 +242,13 @@ function CreateSpace() {
                   className={`flex items-center gap-4 rounded-2xl border p-5 text-left transition ${
                     visibility === "family"
                       ? "border-amber-300/60 bg-amber-300/10"
-                      : "border-white/10 bg-white/[0.03]"
+                      : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <Users size={22} />
                   <div>
                     <div className="font-semibold">Everyone on MEC</div>
-                    <div className="mt-1 text-xs text-white/45">
+                    <div className="mt-1 text-xs text-gray-900/45">
                       Anyone in the family can join.
                     </div>
                   </div>
@@ -261,13 +260,13 @@ function CreateSpace() {
                   className={`flex items-center gap-4 rounded-2xl border p-5 text-left transition ${
                     visibility === "selected"
                       ? "border-amber-300/60 bg-amber-300/10"
-                      : "border-white/10 bg-white/[0.03]"
+                      : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <Users size={22} />
                   <div>
                     <div className="font-semibold">Selected members</div>
-                    <div className="mt-1 text-xs text-white/45">
+                    <div className="mt-1 text-xs text-gray-900/45">
                       Invite specific family members.
                     </div>
                   </div>
@@ -276,7 +275,7 @@ function CreateSpace() {
             </section>
 
             <section>
-              <div className="mb-3 text-sm font-semibold text-white/80">
+              <div className="mb-3 text-sm font-semibold text-gray-800">
                 Theme
               </div>
 
@@ -291,8 +290,8 @@ function CreateSpace() {
                       onClick={() => setTheme(item.id)}
                       className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
                         selected
-                          ? "border-white/40 bg-white/10"
-                          : "border-white/10 bg-white/[0.03]"
+                          ? "border-white/40 bg-gray-100"
+                          : "border-gray-200 bg-gray-50"
                       }`}
                     >
                       <span
@@ -309,7 +308,7 @@ function CreateSpace() {
             </section>
 
             <section>
-              <div className="mb-3 text-sm font-semibold text-white/80">
+              <div className="mb-3 text-sm font-semibold text-gray-800">
                 When should it start?
               </div>
 
@@ -320,12 +319,12 @@ function CreateSpace() {
                   className={`rounded-2xl border p-5 text-left transition ${
                     startMode === "now"
                       ? "border-amber-300/60 bg-amber-300/10"
-                      : "border-white/10 bg-white/[0.03]"
+                      : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <Mic size={21} />
                   <div className="mt-3 font-semibold">Start now</div>
-                  <div className="mt-1 text-xs text-white/45">
+                  <div className="mt-1 text-xs text-gray-900/45">
                     Open the Space immediately.
                   </div>
                 </button>
@@ -336,12 +335,12 @@ function CreateSpace() {
                   className={`rounded-2xl border p-5 text-left transition ${
                     startMode === "scheduled"
                       ? "border-amber-300/60 bg-amber-300/10"
-                      : "border-white/10 bg-white/[0.03]"
+                      : "border-gray-200 bg-gray-50"
                   }`}
                 >
                   <CalendarDays size={21} />
                   <div className="mt-3 font-semibold">Schedule</div>
-                  <div className="mt-1 text-xs text-white/45">
+                  <div className="mt-1 text-xs text-gray-900/45">
                     Choose a future date and time.
                   </div>
                 </button>
@@ -353,17 +352,17 @@ function CreateSpace() {
                     type="datetime-local"
                     value={scheduledFor}
                     onChange={(event) => setScheduledFor(event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-white outline-none focus:border-amber-300/50"
+                    className="w-full rounded-2xl border border-gray-200 bg-white/[0.05] px-4 py-4 text-gray-900 outline-none focus:border-amber-300/50"
                   />
                 </div>
               )}
             </section>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-6 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => navigate("/spaces")}
-                className="rounded-2xl border border-white/10 px-6 py-3 font-semibold text-white/70 transition hover:bg-white/5 hover:text-white"
+                className="rounded-2xl border border-gray-200 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
               >
                 Cancel
               </button>
