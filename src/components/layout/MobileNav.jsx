@@ -20,12 +20,16 @@ import {
 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useHideTopChrome } from "../../hooks/useHideTopChrome"
+import { useAuthRoute } from "../../hooks/useAuthRoute"
 import { useTheme } from "../../context/ThemeContext"
 
 function MobileNav() {
   const [open, setOpen] = useState(false)
   const hideTopChrome = useHideTopChrome()
   const { theme, toggleTheme } = useTheme()
+  const isAuthRoute = useAuthRoute()
+
+  if (isAuthRoute) return null
 
   const quickItems = [
     { label: "Home", icon: Home, to: "/" },

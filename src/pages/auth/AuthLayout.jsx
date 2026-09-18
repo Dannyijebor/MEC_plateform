@@ -1,10 +1,24 @@
 import { Sparkles } from "lucide-react"
 import { Outlet } from "react-router-dom"
+import { useTheme } from "../../context/ThemeContext"
+import { Moon, Sun } from "lucide-react"
 import Fireflies from "../../components/effects/Fireflies"
 
 function AuthLayout() {
+  const { theme, toggleTheme } = useTheme()
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-[#faf8f3] text-[#202635]">
+    <div data-auth-shell className="relative flex min-h-screen overflow-hidden bg-[#faf8f3] text-[#202635]">
+      {/* Theme toggle top-right */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        data-auth-toggle
+        aria-label="Toggle theme"
+        className="fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-700 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
+      >
+        {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+      </button>
+
       <Fireflies />
 
       <div className="relative z-10 flex min-h-screen w-full">

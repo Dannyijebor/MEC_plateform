@@ -235,12 +235,16 @@ export default function Call() {
   // "Call ended" screen — only if it's for THIS conversation
   if (endedReason && (!endedConversationId || endedConversationId === conversationId)) {
     return (
-      <div className="flex h-[100dvh] flex-col items-center justify-center bg-white text-gray-900">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-          <PhoneOff size={32} className="text-red-500" />
+      <div className="flex h-[100dvh] items-center justify-center bg-black/30 p-6 backdrop-blur-sm">
+        <div className="w-full max-w-xs rounded-3xl border border-gray-200 bg-white p-6 text-center shadow-2xl">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+            <PhoneOff size={22} className="text-red-500" />
+          </div>
+          <p className="mt-4 text-lg font-semibold text-gray-900">Call ended</p>
+          <p className="mt-1 text-xs text-gray-400">
+            Returning to messages...
+          </p>
         </div>
-        <p className="mt-5 text-xl font-semibold">Call ended</p>
-        <p className="mt-1 text-sm text-gray-400">Returning to messages...</p>
       </div>
     )
   }

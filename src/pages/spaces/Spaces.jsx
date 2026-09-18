@@ -207,7 +207,7 @@ function SpaceCard({ space, live = false, participantCount = 0 }) {
 
 function EmptyState({ live }) {
   return (
-    <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 py-14 text-center">
+    <div data-spaces-shell className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 py-14 text-center">
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5">
         {live ? (
           <Volume2 className="text-white/35" size={24} />
@@ -322,7 +322,10 @@ export default function Spaces() {
   )
 
   return (
-    <div className="min-h-screen bg-[#070b16] text-white">
+    <div
+      data-spaces-shell
+      className="min-h-screen bg-white text-gray-900 dark:bg-[#070b16] dark:text-white"
+    >
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-blue-500/10 via-transparent to-amber-400/5 p-6 sm:p-8">
           <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />

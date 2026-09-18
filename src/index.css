@@ -771,3 +771,92 @@ body.dark [data-chat-view],
 body.dark [data-chat-view] * {
   --tw-filter: none;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   AUTH PAGE LIGHT MODE — force white
+   ═══════════════════════════════════════════════════════ */
+
+body:not(.dark) [data-auth-shell],
+body:not(.dark) [data-auth-shell] > div,
+body:not(.dark) [data-auth-shell] section,
+body:not(.dark) [data-auth-shell] aside {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+body:not(.dark) [data-auth-shell] h1,
+body:not(.dark) [data-auth-shell] h2,
+body:not(.dark) [data-auth-shell] p,
+body:not(.dark) [data-auth-shell] span,
+body:not(.dark) [data-auth-shell] label {
+  color: #111827 !important;
+}
+
+body:not(.dark) [data-auth-shell] input {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
+}
+
+body:not(.dark) [data-auth-shell] input::placeholder {
+  color: #9ca3af !important;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════
+   SPACES LIGHT MODE — force white
+   ═══════════════════════════════════════════════════════ */
+
+/* Outer shell */
+body:not(.dark) [data-spaces-shell] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111827 !important;
+}
+
+/* All inner gradient/gradient panels → white/light gray */
+body:not(.dark) [data-spaces-shell] [class*="from-blue"],
+body:not(.dark) [data-spaces-shell] [class*="from-amber"],
+body:not(.dark) [data-spaces-shell] [class*="from-[#"],
+body:not(.dark) [data-spaces-shell] [class*="bg-blue-500/"],
+body:not(.dark) [data-spaces-shell] [class*="bg-amber-"],
+body:not(.dark) [data-spaces-shell] [class*="bg-[#070b16]"] {
+  background-color: #f9fafb !important;
+  background-image: none !important;
+}
+
+/* Blur/glow blobs — hide them in light mode */
+body:not(.dark) [data-spaces-shell] [class*="blur-3xl"] {
+  opacity: 0 !important;
+}
+
+/* Borders */
+body:not(.dark) [data-spaces-shell] [class*="border-white"] {
+  border-color: #e5e7eb !important;
+}
+
+body:not(.dark) [data-spaces-shell] [class*="border-blue-400"] {
+  border-color: #bfdbfe !important;
+}
+
+/* Text — every white/light class → dark */
+body:not(.dark) [data-spaces-shell] .text-white,
+body:not(.dark) [data-spaces-shell] [class*="text-white/"],
+body:not(.dark) [data-spaces-shell] [class*="text-blue-200"],
+body:not(.dark) [data-spaces-shell] [class*="text-blue-300"],
+body:not(.dark) [data-spaces-shell] [class*="text-amber-"] {
+  color: #111827 !important;
+}
+
+body:not(.dark) [data-spaces-shell] h1,
+body:not(.dark) [data-spaces-shell] h2,
+body:not(.dark) [data-spaces-shell] h3 {
+  color: #111827 !important;
+}
+
+body:not(.dark) [data-spaces-shell] p,
+body:not(.dark) [data-spaces-shell] span {
+  color: #4b5563 !important;
+}

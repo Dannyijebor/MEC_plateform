@@ -2,11 +2,13 @@ import { Bell, Search, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { useHideTopChrome } from "../../hooks/useHideTopChrome"
+import { useAuthRoute } from "../../hooks/useAuthRoute"
 
 function Navbar() {
   const hideTopChrome = useHideTopChrome()
+  const isAuthRoute = useAuthRoute()
 
-  if (hideTopChrome) return null
+  if (hideTopChrome || isAuthRoute) return null
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#202635]/[0.09] bg-[#faf8f3]/95 backdrop-blur-2xl lg:ml-64">
