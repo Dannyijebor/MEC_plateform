@@ -21,6 +21,7 @@ import {
   deleteMessage,
   getReactionsForMessages,
   toggleReaction,
+  getUnreadCounts,
 } from "../../services/chat/chatService"
 import {
   broadcastCallCancelled,
@@ -277,6 +278,7 @@ function Messages() {
   const [editingMessage, setEditingMessage] = useState(null)
   const [reactions, setReactions] = useState({})
   const [showNewChatModal, setShowNewChatModal] = useState(false)
+  const [unreadCounts, setUnreadCounts] = useState({})
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
   const [typingUsers, setTypingUsers] = useState([])
@@ -383,6 +385,13 @@ function Messages() {
     try {
       const data = await getMyConversations(user.id)
       setConversations(data)
+
+      try {
+        const counts = await getUnreadCounts(user.id)
+        setUnreadCounts(counts || {})
+      } catch (err) {
+        console.warn("Failed to load unread counts:", err)
+      }
 
       if (targetConversationId && data) {
         const target = data.find((c) => c.id === targetConversationId)
