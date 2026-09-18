@@ -378,3 +378,153 @@ input {
     margin-left: 0 !important;
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   MEC DARK MODE
+   Applies everywhere EXCEPT inside .chat-conversation
+   ═══════════════════════════════════════════════════════ */
+
+body.dark {
+  background-color: #0a0f18 !important;
+  color: #e5e7eb !important;
+}
+
+/* Root containers */
+body.dark #root,
+body.dark .min-h-screen {
+  background-color: #0a0f18 !important;
+  color: #e5e7eb !important;
+}
+
+/* Light backgrounds → dark */
+body.dark .bg-\[\#faf8f3\],
+body.dark .bg-\[\#fcfbf7\],
+body.dark .bg-\[\#f7f5ef\],
+body.dark .bg-white,
+body.dark .bg-\[\#f0fdf4\],
+body.dark .bg-\[\#fafff8\],
+body.dark .bg-\[\#fdfaff\],
+body.dark .bg-\[\#f0fdff\],
+body.dark .bg-\[\#faf5ff\],
+body.dark .bg-\[\#ecfeff\],
+body.dark .bg-\[\#f0f9ff\],
+body.dark .bg-\[\#fff4e6\],
+body.dark .bg-\[\#fff8f0\],
+body.dark .bg-\[\#fdf2f8\],
+body.dark .bg-\[\#fff8f0\] {
+  background-color: #131a26 !important;
+}
+
+/* Semi-transparent whites → darker */
+body.dark .bg-white\/70,
+body.dark .bg-white\/80,
+body.dark .bg-white\/95,
+body.dark .bg-white\/60,
+body.dark .bg-white\/50 {
+  background-color: rgba(19, 26, 38, 0.85) !important;
+}
+
+/* Light backgrounds with opacity */
+body.dark .bg-\[\#faf8f3\]\/95,
+body.dark .bg-\[\#faf8f3\]\/97,
+body.dark .bg-\[\#fcfbf7\]\/95 {
+  background-color: rgba(19, 26, 38, 0.95) !important;
+}
+
+/* Text colors */
+body.dark .text-\[\#111827\],
+body.dark .text-\[\#202635\],
+body.dark .text-gray-900,
+body.dark .text-gray-800,
+body.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+body.dark .text-\[\#5F6673\],
+body.dark .text-\[\#8A8F98\],
+body.dark .text-\[\#3E6B5A\],
+body.dark .text-gray-600,
+body.dark .text-gray-500,
+body.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Borders */
+body.dark .border-\[\#202635\]\/\[0\.09\],
+body.dark .border-\[\#DCD9D0\],
+body.dark .border-gray-200,
+body.dark .border-gray-100 {
+  border-color: #1f2937 !important;
+}
+
+/* Cards with border + white bg */
+body.dark .border-gray-100.bg-white,
+body.dark .border-gray-200.bg-white {
+  background-color: #131a26 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Chat list items */
+body.dark .hover\:bg-gray-50:hover,
+body.dark .hover\:bg-gray-100:hover {
+  background-color: #1a2232 !important;
+}
+
+/* Navbar sticky backgrounds */
+body.dark header.sticky {
+  background-color: rgba(19, 26, 38, 0.95) !important;
+  border-color: #1f2937 !important;
+}
+
+/* Mobile nav bottom bar */
+body.dark nav.fixed.inset-x-0.bottom-0 {
+  background-color: rgba(19, 26, 38, 0.97) !important;
+  border-color: #1f2937 !important;
+}
+
+/* Hamburger drawer */
+body.dark aside[class*="fixed"][class*="inset-y-0"] {
+  background-color: #131a26 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Input fields */
+body.dark input,
+body.dark textarea,
+body.dark select {
+  background-color: #1a2232 !important;
+  color: #e5e7eb !important;
+  border-color: #1f2937 !important;
+}
+
+body.dark input::placeholder,
+body.dark textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Chat conversation — NEVER dark (keeps its own theme)
+   ═══════════════════════════════════════════════════════ */
+body.dark .chat-conversation,
+body.dark .chat-conversation * {
+  /* Reset the dark mode filters inside chat */
+}
+body.dark .chat-conversation {
+  background-color: revert !important;
+  color: revert !important;
+}
+body.dark .chat-conversation .bg-white,
+body.dark .chat-conversation .bg-\[\#faf8f3\],
+body.dark .chat-conversation .bg-\[\#fcfbf7\] {
+  background-color: revert !important;
+}
+body.dark .chat-conversation .text-\[\#111827\],
+body.dark .chat-conversation .text-gray-900 {
+  color: revert !important;
+}
+body.dark .chat-conversation input,
+body.dark .chat-conversation textarea {
+  background-color: revert !important;
+  color: revert !important;
+}

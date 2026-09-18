@@ -12,16 +12,20 @@ import {
   UsersRound,
   Settings,
   LogOut,
+  Moon,
+  Sun,
   X,
   Menu,
   User,
 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useHideTopChrome } from "../../hooks/useHideTopChrome"
+import { useTheme } from "../../context/ThemeContext"
 
 function MobileNav() {
   const [open, setOpen] = useState(false)
   const hideTopChrome = useHideTopChrome()
+  const { theme, toggleTheme } = useTheme()
 
   const quickItems = [
     { label: "Home", icon: Home, to: "/" },
@@ -165,6 +169,21 @@ function MobileNav() {
               Sign out
             </button>
           </div>
+
+          {/* Dark mode toggle — bottom-right of the drawer */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle dark mode"
+            className="absolute bottom-20 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#1a1e2e] to-[#0b1020] text-white shadow-[0_10px_30px_-8px_rgba(15,23,42,0.6)] transition hover:scale-105 active:scale-95"
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? (
+              <Sun size={20} strokeWidth={2.2} />
+            ) : (
+              <Moon size={20} strokeWidth={2.2} />
+            )}
+          </button>
         </div>
       </aside>
 

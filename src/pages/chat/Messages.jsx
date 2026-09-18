@@ -1098,7 +1098,8 @@ function Messages() {
             MAIN — Chat Area
             ============================================ */}
         <main
-          className={`min-w-0 flex-1 flex-col ${
+          data-chat-view
+          className={`chat-conversation min-w-0 flex-1 flex-col ${
             selectedConversation ? "flex" : "hidden sm:flex"
           }`}
         >
