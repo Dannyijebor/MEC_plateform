@@ -867,7 +867,7 @@ body:not(.dark) [data-spaces-shell] span {
    ═══════════════════════════════════════════════════════ */
 
 body:not(.dark) [data-create-space],
-body:not(.dark) [data-space-room] {
+body:not(.dark) [data-space-room-page] {
   background-color: #ffffff !important;
   background-image: none !important;
   color: #111827 !important;
@@ -879,17 +879,17 @@ body:not(.dark) [data-create-space] [class*="from-[#"],
 body:not(.dark) [data-create-space] [class*="bg-blue-5"],
 body:not(.dark) [data-create-space] [class*="bg-amber-"],
 body:not(.dark) [data-create-space] [class*="bg-[#0"],
-body:not(.dark) [data-space-room] [class*="from-blue"],
-body:not(.dark) [data-space-room] [class*="from-amber"],
-body:not(.dark) [data-space-room] [class*="bg-blue-5"],
-body:not(.dark) [data-space-room] [class*="bg-amber-"],
-body:not(.dark) [data-space-room] [class*="bg-[#0"] {
+body:not(.dark) [data-space-room-page] [class*="from-blue"],
+body:not(.dark) [data-space-room-page] [class*="from-amber"],
+body:not(.dark) [data-space-room-page] [class*="bg-blue-5"],
+body:not(.dark) [data-space-room-page] [class*="bg-amber-"],
+body:not(.dark) [data-space-room-page] [class*="bg-[#0"] {
   background-color: #f9fafb !important;
   background-image: none !important;
 }
 
 body:not(.dark) [data-create-space] [class*="blur-3xl"],
-body:not(.dark) [data-space-room] [class*="blur-3xl"] {
+body:not(.dark) [data-space-room-page] [class*="blur-3xl"] {
   opacity: 0 !important;
 }
 
@@ -899,31 +899,31 @@ body:not(.dark) [data-create-space] [class*="text-blue-2"],
 body:not(.dark) [data-create-space] h1,
 body:not(.dark) [data-create-space] h2,
 body:not(.dark) [data-create-space] h3,
-body:not(.dark) [data-space-room] .text-white,
-body:not(.dark) [data-space-room] [class*="text-white/"],
-body:not(.dark) [data-space-room] [class*="text-blue-2"],
-body:not(.dark) [data-space-room] h1,
-body:not(.dark) [data-space-room] h2,
-body:not(.dark) [data-space-room] h3 {
+body:not(.dark) [data-space-room-page] .text-white,
+body:not(.dark) [data-space-room-page] [class*="text-white/"],
+body:not(.dark) [data-space-room-page] [class*="text-blue-2"],
+body:not(.dark) [data-space-room-page] h1,
+body:not(.dark) [data-space-room-page] h2,
+body:not(.dark) [data-space-room-page] h3 {
   color: #111827 !important;
 }
 
 body:not(.dark) [data-create-space] p,
 body:not(.dark) [data-create-space] span,
-body:not(.dark) [data-space-room] p,
-body:not(.dark) [data-space-room] span {
+body:not(.dark) [data-space-room-page] p,
+body:not(.dark) [data-space-room-page] span {
   color: #4b5563 !important;
 }
 
 body:not(.dark) [data-create-space] [class*="border-white"],
-body:not(.dark) [data-space-room] [class*="border-white"] {
+body:not(.dark) [data-space-room-page] [class*="border-white"] {
   border-color: #e5e7eb !important;
 }
 
 body:not(.dark) [data-create-space] input,
 body:not(.dark) [data-create-space] textarea,
-body:not(.dark) [data-space-room] input,
-body:not(.dark) [data-space-room] textarea {
+body:not(.dark) [data-space-room-page] input,
+body:not(.dark) [data-space-room-page] textarea {
   background-color: #f9fafb !important;
   color: #111827 !important;
   border-color: #e5e7eb !important;
@@ -934,80 +934,107 @@ body:not(.dark) [data-space-room] textarea {
    SPACES LIGHT MODE — kill all blue backgrounds
    ═══════════════════════════════════════════════════════ */
 
-body:not(.dark) [data-space-room] {
+body:not(.dark) [data-space-room-page] {
   background-color: #ffffff !important;
   background-image: none !important;
 }
 
-body:not(.dark) [data-space-room] [class*="bg-slate"],
-body:not(.dark) [data-space-room] [class*="bg-blue"],
-body:not(.dark) [data-space-room] [class*="bg-[#0"],
-body:not(.dark) [data-space-room] [class*="bg-[#1"],
-body:not(.dark) [data-space-room] [class*="from-blue"],
-body:not(.dark) [data-space-room] [class*="from-slate"],
-body:not(.dark) [data-space-room] [class*="via-blue"],
-body:not(.dark) [data-space-room] [class*="via-slate"],
-body:not(.dark) [data-space-room] [class*="to-slate"],
-body:not(.dark) [data-space-room] [class*="bg-white/[0"] {
+body:not(.dark) [data-space-room-page] [class*="bg-slate"],
+body:not(.dark) [data-space-room-page] [class*="bg-blue"],
+body:not(.dark) [data-space-room-page] [class*="bg-[#0"],
+body:not(.dark) [data-space-room-page] [class*="bg-[#1"],
+body:not(.dark) [data-space-room-page] [class*="from-blue"],
+body:not(.dark) [data-space-room-page] [class*="from-slate"],
+body:not(.dark) [data-space-room-page] [class*="via-blue"],
+body:not(.dark) [data-space-room-page] [class*="via-slate"],
+body:not(.dark) [data-space-room-page] [class*="to-slate"],
+body:not(.dark) [data-space-room-page] [class*="bg-white/[0"] {
   background-color: #f9fafb !important;
   background-image: none !important;
 }
 
 /* Kill glow effects */
-body:not(.dark) [data-space-room] [class*="shadow-"],
-body:not(.dark) [data-space-room] [class*="blur-"] {
+body:not(.dark) [data-space-room-page] [class*="shadow-"],
+body:not(.dark) [data-space-room-page] [class*="blur-"] {
   box-shadow: none !important;
   filter: none !important;
 }
 
 /* Borders become light gray */
-body:not(.dark) [data-space-room] [class*="border-white"],
-body:not(.dark) [data-space-room] [class*="border-slate"],
-body:not(.dark) [data-space-room] [class*="border-blue"] {
+body:not(.dark) [data-space-room-page] [class*="border-white"],
+body:not(.dark) [data-space-room-page] [class*="border-slate"],
+body:not(.dark) [data-space-room-page] [class*="border-blue"] {
   border-color: #e5e7eb !important;
 }
 
 /* Text becomes dark */
-body:not(.dark) [data-space-room] .text-white,
-body:not(.dark) [data-space-room] [class*="text-white/"],
-body:not(.dark) [data-space-room] [class*="text-slate"],
-body:not(.dark) [data-space-room] [class*="text-blue-1"],
-body:not(.dark) [data-space-room] [class*="text-blue-2"],
-body:not(.dark) [data-space-room] [class*="text-blue-3"] {
+body:not(.dark) [data-space-room-page] .text-white,
+body:not(.dark) [data-space-room-page] [class*="text-white/"],
+body:not(.dark) [data-space-room-page] [class*="text-slate"],
+body:not(.dark) [data-space-room-page] [class*="text-blue-1"],
+body:not(.dark) [data-space-room-page] [class*="text-blue-2"],
+body:not(.dark) [data-space-room-page] [class*="text-blue-3"] {
   color: #111827 !important;
 }
 
-body:not(.dark) [data-space-room] p,
-body:not(.dark) [data-space-room] span,
-body:not(.dark) [data-space-room] h1,
-body:not(.dark) [data-space-room] h2,
-body:not(.dark) [data-space-room] h3 {
+body:not(.dark) [data-space-room-page] p,
+body:not(.dark) [data-space-room-page] span,
+body:not(.dark) [data-space-room-page] h1,
+body:not(.dark) [data-space-room-page] h2,
+body:not(.dark) [data-space-room-page] h3 {
   color: #111827 !important;
 }
 
 /* Dimmed secondary text */
-body:not(.dark) [data-space-room] [class*="text-white/4"],
-body:not(.dark) [data-space-room] [class*="text-white/5"],
-body:not(.dark) [data-space-room] [class*="text-white/6"] {
+body:not(.dark) [data-space-room-page] [class*="text-white/4"],
+body:not(.dark) [data-space-room-page] [class*="text-white/5"],
+body:not(.dark) [data-space-room-page] [class*="text-white/6"] {
   color: #6b7280 !important;
 }
 
 /* Interactive buttons keep primary colors but on light bg */
-body:not(.dark) [data-space-room] button {
+body:not(.dark) [data-space-room-page] button {
   color: #111827 !important;
 }
 
 /* Keep destructive red visible */
-body:not(.dark) [data-space-room] [class*="bg-red"],
-body:not(.dark) [data-space-room] [class*="bg-rose"],
-body:not(.dark) [data-space-room] [class*="bg-pink"] {
+body:not(.dark) [data-space-room-page] [class*="bg-red"],
+body:not(.dark) [data-space-room-page] [class*="bg-rose"],
+body:not(.dark) [data-space-room-page] [class*="bg-pink"] {
   background-color: #ef4444 !important;
   color: #ffffff !important;
 }
 
 /* Avatar placeholder box (the "D" box) */
-body:not(.dark) [data-space-room] [class*="bg-gradient-to-br"] {
+body:not(.dark) [data-space-room-page] [class*="bg-gradient-to-br"] {
   background: #e5e7eb !important;
   background-image: none !important;
   color: #6b7280 !important;
+}
+
+
+/* Kill dark backgrounds on the whole space page in light mode */
+body:not(.dark) [data-space-room-page],
+body:not(.dark) [data-space-room-page] * {
+  --tw-bg-opacity: 1;
+}
+
+body:not(.dark) [data-space-room-page] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+body:not(.dark) [data-space-room-page] [class*="bg-[#0"],
+body:not(.dark) [data-space-room-page] [class*="bg-[#1"],
+body:not(.dark) [data-space-room-page] [class*="bg-slate"],
+body:not(.dark) [data-space-room-page] [class*="bg-blue"] {
+  background-color: #f9fafb !important;
+  background-image: none !important;
+}
+
+body:not(.dark) [data-space-room-page] [class*="text-white"],
+body:not(.dark) [data-space-room-page] [class*="text-blue-1"],
+body:not(.dark) [data-space-room-page] [class*="text-blue-2"],
+body:not(.dark) [data-space-room-page] [class*="text-slate"] {
+  color: #111827 !important;
 }

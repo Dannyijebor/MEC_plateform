@@ -17,7 +17,7 @@ export async function getLiveKitToken(spaceId) {
   }
 
   const { data, error } = await supabase.functions.invoke(
-    "livekit-token",
+    "smart-worker",
     {
       body: { spaceId },
       headers: {

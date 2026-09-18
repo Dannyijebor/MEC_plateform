@@ -94,7 +94,7 @@ function ParticipantCard({ participant, active, videoElement, isLocal = false, o
   }
 
   return (
-    <div
+    <div data-space-room-page
       onClick={(e) => onTap?.(e)}
       className={`relative flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-md ${
         active ? "border-blue-400 shadow-md shadow-blue-100" : "border-gray-200"
