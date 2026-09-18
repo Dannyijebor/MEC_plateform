@@ -860,3 +860,71 @@ body:not(.dark) [data-spaces-shell] p,
 body:not(.dark) [data-spaces-shell] span {
   color: #4b5563 !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   CREATE SPACE / SPACE ROOM — LIGHT MODE FIX
+   ═══════════════════════════════════════════════════════ */
+
+body:not(.dark) [data-create-space],
+body:not(.dark) [data-space-room] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #111827 !important;
+}
+
+body:not(.dark) [data-create-space] [class*="from-blue"],
+body:not(.dark) [data-create-space] [class*="from-amber"],
+body:not(.dark) [data-create-space] [class*="from-[#"],
+body:not(.dark) [data-create-space] [class*="bg-blue-5"],
+body:not(.dark) [data-create-space] [class*="bg-amber-"],
+body:not(.dark) [data-create-space] [class*="bg-[#0"],
+body:not(.dark) [data-space-room] [class*="from-blue"],
+body:not(.dark) [data-space-room] [class*="from-amber"],
+body:not(.dark) [data-space-room] [class*="bg-blue-5"],
+body:not(.dark) [data-space-room] [class*="bg-amber-"],
+body:not(.dark) [data-space-room] [class*="bg-[#0"] {
+  background-color: #f9fafb !important;
+  background-image: none !important;
+}
+
+body:not(.dark) [data-create-space] [class*="blur-3xl"],
+body:not(.dark) [data-space-room] [class*="blur-3xl"] {
+  opacity: 0 !important;
+}
+
+body:not(.dark) [data-create-space] .text-white,
+body:not(.dark) [data-create-space] [class*="text-white/"],
+body:not(.dark) [data-create-space] [class*="text-blue-2"],
+body:not(.dark) [data-create-space] h1,
+body:not(.dark) [data-create-space] h2,
+body:not(.dark) [data-create-space] h3,
+body:not(.dark) [data-space-room] .text-white,
+body:not(.dark) [data-space-room] [class*="text-white/"],
+body:not(.dark) [data-space-room] [class*="text-blue-2"],
+body:not(.dark) [data-space-room] h1,
+body:not(.dark) [data-space-room] h2,
+body:not(.dark) [data-space-room] h3 {
+  color: #111827 !important;
+}
+
+body:not(.dark) [data-create-space] p,
+body:not(.dark) [data-create-space] span,
+body:not(.dark) [data-space-room] p,
+body:not(.dark) [data-space-room] span {
+  color: #4b5563 !important;
+}
+
+body:not(.dark) [data-create-space] [class*="border-white"],
+body:not(.dark) [data-space-room] [class*="border-white"] {
+  border-color: #e5e7eb !important;
+}
+
+body:not(.dark) [data-create-space] input,
+body:not(.dark) [data-create-space] textarea,
+body:not(.dark) [data-space-room] input,
+body:not(.dark) [data-space-room] textarea {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
+}

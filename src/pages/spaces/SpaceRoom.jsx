@@ -86,7 +86,7 @@ function ParticipantCard({
   const avatar = participant?.profile?.avatar_url
 
   return (
-    <div
+    <div data-space-room
       className={`relative overflow-hidden rounded-3xl border bg-slate-950/80 transition-all ${
         active
           ? "border-amber-400/70 shadow-lg shadow-amber-500/10"

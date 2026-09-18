@@ -110,7 +110,7 @@ function CreateSpace() {
 
   if (loadingUser) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center">
+    <div data-create-space className="flex min-h-[70vh] items-center justify-center">
         <Loader2 className="h-7 w-7 animate-spin text-amber-300" />
       </div>
     )
