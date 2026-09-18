@@ -43,6 +43,18 @@ export async function getMyConversations(userId) {
     membersByConv[m.conversation_id].push(m)
   }
 
+  // Fetch the last message per conversation
+  const { data: lastMessages } = await supabase
+    .from("messages")
+    .select("conversation_id, content, created_at, sender_id, type")
+    .in("conversation_id", conversationIds)
+    .order("created_at", { ascending: false })
+
+  const lastByConv = {}
+  for (const m of lastMessages ?? []) {
+    if (!lastByConv[m.conversation_id]) lastByConv[m.conversation_id] = m
+  }
+
   // Build clean conversation objects with display info
   return (data ?? []).map((item) => {
     const conv = item.conversations
@@ -63,6 +75,24 @@ export async function getMyConversations(userId) {
           : conv.name || "Group chat",
       display_avatar: conv.type === "direct" ? otherProfile?.avatar_url : null,
       is_direct: conv.type === "direct",
+      last_message_at: lastByConv[conv.id]?.created_at || conv.updated_at || conv.created_at,
+      last_message_preview: (() => {
+        const m = lastByConv[conv.id]
+        if (!m) return null
+        if (m.type === "call_event" || m.content?.startsWith("[MEC_CALL]")) {
+          try {
+            const info = JSON.parse(m.content.slice(10))
+            if (info.status === "missed") return "📞 Missed call"
+            if (info.status === "answered") return "📞 Call ended"
+            if (info.status === "declined") return "📞 Declined call"
+            return "📞 Call"
+          } catch {
+            return "📞 Call"
+          }
+        }
+        return m.content || null
+      })(),
+      last_message_mine: lastByConv[conv.id]?.sender_id === userId,
     }
   })
 }
