@@ -345,10 +345,6 @@ function Messages() {
   const targetConversationId = searchParams.get("conversation")
 
   const [themeKey, setThemeKey, globalTheme] = useChatTheme()
-  const activeTheme = selectedConversation?.theme
-    ? (THEMES[selectedConversation.theme] || globalTheme)
-    : globalTheme
-  const theme = activeTheme
 
   const [conversations, setConversations] = useState([])
   const [selectedConversation, setSelectedConversation] = useState(null)
@@ -368,6 +364,11 @@ function Messages() {
   const [showChatMenu, setShowChatMenu] = useState(false)
   const [chatMuted, setChatMuted] = useState(false)
   const [viewingProfileId, setViewingProfileId] = useState(null)
+
+  // Active theme: conversation-specific or fallback to global
+  const theme = selectedConversation?.theme
+    ? (THEMES[selectedConversation.theme] || globalTheme)
+    : globalTheme
   const [unreadCounts, setUnreadCounts] = useState({})
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
