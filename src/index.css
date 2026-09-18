@@ -698,3 +698,76 @@ body.dark .mec-page {
 body.dark [class*="bg-white"]:not([data-chat-view]):not([data-chat-view] *):not([class*="chat-conversation"]) {
   background-color: var(--mec-surface) !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   MESSAGES DARK FIX
+   Dark mode for the conversation list page
+   ═══════════════════════════════════════════════════════ */
+
+body.dark [data-messages-shell] {
+  background: #0a0f18 !important;
+  background-image: none !important;
+}
+
+body.dark [data-messages-sidebar] {
+  background: #131a26 !important;
+  background-image: none !important;
+  border-color: #1f2937 !important;
+}
+
+/* Text inside the sidebar */
+body.dark [data-messages-sidebar] h1,
+body.dark [data-messages-sidebar] h2 {
+  color: #f3f4f6 !important;
+}
+
+body.dark [data-messages-sidebar] [class*="text-[#111827]"],
+body.dark [data-messages-sidebar] [class*="text-[#202635]"],
+body.dark [data-messages-sidebar] .text-gray-900,
+body.dark [data-messages-sidebar] .text-gray-800 {
+  color: #f3f4f6 !important;
+}
+
+body.dark [data-messages-sidebar] [class*="text-[#5F6673]"],
+body.dark [data-messages-sidebar] [class*="text-[#8A8F98]"],
+body.dark [data-messages-sidebar] [class*="text-[#3E6B5A]"],
+body.dark [data-messages-sidebar] .text-gray-600,
+body.dark [data-messages-sidebar] .text-gray-500,
+body.dark [data-messages-sidebar] .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Search input inside the sidebar */
+body.dark [data-messages-sidebar] input {
+  background-color: #1a2232 !important;
+  color: #f3f4f6 !important;
+  border-color: #1f2937 !important;
+}
+
+body.dark [data-messages-sidebar] input::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Icon boxes */
+body.dark [data-messages-sidebar] [class*="bg-[#F1E7CC]"] {
+  background-color: rgba(96, 165, 250, 0.15) !important;
+  color: #93c5fd !important;
+}
+
+/* Conversation cards */
+body.dark [data-messages-sidebar] [class*="bg-[#FAF8F3]"] {
+  background-color: #131a26 !important;
+}
+
+/* Border colors inside sidebar */
+body.dark [data-messages-sidebar] [class*="border-[#DCD9D0]"],
+body.dark [data-messages-sidebar] [class*="border-gray"] {
+  border-color: #1f2937 !important;
+}
+
+/* Hide dark mode inside the chat thread — it keeps its own theme */
+body.dark [data-chat-view],
+body.dark [data-chat-view] * {
+  --tw-filter: none;
+}

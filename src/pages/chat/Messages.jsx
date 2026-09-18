@@ -883,6 +883,7 @@ function Messages() {
 
   return (
     <div
+      data-messages-shell
       onTouchStart={handleSwipeStart}
       onTouchMove={handleSwipeMove}
       onTouchEnd={handleSwipeEnd}
@@ -897,6 +898,7 @@ function Messages() {
             SIDEBAR — Conversation List
             ============================================ */}
         <aside
+          data-messages-sidebar
           className={`w-full flex-col border-r ${theme.headerBorder} ${theme.sidebar} ${
             selectedConversation ? "hidden sm:flex sm:w-[340px]" : "flex"
           }`}
