@@ -730,56 +730,75 @@ function Messages() {
         >
           {/* Sidebar header */}
           <div className={`border-b ${theme.headerBorder} p-4`}>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${theme.iconBg} ${theme.iconAccent}`}>
-                    <MessageCircle size={14} />
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${theme.iconBg} ${theme.iconAccent}`}>
+                    <MessageCircle size={15} />
                   </span>
                   <span className={`text-[10px] font-bold uppercase tracking-[0.22em] ${theme.iconAccent}`}>
                     Messages
                   </span>
                 </div>
-                <h1 className={`mt-2 text-2xl font-semibold tracking-tight ${theme.text}`}>
+                <h1 className={`mt-2.5 text-3xl font-semibold tracking-tight ${theme.text}`}>
                   Your chats
                 </h1>
+                <p className={`mt-1 text-xs ${theme.textMuted}`}>
+                  Stay connected with your community.
+                </p>
               </div>
-              <div className="flex items-center gap-2">
+
+              <div className="flex shrink-0 items-center gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => navigate("/calls/history")}
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl border ${theme.headerBorder} ${theme.sidebar} ${theme.textMuted} transition hover:opacity-80`}
+                  className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${theme.headerBorder} ${theme.sidebar} ${theme.textMuted} transition hover:opacity-80`}
                   aria-label="Call history"
                   title="Call history"
                 >
-                  <Clock size={17} />
+                  <MessageCircle size={17} />
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setShowNewChatModal(true)}
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.accentBg} text-white shadow-lg transition hover:opacity-90`}
+                  className="relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#1a1e2e] to-[#0b1020] text-white shadow-[0_10px_30px_-8px_rgba(15,23,42,0.5)] transition hover:scale-105 active:scale-95"
                   aria-label="New chat"
                   title="Start new chat"
                 >
-                  <Plus size={18} />
+                  <Plus size={20} strokeWidth={2.5} />
                 </button>
-                <ThemePicker current={themeKey} onChange={setThemeKey} />
               </div>
             </div>
 
             {/* Search */}
-            <div className="relative mt-4">
+            <div className="relative mt-5">
               <Search
-                size={16}
-                className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme.textFaint}`}
+                size={17}
+                className={`absolute left-4 top-1/2 -translate-y-1/2 ${theme.textFaint}`}
               />
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search conversations..."
-                className={`w-full rounded-xl border ${theme.inputBorder} ${theme.inputBg} py-2.5 pl-9 pr-3 text-sm ${theme.text} outline-none transition focus:border-current placeholder:${theme.textFaint}`}
+                className={`w-full rounded-full border ${theme.inputBorder} ${theme.inputBg} py-3 pl-11 pr-11 text-sm ${theme.text} outline-none transition focus:border-[#d9b86c] placeholder:${theme.textFaint}`}
               />
+              <button
+                type="button"
+                className={`absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full ${theme.textMuted} transition hover:bg-black/5`}
+                aria-label="Filter"
+                title="Filter"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="7" y1="12" x2="17" y2="12" />
+                  <line x1="10" y1="18" x2="14" y2="18" />
+                  <circle cx="9" cy="6" r="1.6" fill="currentColor" />
+                  <circle cx="15" cy="12" r="1.6" fill="currentColor" />
+                  <circle cx="12" cy="18" r="1.6" fill="currentColor" />
+                </svg>
+              </button>
             </div>
           </div>
 
