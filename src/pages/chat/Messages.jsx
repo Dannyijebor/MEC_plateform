@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus } from "lucide-react"
+import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus, ChevronRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
@@ -801,26 +801,56 @@ function Messages() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {filteredConversations.map((conv) => {
                   const active = selectedConversation?.id === conv.id
+                  const unread = unreadCounts[conv.id] || 0
+                  const isOnline = Array.isArray(conv.conversation_members) &&
+                    conv.conversation_members.some(
+                      (m) => m?.user_id && m.user_id !== user?.id && onlineUsers.has(m.user_id)
+                    )
+
+                  const timeLabel = (() => {
+                    const ts = conv.last_message_at
+                    if (!ts) return ""
+                    const d = new Date(ts)
+                    const now = new Date()
+                    const diffMins = Math.floor((now - d) / 60000)
+                    if (diffMins < 1) return "now"
+                    if (diffMins < 60) return `${diffMins}m`
+                    const sameDay = d.toDateString() === now.toDateString()
+                    if (sameDay) {
+                      return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                    }
+                    const yest = new Date(now); yest.setDate(now.getDate() - 1)
+                    if (d.toDateString() === yest.toDateString()) return "Yesterday"
+                    return d.toLocaleDateString([], { month: "short", day: "numeric" })
+                  })()
+
+                  const previewText = (() => {
+                    const raw = conv.last_message_preview
+                    if (!raw) {
+                      return conv.is_direct ? "Say hi 👋" : "Group conversation"
+                    }
+                    const prefix = conv.last_message_mine ? "You: " : ""
+                    return `${prefix}${raw}`
+                  })()
+
                   return (
                     <button
                       key={conv.id}
                       type="button"
                       onClick={() => setSelectedConversation(conv)}
-                      className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${
+                      className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${
                         active
-                          ? theme.dark
-                            ? "bg-white/10"
-                            : "bg-black/5"
+                          ? "border-[#d9b86c]/40 bg-[#d9b86c]/5"
                           : theme.dark
-                            ? "hover:bg-white/5"
-                            : "hover:bg-black/[0.03]"
+                            ? "border-white/5 hover:border-white/10 hover:bg-white/5"
+                            : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm"
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full ${theme.iconBg} text-sm font-bold ${theme.iconAccent}`}>
+                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f1e7cc] text-sm font-bold text-[#a8873f]`}>
                           {conv.display_avatar ? (
                             <img src={conv.display_avatar} alt="" className="h-full w-full object-cover" />
                           ) : conv.is_direct ? (
@@ -832,24 +862,38 @@ function Messages() {
                         {conv.is_direct && (
                           <span
                             className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                              Array.isArray(conv.conversation_members) &&
-                              conv.conversation_members.some(
-                                (m) => m?.user_id && m.user_id !== user?.id && onlineUsers.has(m.user_id)
-                              )
-                                ? "bg-emerald-500"
-                                : "bg-red-500"
+                              isOnline ? "bg-emerald-500" : "bg-gray-300"
                             }`}
                           />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className={`truncate text-sm font-semibold ${theme.text}`}>
-                          {conv.display_name || "Conversation"}
-                        </p>
-                        <p className={`mt-0.5 text-xs ${theme.textMuted}`}>
-                          {conv.is_direct ? "Private conversation" : "Group conversation"}
-                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`truncate text-sm font-semibold ${
+                            unread > 0 ? "text-gray-900" : theme.dark ? "text-white/90" : "text-gray-800"
+                          }`}>
+                            {conv.display_name || "Conversation"}
+                          </p>
+                          <span className={`shrink-0 text-[10px] ${
+                            unread > 0 ? "font-semibold text-[#4F7CFF]" : "text-gray-400"
+                          }`}>
+                            {timeLabel}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 flex items-center justify-between gap-2">
+                          <p className={`truncate text-xs ${
+                            unread > 0 ? "font-medium text-gray-600" : "text-gray-400"
+                          }`}>
+                            {previewText}
+                          </p>
+                          {unread > 0 && (
+                            <span className="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-[#4F7CFF] px-1.5 text-[10px] font-bold text-white">
+                              {unread > 99 ? "99+" : unread}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      <ChevronRight size={15} className="ml-0.5 shrink-0 text-gray-300" />
                     </button>
                   )
                 })}
