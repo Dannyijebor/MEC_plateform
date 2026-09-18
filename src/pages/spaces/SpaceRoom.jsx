@@ -293,7 +293,8 @@ function SpaceRoom() {
 
   useEffect(() => {
     let mounted = true
-    let realtimeChannel = null
+    let participantsChannel = null
+    let spaceChannel = null
 
     async function initialize() {
       try {
@@ -334,7 +335,7 @@ function SpaceRoom() {
         }
 
         // Realtime: subscribe to participant role updates
-        realtimeChannel = supabase
+        participantsChannel = supabase
           .channel(`space_participants-live:${spaceId}`)
           .on(
             "postgres_changes",
@@ -471,7 +472,7 @@ function SpaceRoom() {
 
     initialize()
 
-    realtimeChannel = subscribeToSpace(spaceId, {
+    spaceChannel = subscribeToSpace(spaceId, {
       onParticipantChange: refreshParticipants,
       onReaction: (reaction) => {
         if (!mounted) return
@@ -503,8 +504,14 @@ function SpaceRoom() {
     return () => {
       mounted = false
 
-      if (realtimeChannel) {
-        unsubscribeFromSpace(realtimeChannel)
+      if (participantsChannel) {
+        try { supabase.removeChannel(participantsChannel) } catch {}
+        participantsChannel = null
+      }
+
+      if (spaceChannel) {
+        unsubscribeFromSpace(spaceChannel)
+        spaceChannel = null
       }
 
       for (const audio of audioElementsRef.current.values()) {
