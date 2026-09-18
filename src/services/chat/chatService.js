@@ -10,6 +10,7 @@ export async function getMyConversations(userId) {
         id,
         type,
         name,
+        theme,
         created_at,
         updated_at
       )
@@ -66,6 +67,7 @@ export async function getMyConversations(userId) {
       id: conv.id,
       type: conv.type,
       name: conv.name,
+      theme: conv.theme || "classic",
       created_at: conv.created_at,
       updated_at: conv.updated_at,
       conversation_members: convMembers,
@@ -404,4 +406,46 @@ export async function toggleReaction({ messageId, userId, emoji }) {
 
   if (error) throw error
   return { action: "added", emoji }
+}
+
+/**
+ * Update the shared theme of a conversation.
+ * Both participants will see the change instantly.
+ */
+export async function setConversationTheme(conversationId, themeKey) {
+  if (!conversationId || !themeKey) return
+
+  const { error } = await supabase
+    .from("conversations")
+    .update({ theme: themeKey, updated_at: new Date().toISOString() })
+    .eq("id", conversationId)
+
+  if (error) throw error
+}
+
+/**
+ * Log a theme change as a system message in the conversation.
+ */
+export async function logThemeChange({
+  conversationId,
+  userId,
+  userName,
+  themeName,
+}) {
+  const payload = JSON.stringify({ themeName, userName })
+
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: userId,
+      content: `[MEC_THEME]${payload}`,
+      type: "theme_change",
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
 }

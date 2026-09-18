@@ -27,6 +27,8 @@ import {
   getReactionsForMessages,
   toggleReaction,
   getUnreadCounts,
+  setConversationTheme,
+  logThemeChange,
 } from "../../services/chat/chatService"
 import {
   broadcastCallCancelled,
@@ -342,7 +344,11 @@ function Messages() {
   const [searchParams] = useSearchParams()
   const targetConversationId = searchParams.get("conversation")
 
-  const [themeKey, setThemeKey, theme] = useChatTheme()
+  const [themeKey, setThemeKey, globalTheme] = useChatTheme()
+  const activeTheme = selectedConversation?.theme
+    ? (THEMES[selectedConversation.theme] || globalTheme)
+    : globalTheme
+  const theme = activeTheme
 
   const [conversations, setConversations] = useState([])
   const [selectedConversation, setSelectedConversation] = useState(null)
@@ -1160,6 +1166,29 @@ function Messages() {
                       const mine = message.sender_id === user?.id
                       const isCallEvent = message.content?.startsWith("[MEC_CALL]")
 
+                      const isThemeEvent = message.content?.startsWith("[MEC_THEME]")
+                      if (isThemeEvent) {
+                        let info = {}
+                        try { info = JSON.parse(message.content.slice(11)) } catch {}
+                        const isMine = message.sender_id === user?.id
+                        return (
+                          <motion.div
+                            key={message.id}
+                            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            className="flex justify-center py-2"
+                          >
+                            <div className={`flex items-center gap-2 rounded-full border ${theme.headerBorder} ${theme.sidebar} ${theme.textMuted} px-4 py-2 text-xs font-medium shadow-sm`}>
+                              <span>🎨</span>
+                              <span>
+                                {isMine ? "You" : (info.userName || "They")} changed the theme to{" "}
+                                <span className={`font-semibold ${theme.iconAccent}`}>{info.themeName}</span>
+                              </span>
+                            </div>
+                          </motion.div>
+                        )
+                      }
+
                       if (isCallEvent) {
                         let callInfo = {}
                         try {
@@ -1507,8 +1536,28 @@ function Messages() {
       <ChatHeaderMenu
         open={showChatMenu}
         onClose={() => setShowChatMenu(false)}
-        themeKey={themeKey}
-        onChangeTheme={setThemeKey}
+        themeKey={selectedConversation?.theme || "classic"}
+        onChangeTheme={async (newThemeKey) => {
+          if (!selectedConversation || !user?.id) return
+          // Optimistically update the local conversation
+          setSelectedConversation((c) => c ? { ...c, theme: newThemeKey } : c)
+          setConversations((list) =>
+            list.map((c) => c.id === selectedConversation.id ? { ...c, theme: newThemeKey } : c)
+          )
+          setShowChatMenu(false)
+          try {
+            await setConversationTheme(selectedConversation.id, newThemeKey)
+            const themeName = THEMES[newThemeKey]?.name || "a new theme"
+            await logThemeChange({
+              conversationId: selectedConversation.id,
+              userId: user.id,
+              userName: user.user_metadata?.full_name || user.email || "MEC Member",
+              themeName,
+            })
+          } catch (err) {
+            console.warn("Failed to save theme:", err)
+          }
+        }}
         muted={chatMuted}
         onToggleMute={() => setChatMuted((v) => !v)}
         onClearChat={() => {}}
