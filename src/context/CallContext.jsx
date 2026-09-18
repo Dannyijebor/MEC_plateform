@@ -114,11 +114,14 @@ export function CallProvider({ children }) {
     setStatus("idle")
     setEndedReason(reason)
     setLastCallEndedAt(Date.now())
-    setTimeout(() => setEndedReason(null), 1800)
   }, [call, connected, user, cleanup])
 
   const startCall = useCallback(async ({ conversationId, mode, otherUser }) => {
     if (!user?.id || !conversationId) return
+
+    // Clear any previous "ended" state and reset cooldown
+    setEndedReason(null)
+    setLastCallEndedAt(0)
 
     cleanup()
     setCall({ conversationId, mode, otherUser, startedAt: Date.now() })

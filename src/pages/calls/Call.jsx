@@ -58,8 +58,9 @@ export default function Call() {
   // Boot the call if not already running
   useEffect(() => {
     if (!conversationId || !user?.id) return
+    if (endedReason) return
     if (call?.conversationId === conversationId) return
-    if (lastCallEndedAt && Date.now() - lastCallEndedAt < 3000) return
+    if (lastCallEndedAt && Date.now() - lastCallEndedAt < 5000) return
 
     let cancelled = false
     async function boot() {
@@ -89,7 +90,7 @@ export default function Call() {
     return () => {
       cancelled = true
     }
-  }, [conversationId, user?.id, call?.conversationId, lastCallEndedAt, mode, startCall])
+  }, [conversationId, user?.id, call?.conversationId, lastCallEndedAt, endedReason, mode, startCall])
 
   // Bind video streams continuously (streams become available at different times)
   useEffect(() => {
@@ -118,7 +119,9 @@ export default function Call() {
   // Auto-navigate away after a call ends
   useEffect(() => {
     if (endedReason) {
-      const t = setTimeout(() => navigate("/messages"), 1200)
+      const t = setTimeout(() => {
+        navigate("/messages", { replace: true })
+      }, 1000)
       return () => clearTimeout(t)
     }
   }, [endedReason, navigate])
