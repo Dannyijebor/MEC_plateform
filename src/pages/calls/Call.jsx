@@ -34,6 +34,7 @@ export default function Call() {
     floatingEmojis,
     endedReason,
     lastCallEndedAt,
+    endedConversationId,
     localStreamRef,
     remoteStreamRef,
     startCall,
@@ -58,9 +59,15 @@ export default function Call() {
   // Boot the call if not already running
   useEffect(() => {
     if (!conversationId || !user?.id) return
-    if (endedReason) return
     if (call?.conversationId === conversationId) return
-    if (lastCallEndedAt && Date.now() - lastCallEndedAt < 5000) return
+    // Only block if the call that ended was THIS same conversation
+    if (
+      endedReason &&
+      endedConversationId === conversationId &&
+      lastCallEndedAt &&
+      Date.now() - lastCallEndedAt < 5000
+    )
+      return
 
     let cancelled = false
     async function boot() {
@@ -90,7 +97,7 @@ export default function Call() {
     return () => {
       cancelled = true
     }
-  }, [conversationId, user?.id, call?.conversationId, lastCallEndedAt, endedReason, mode, startCall])
+  }, [conversationId, user?.id, call?.conversationId, lastCallEndedAt, endedReason, endedConversationId, mode, startCall])
 
   // Bind video streams continuously (streams become available at different times)
   useEffect(() => {
@@ -118,13 +125,14 @@ export default function Call() {
 
   // Auto-navigate away after a call ends
   useEffect(() => {
-    if (endedReason) {
-      const t = setTimeout(() => {
-        navigate("/messages", { replace: true })
-      }, 1000)
-      return () => clearTimeout(t)
-    }
-  }, [endedReason, navigate])
+    if (!endedReason) return
+    // Only navigate away if the ended call was for this conversation
+    if (endedConversationId && endedConversationId !== conversationId) return
+    const t = setTimeout(() => {
+      navigate("/messages", { replace: true })
+    }, 1000)
+    return () => clearTimeout(t)
+  }, [endedReason, endedConversationId, conversationId, navigate])
 
   // Bluetooth detection
   useEffect(() => {
@@ -179,8 +187,8 @@ export default function Call() {
     hangUp("user-ended")
   }
 
-  // "Call ended" screen
-  if (endedReason) {
+  // "Call ended" screen — only if it's for THIS conversation
+  if (endedReason && (!endedConversationId || endedConversationId === conversationId)) {
     return (
       <div className="flex h-[100dvh] flex-col items-center justify-center bg-white text-gray-900">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">

@@ -41,6 +41,7 @@ export function CallProvider({ children }) {
   const [floatingEmojis, setFloatingEmojis] = useState([])
   const [endedReason, setEndedReason] = useState(null)
   const [lastCallEndedAt, setLastCallEndedAt] = useState(0)
+  const [endedConversationId, setEndedConversationId] = useState(null)
 
   const localStreamRef = useRef(null)
   const remoteStreamRef = useRef(null)
@@ -114,6 +115,7 @@ export function CallProvider({ children }) {
     setStatus("idle")
     setEndedReason(reason)
     setLastCallEndedAt(Date.now())
+    setEndedConversationId(currentCall?.conversationId || null)
   }, [call, connected, user, cleanup])
 
   const startCall = useCallback(async ({ conversationId, mode, otherUser }) => {
@@ -122,6 +124,7 @@ export function CallProvider({ children }) {
     // Clear any previous "ended" state and reset cooldown
     setEndedReason(null)
     setLastCallEndedAt(0)
+    setEndedConversationId(null)
 
     cleanup()
     setCall({ conversationId, mode, otherUser, startedAt: Date.now() })
