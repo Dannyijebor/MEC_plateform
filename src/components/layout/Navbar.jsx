@@ -1,8 +1,13 @@
 import { Bell, Search, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
+import { useHideTopChrome } from "../../hooks/useHideTopChrome"
 
 function Navbar() {
+  const hideTopChrome = useHideTopChrome()
+
+  if (hideTopChrome) return null
+
   return (
     <header className="sticky top-0 z-40 border-b border-[#202635]/[0.09] bg-[#faf8f3]/95 backdrop-blur-2xl lg:ml-64">
       <div className="flex h-14 items-center justify-between gap-2 px-3 sm:h-16 sm:px-6 lg:px-8">

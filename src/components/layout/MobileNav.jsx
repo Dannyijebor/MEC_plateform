@@ -17,9 +17,11 @@ import {
   User,
 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
+import { useHideTopChrome } from "../../hooks/useHideTopChrome"
 
 function MobileNav() {
   const [open, setOpen] = useState(false)
+  const hideTopChrome = useHideTopChrome()
 
   const quickItems = [
     { label: "Home", icon: Home, to: "/" },
@@ -57,7 +59,7 @@ function MobileNav() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open navigation"
-        className="fixed left-3 top-3 z-[10000] flex h-9 w-9 items-center justify-center rounded-lg border border-[#202635]/[0.09] bg-[#faf8f3]/95 text-[#111827]/70 shadow-sm backdrop-blur-xl transition hover:bg-white lg:hidden"
+        className={`fixed left-3 top-3 z-[10000] flex h-9 w-9 items-center justify-center rounded-lg border border-[#202635]/[0.09] bg-[#faf8f3]/95 text-[#111827]/70 shadow-sm backdrop-blur-xl transition hover:bg-white lg:hidden ${hideTopChrome ? "hidden" : ""}`}
       >
         <Menu size={19} />
       </button>
