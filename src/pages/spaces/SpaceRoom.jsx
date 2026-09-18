@@ -75,31 +75,61 @@ function initials(name = "MEC") {
     .toUpperCase()
 }
 
-function ParticipantCard({
-  participant,
-  active,
-  videoElement,
-  isLocal = false,
-  onTap,
-}) {
+function ParticipantCard({ participant, active, videoElement, isLocal = false, onTap }) {
   const name =
+    participant?.profile?.full_name ||
+    participant?.profile?.username ||
     participant?.name ||
     participant?.identity ||
-    participant?.profile?.full_name ||
     "MEC Member"
 
   const avatar = participant?.profile?.avatar_url
+  const role = participant?.role || "listener"
+
+  const ROLE_STYLES = {
+    host: "border-amber-300 bg-amber-50 text-amber-700",
+    cohost: "border-blue-300 bg-blue-50 text-blue-700",
+    speaker: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    listener: "border-gray-200 bg-gray-50 text-gray-600",
+  }
 
   return (
-    <div data-space-room
+    <div
       onClick={(e) => onTap?.(e)}
-      className={`relative cursor-pointer overflow-hidden rounded-3xl border bg-slate-950/80 transition-all ${
-        active
-          ? "border-amber-400/70 shadow-lg shadow-amber-500/10"
-          : "border-white/10"
+      className={`relative flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        active ? "border-blue-400 shadow-md shadow-blue-100" : "border-gray-200"
       }`}
     >
-      {videoElement ? (
+      <div className="relative h-11 w-11 shrink-0">
+        <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#DBEAFE] text-sm font-bold text-[#2563EB]">
+          {avatar ? (
+            <img src={avatar} alt={name} className="h-full w-full object-cover" />
+          ) : (
+            initials(name)
+          )}
+        </div>
+        <div className={`absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white ${
+          participant?.isMicrophoneEnabled ? "bg-emerald-500" : "bg-gray-400"
+        }`}>
+          {participant?.isMicrophoneEnabled ? (
+            <Mic size={8} className="text-white" strokeWidth={3} />
+          ) : (
+            <MicOff size={8} className="text-white" strokeWidth={3} />
+          )}
+        </div>
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-gray-900">
+          {name}
+          {isLocal ? " · You" : ""}
+        </p>
+        <span className={`mt-1 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize ${ROLE_STYLES[role] || ROLE_STYLES.listener}`}>
+          {role}
+        </span>
+      </div>
+
+      {videoElement && (
         <video
           ref={(node) => {
             if (node && videoElement && !videoElement.attached) {
@@ -109,45 +139,9 @@ function ParticipantCard({
           autoPlay
           playsInline
           muted={isLocal}
-          className="h-full min-h-[180px] w-full object-cover"
+          className="hidden"
         />
-      ) : (
-        <div className="flex min-h-[180px] items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950/60 to-slate-950">
-          {avatar ? (
-            <img
-              src={avatar}
-              alt={name}
-              className="h-24 w-24 rounded-full object-cover ring-4 ring-white/10"
-            />
-          ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-2xl font-bold text-white">
-              {initials(name)}
-            </div>
-          )}
-        </div>
       )}
-
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 pt-12">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-white">
-              {name}
-              {isLocal ? " · You" : ""}
-            </p>
-            <p className="text-xs capitalize text-white/55">
-              {participant?.role || "speaker"}
-            </p>
-          </div>
-
-          <div className="rounded-full bg-black/50 p-2 backdrop-blur">
-            {participant?.isMicrophoneEnabled ? (
-              <Mic size={14} className="text-white" />
-            ) : (
-              <MicOff size={14} className="text-white/40" />
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
@@ -197,6 +191,7 @@ function SpaceRoom() {
   const [mediaError, setMediaError] = useState("")
   const [remoteTracks, setRemoteTracks] = useState([])
   const [activeSpeakers, setActiveSpeakers] = useState([])
+  const [profilesByUserId, setProfilesByUserId] = useState({})
   const [menuParticipant, setMenuParticipant] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0, rect: null })
   
@@ -249,9 +244,40 @@ function SpaceRoom() {
 
   const participantCount = participants.length
 
+  // Fetch profiles for participants (fallback for failed joins)
+  useEffect(() => {
+    if (!participants || participants.length === 0) return
+    const idsToFetch = participants
+      .filter((p) => !p.profile && p.user_id)
+      .map((p) => p.user_id)
+    if (idsToFetch.length === 0) return
+
+    supabase
+      .from("profiles")
+      .select("id, full_name, username, avatar_url")
+      .in("id", idsToFetch)
+      .then(({ data }) => {
+        if (!data) return
+        const map = {}
+        for (const p of data) map[p.id] = p
+        setProfilesByUserId((current) => ({ ...current, ...map }))
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participants])
+
   const liveParticipants = useMemo(
-    () => participants.filter((participant) => !participant.left_at),
-    [participants],
+    () =>
+      participants
+        .filter((participant) => !participant.left_at)
+        .map((participant) => ({
+          ...participant,
+          profile:
+            participant.profile ||
+            profilesByUserId[participant.user_id] ||
+            null,
+        })),
+    [participants, profilesByUserId],
   )
 
   useEffect(() => {
@@ -495,18 +521,36 @@ function SpaceRoom() {
   }
 
   async function handleToggleMic() {
+    const room = roomRef.current
+    if (!room) {
+      setMediaError("Not connected to the space.")
+      return
+    }
     try {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true })
+        s.getTracks().forEach((t) => t.stop())
+      } catch (permErr) {
+        setMediaError("Microphone permission denied.")
+        return
+      }
+
+      const local = room.localParticipant
+      const next = !local.isMicrophoneEnabled
+      await local.setMicrophoneEnabled(next)
+      setMicOn(next)
       setMediaError("")
 
-      const next = await toggleMicrophone(roomRef.current)
-
-      setMicOn(next)
-    } catch (error) {
-      console.error(error)
-      setMediaError(
-        error?.message ||
-          "Unable to access your microphone.",
-      )
+      try {
+        await supabase
+          .from("space_participants")
+          .update({ audio_enabled: next })
+          .eq("space_id", space.id)
+          .eq("user_id", user.id)
+      } catch {}
+    } catch (err) {
+      console.error("Mic toggle failed:", err)
+      setMediaError("Could not toggle microphone.")
     }
   }
 
@@ -718,7 +762,7 @@ function SpaceRoom() {
         )}
 
         {isVideoSpace && remoteVideoTracks.length > 0 ? (
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-6 grid gap-3 sm:grid-cols-2">
             {remoteVideoTracks.map((item) => (
               <div
                 key={item.trackSid}
@@ -737,7 +781,7 @@ function SpaceRoom() {
           </div>
         ) : (
           <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               {liveParticipants
                 .filter((participant) =>
                   ["host", "cohost", "speaker"].includes(
@@ -779,7 +823,7 @@ function SpaceRoom() {
 
         {isVideoSpace && (
           <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               {liveParticipants
                 .filter((participant) =>
                   ["host", "cohost", "speaker"].includes(
@@ -802,11 +846,12 @@ function SpaceRoom() {
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
+            type="button"
             onClick={handleToggleMic}
-            className={`flex h-14 w-14 items-center justify-center rounded-full border transition ${
+            className={`flex h-14 w-14 items-center justify-center rounded-full border-2 transition-all duration-200 ${
               micOn
-                ? "border-white/10 bg-white/10"
-                : "border-rose-400/30 bg-rose-400/15 text-rose-200"
+                ? "border-emerald-400 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                : "border-red-400 bg-red-500 text-white shadow-lg shadow-red-500/30"
             }`}
             title={micOn ? "Mute microphone" : "Unmute microphone"}
           >
