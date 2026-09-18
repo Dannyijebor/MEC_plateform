@@ -312,6 +312,61 @@ export default function Call() {
         </div>
       )}
 
+      {/* Profile overlay when connected but no video shown (audio call OR camera off) */}
+      {connected && mode === "audio" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden bg-white">
+          {otherUser?.avatar_url && (
+            <div
+              className="absolute inset-0 scale-125 opacity-10 blur-3xl"
+              style={{
+                backgroundImage: `url(${otherUser.avatar_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          )}
+          <div className="relative flex flex-col items-center px-6 text-center">
+            <div className="relative mb-6 flex h-40 w-40 items-center justify-center">
+              <motion.div
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#DBEAFE] shadow-[0_20px_60px_-15px_rgba(59,130,246,0.5)]"
+              >
+                {otherUser?.avatar_url ? (
+                  <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-5xl font-bold text-[#2563EB]">
+                    {otherUser?.full_name?.charAt(0) || <UserRound size={48} />}
+                  </span>
+                )}
+              </motion.div>
+            </div>
+            <p className="text-3xl font-semibold tracking-tight text-gray-900">
+              {otherUser?.full_name || "Connected"}
+            </p>
+            {otherUser?.username && (
+              <p className="mt-1 text-sm text-[#2563EB]">@{otherUser.username}</p>
+            )}
+            <div className="mt-4 flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-xs font-medium tracking-wide text-gray-600">
+                Connected · Audio call
+              </span>
+            </div>
+          </div>
+
+          {remoteHandRaised && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="absolute bottom-32 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-[#3B82F6]/30 bg-[#DBEAFE] backdrop-blur-xl"
+            >
+              <Hand size={24} className="text-[#2563EB]" />
+            </motion.div>
+          )}
+        </div>
+      )}
+
       {/* Local video PiP */}
       {mode === "video" && (
         <motion.div

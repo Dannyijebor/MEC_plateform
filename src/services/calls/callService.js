@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabase"
  * Used by both caller and callee to exchange WebRTC signals.
  */
 export function createCallChannel(callId, callbacks = {}) {
-  const { onSignal, onCallState, onEnded } = callbacks
+  const { onSignal, onCallState, onEnded, onRaiseHand, onEmoji } = callbacks
 
   const channel = supabase
     .channel(`call:${callId}`, {
@@ -19,6 +19,12 @@ export function createCallChannel(callId, callbacks = {}) {
     })
     .on("broadcast", { event: "call-ended" }, ({ payload }) => {
       onEnded?.(payload)
+    })
+    .on("broadcast", { event: "raise-hand" }, ({ payload }) => {
+      onRaiseHand?.(payload)
+    })
+    .on("broadcast", { event: "emoji" }, ({ payload }) => {
+      onEmoji?.(payload)
     })
     .subscribe()
 
