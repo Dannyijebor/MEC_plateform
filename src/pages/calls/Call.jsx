@@ -232,7 +232,7 @@ export default function Call() {
         autoPlay
         playsInline
         className={`absolute inset-0 h-full w-full object-cover ${
-          connected ? "" : "opacity-0"
+          connected ? "" : "opacity-0 pointer-events-none"
         }`}
       />
 

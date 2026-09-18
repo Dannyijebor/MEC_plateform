@@ -26,6 +26,25 @@ const CallContext = createContext(null)
 const ICE_SERVERS = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: "stun:stun3.l.google.com:19302" },
+  { urls: "stun:stun4.l.google.com:19302" },
+  // Free public TURN relay (helps with cellular/NAT)
+  {
+    urls: "turn:openrelay.metered.ca:80",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
+  {
+    urls: "turn:openrelay.metered.ca:443",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
+  {
+    urls: "turn:openrelay.metered.ca:443?transport=tcp",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
 ]
 
 export function CallProvider({ children }) {
@@ -45,6 +64,7 @@ export function CallProvider({ children }) {
 
   const localStreamRef = useRef(null)
   const remoteStreamRef = useRef(null)
+  const remoteAudioRef = useRef(null)
   const peerRef = useRef(null)
   const channelRef = useRef(null)
   const pendingCandidatesRef = useRef([])
@@ -142,12 +162,27 @@ export function CallProvider({ children }) {
           sendSignal(channelRef.current, { type: "ice", candidate }),
         onTrack: (remoteStream) => {
           remoteStreamRef.current = remoteStream
+          // Attach to dedicated audio element for reliable playback
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = remoteStream
+            remoteAudioRef.current.play().catch((err) => {
+              console.warn("Remote audio autoplay blocked:", err)
+            })
+          }
           setConnected(true)
           setStatus("Connected")
         },
         onConnectionStateChange: (state) => {
-          if (state === "connected") { setConnected(true); setStatus("Connected") }
-          else if (state === "failed" || state === "disconnected") setStatus("Disconnected")
+          if (state === "connected") {
+            setConnected(true)
+            setStatus("Connected")
+          } else if (state === "disconnected") {
+            setStatus("Reconnecting...")
+          } else if (state === "failed") {
+            setStatus("Disconnected")
+          } else if (state === "connecting" || state === "new") {
+            setStatus("Connecting...")
+          }
         },
       })
       peerRef.current = peer
@@ -252,6 +287,7 @@ export function CallProvider({ children }) {
         endedReason,
         localStreamRef,
         remoteStreamRef,
+        remoteAudioRef,
         startCall,
         hangUp,
         toggleMute,
@@ -261,6 +297,12 @@ export function CallProvider({ children }) {
       }}
     >
       {children}
+      <audio
+        ref={remoteAudioRef}
+        autoPlay
+        playsInline
+        style={{ display: "none" }}
+      />
     </CallContext.Provider>
   )
 }

@@ -15,6 +15,7 @@ export default function FloatingCallWidget() {
     toggleMute,
     hangUp,
     remoteStreamRef,
+    remoteAudioRef,
   } = useCall()
 
   const videoRef = useRef(null)
@@ -30,11 +31,19 @@ export default function FloatingCallWidget() {
         videoRef.current.srcObject = remoteStreamRef.current
         videoRef.current.play().catch(() => {})
       }
+      if (
+        remoteAudioRef?.current &&
+        remoteStreamRef?.current &&
+        remoteAudioRef.current.srcObject !== remoteStreamRef.current
+      ) {
+        remoteAudioRef.current.srcObject = remoteStreamRef.current
+        remoteAudioRef.current.play().catch(() => {})
+      }
     }
     bind()
     const timer = setInterval(bind, 400)
     return () => clearInterval(timer)
-  }, [remoteStreamRef, connected])
+  }, [remoteStreamRef, connected, remoteAudioRef])
 
   if (!call || location.pathname === "/calls") return null
 
