@@ -273,14 +273,44 @@ export function CallProvider({ children }) {
     broadcastEvent("emoji", { emoji, userId: user?.id })
   }, [broadcastEvent, user?.id])
 
-  // Toggle body class while a call is active
+  // Toggle body class ONLY while the full-screen call page is active
   useEffect(() => {
-    if (call) {
-      document.body.classList.add("call-active")
-    } else {
+    const applyClass = () => {
+      const onCallPage = typeof window !== "undefined" && window.location.pathname === "/calls"
+      if (call && onCallPage) {
+        document.body.classList.add("call-active")
+      } else {
+        document.body.classList.remove("call-active")
+      }
+    }
+    applyClass()
+
+    // Listen for navigation changes (back button, links, etc.)
+    const onPopOrPush = () => applyClass()
+    window.addEventListener("popstate", onPopOrPush)
+    // Hook into pushState / replaceState
+    const origPush = window.history.pushState
+    const origReplace = window.history.replaceState
+    window.history.pushState = function (...args) {
+      const r = origPush.apply(this, args)
+      onPopOrPush()
+      return r
+    }
+    window.history.replaceState = function (...args) {
+      const r = origReplace.apply(this, args)
+      onPopOrPush()
+      return r
+    }
+
+    const interval = setInterval(applyClass, 400)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener("popstate", onPopOrPush)
+      window.history.pushState = origPush
+      window.history.replaceState = origReplace
       document.body.classList.remove("call-active")
     }
-    return () => document.body.classList.remove("call-active")
   }, [call])
 
   return (
