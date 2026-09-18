@@ -283,6 +283,33 @@ function Messages() {
   const typingChannelRef = useRef(null)
   const [missedCall, setMissedCall] = useState(null)
 
+  // Push a history entry when a chat is opened, so the phone's back button
+  // closes the chat instead of leaving the /messages page entirely
+  const chatOpenHistoryPushed = useRef(false)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    if (selectedConversation && !chatOpenHistoryPushed.current) {
+      chatOpenHistoryPushed.current = true
+      window.history.pushState({ mecChatOpen: true }, "")
+    } else if (!selectedConversation && chatOpenHistoryPushed.current) {
+      chatOpenHistoryPushed.current = false
+    }
+
+    const handlePop = () => {
+      // If the user pressed browser/phone back while a chat is open, close the chat
+      if (chatOpenHistoryPushed.current) {
+        chatOpenHistoryPushed.current = false
+        setSelectedConversation(null)
+      }
+    }
+
+    window.addEventListener("popstate", handlePop)
+    return () => {
+      window.removeEventListener("popstate", handlePop)
+    }
+  }, [selectedConversation])
+
   // Toggle a body class so the layout can hide its chrome on mobile
   useEffect(() => {
     if (selectedConversation) {
