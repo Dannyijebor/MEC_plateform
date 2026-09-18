@@ -50,24 +50,36 @@ export default function Call() {
 
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
+  const bootAttemptedRef = useRef(false)
 
   const [showAudioMenu, setShowAudioMenu] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [audioOutput, setAudioOutput] = useState("speaker")
   const [hasBluetooth, setHasBluetooth] = useState(false)
 
-  // Boot the call if not already running
+  // Boot the call if not already running — ONCE per mount only
   useEffect(() => {
+    if (bootAttemptedRef.current) return
     if (!conversationId || !user?.id) return
-    if (call?.conversationId === conversationId) return
-    // Only block if the call that ended was THIS same conversation
+
+    // If a call is already running for this conversation, mark as attempted and stop
+    if (call?.conversationId === conversationId) {
+      bootAttemptedRef.current = true
+      return
+    }
+
+    // If this conversation recently ended, don't restart
     if (
       endedReason &&
       endedConversationId === conversationId &&
       lastCallEndedAt &&
       Date.now() - lastCallEndedAt < 5000
-    )
+    ) {
+      bootAttemptedRef.current = true
       return
+    }
+
+    bootAttemptedRef.current = true
 
     let cancelled = false
     async function boot() {
