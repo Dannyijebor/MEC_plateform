@@ -80,6 +80,7 @@ function ParticipantCard({
   active,
   videoElement,
   isLocal = false,
+  onTap,
 }) {
   const name =
     participant?.name ||
@@ -91,7 +92,8 @@ function ParticipantCard({
 
   return (
     <div data-space-room
-      className={`relative overflow-hidden rounded-3xl border bg-slate-950/80 transition-all ${
+      onClick={(e) => onTap?.(e)}
+      className={`relative cursor-pointer overflow-hidden rounded-3xl border bg-slate-950/80 transition-all ${
         active
           ? "border-amber-400/70 shadow-lg shadow-amber-500/10"
           : "border-white/10"
@@ -750,6 +752,7 @@ function SpaceRoom() {
                     active={activeSpeakers.includes(
                       participant.user_id,
                     )}
+                    onTap={(e) => openParticipantMenu(participant, e)}
                   />
                 ))}
             </div>
@@ -790,6 +793,7 @@ function SpaceRoom() {
                     active={activeSpeakers.includes(
                       participant.user_id,
                     )}
+                    onTap={(e) => openParticipantMenu(participant, e)}
                   />
                 ))}
             </div>
