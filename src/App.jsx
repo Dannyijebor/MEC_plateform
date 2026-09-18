@@ -5,10 +5,15 @@ import Sidebar from "./components/layout/Sidebar"
 import MobileNav from "./components/layout/MobileNav"
 import PageContainer from "./components/layout/PageContainer"
 import AppRoutes from "./routes/AppRoutes"
+import { usePushNotifications } from "./hooks/usePushNotifications"
+import { useAuth } from "./hooks/useAuth"
 import FloatingCallWidget from "./components/chat/FloatingCallWidget"
 import { PresenceProvider } from "./context/PresenceContext"
 
 function App() {
+  const { user } = useAuth()
+  usePushNotifications(user?.id)
+
   return (
     <BrowserRouter>
       <PresenceProvider>
