@@ -153,8 +153,22 @@ export function CallProvider({ children }) {
     startTimeRef.current = Date.now()
 
     try {
-      const stream = await getLocalMedia({ audio: true, video: mode === "video" })
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+        video: mode === "video" ? { facingMode: "user" } : false,
+      })
       localStreamRef.current = stream
+
+      // Make sure our own audio element can play
+      const el = remoteAudioRef.current
+      if (el) {
+        el.muted = false
+        el.volume = 1
+      }
 
       const peer = createPeerConnection({
         iceServers: ICE_SERVERS,
@@ -163,12 +177,30 @@ export function CallProvider({ children }) {
         onTrack: (remoteStream) => {
           remoteStreamRef.current = remoteStream
           // Attach to dedicated audio element for reliable playback
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = remoteStream
-            remoteAudioRef.current.play().catch((err) => {
-              console.warn("Remote audio autoplay blocked:", err)
+          const attach = () => {
+            const el = remoteAudioRef.current
+            if (!el) return
+            if (el.srcObject !== remoteStream) {
+              el.srcObject = remoteStream
+            }
+            el.muted = false
+            el.volume = 1
+            el.play().catch((err) => {
+              console.warn("Remote audio autoplay blocked, will retry:", err)
+              // Retry on next user interaction
+              const retry = () => {
+                el.play().catch(() => {})
+                document.removeEventListener("click", retry)
+                document.removeEventListener("touchstart", retry)
+              }
+              document.addEventListener("click", retry, { once: true })
+              document.addEventListener("touchstart", retry, { once: true })
             })
           }
+          attach()
+          // Belt and braces: attach again in case the element isn't mounted yet
+          setTimeout(attach, 100)
+          setTimeout(attach, 500)
           setConnected(true)
           setStatus("Connected")
         },
