@@ -656,10 +656,10 @@ function SpaceRoom() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050914] text-white">
+      <div data-space-room-page className="flex min-h-screen items-center justify-center bg-white text-gray-900">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-amber-400" />
-          <p className="text-sm text-white/60">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-amber-400" />
+          <p className="text-sm text-gray-600">
             Connecting to MEC Space...
           </p>
         </div>
@@ -669,7 +669,7 @@ function SpaceRoom() {
 
   if (!space) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050914] text-white">
+      <div data-space-room-page className="flex min-h-screen items-center justify-center bg-white text-gray-900">
         <div className="text-center">
           <p className="mb-4 text-lg font-semibold">
             Space unavailable
@@ -686,7 +686,7 @@ function SpaceRoom() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#050914] text-white">
+    <div data-space-room-page className="relative min-h-screen overflow-hidden bg-white text-gray-900">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className={`absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-gradient-to-br ${theme.accent} opacity-10 blur-[120px]`}
@@ -694,7 +694,7 @@ function SpaceRoom() {
         <div className="absolute bottom-[-180px] right-[-100px] h-[420px] w-[420px] rounded-full bg-[#A8873F]/5 blur-[120px]" />
       </div>
 
-      <header className="relative z-20 flex items-center justify-between border-b border-white/10 bg-slate-950/70 px-4 py-4 backdrop-blur-xl sm:px-6">
+      <header className="relative z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 px-4 py-4 backdrop-blur-xl sm:px-6">
         <button
           onClick={handleLeave}
           className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
@@ -707,7 +707,7 @@ function SpaceRoom() {
           <span
             className={`h-2.5 w-2.5 animate-pulse rounded-full bg-gradient-to-r ${theme.accent}`}
           />
-          <span className="text-xs font-bold tracking-[0.22em] text-white/80">
+          <span className="text-xs font-bold tracking-[0.22em] text-gray-800">
             MEC LIVE
           </span>
         </div>
@@ -772,7 +772,7 @@ function SpaceRoom() {
             {remoteVideoTracks.map((item) => (
               <div
                 key={item.trackSid}
-                className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950"
+                className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white"
               >
                 <RemoteVideo track={item.track} />
 
@@ -786,7 +786,7 @@ function SpaceRoom() {
             ))}
           </div>
         ) : (
-          <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
+          <div className="mb-6 rounded-[2rem] border border-gray-200 bg-white/[0.035] p-5">
             <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
               {liveParticipants
                 .filter((participant) =>
@@ -819,7 +819,7 @@ function SpaceRoom() {
                 <p className="font-semibold">
                   Waiting for speakers
                 </p>
-                <p className="mt-1 text-sm text-white/40">
+                <p className="mt-1 text-sm text-gray-500">
                   Raise your hand if you want to join the stage.
                 </p>
               </div>
@@ -828,7 +828,7 @@ function SpaceRoom() {
         )}
 
         {isVideoSpace && (
-          <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
+          <div className="mb-6 rounded-[2rem] border border-gray-200 bg-white/[0.035] p-5">
             <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
               {liveParticipants
                 .filter((participant) =>
@@ -869,8 +869,8 @@ function SpaceRoom() {
               onClick={handleToggleCamera}
               className={`flex h-14 w-14 items-center justify-center rounded-full border transition ${
                 cameraOn
-                  ? "border-white/10 bg-white/10"
-                  : "border-white/10 bg-white/5 text-white/50"
+                  ? "border-gray-200 bg-white/10"
+                  : "border-gray-200 bg-white/5 text-gray-500"
               }`}
               title={cameraOn ? "Turn camera off" : "Turn camera on"}
             >
@@ -888,7 +888,7 @@ function SpaceRoom() {
             className={`flex h-14 w-14 items-center justify-center rounded-full border transition ${
               handRaised
                 ? "border-amber-400/40 bg-amber-400/15 text-amber-300"
-                : "border-white/10 bg-white/5"
+                : "border-gray-200 bg-white/5"
             }`}
             title={handRaised ? "Hand raised" : "Raise hand"}
           >
@@ -900,14 +900,14 @@ function SpaceRoom() {
               onClick={() =>
                 setShowReactionPicker((current) => !current)
               }
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5"
+              className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-white/5"
               title="React"
             >
               <span className="text-xl">❤️</span>
             </button>
 
             {showReactionPicker && (
-              <div className="absolute bottom-16 left-1/2 flex -translate-x-1/2 gap-1 rounded-2xl border border-white/10 bg-slate-900/95 p-2 shadow-2xl backdrop-blur-xl">
+              <div className="absolute bottom-16 left-1/2 flex -translate-x-1/2 gap-1 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl">
                 {REACTIONS.map((emoji) => (
                   <button
                     key={emoji}
@@ -922,7 +922,7 @@ function SpaceRoom() {
           </div>
 
           <button
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-white/5"
             title="More controls"
           >
             <MoreHorizontal size={21} />
@@ -961,7 +961,7 @@ function SpaceRoom() {
               .map((participant) => (
                 <div
                   key={participant.id}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-xs font-bold"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/10 text-xs font-bold"
                   title={
                     participant.profile?.full_name ||
                     participant.profile?.username ||
@@ -1002,13 +1002,13 @@ function SpaceRoom() {
             onClick={() => setShowParticipants(false)}
           />
 
-          <aside className="absolute right-0 top-0 h-full w-full max-w-md border-l border-white/10 bg-[#080d1b] p-5 shadow-2xl">
+          <aside className="absolute right-0 top-0 h-full w-full max-w-md border-l border-gray-200 bg-white p-5 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <p className="text-lg font-bold">
                   People in Space
                 </p>
-                <p className="text-sm text-white/40">
+                <p className="text-sm text-gray-500">
                   {participantCount} participant
                   {participantCount === 1 ? "" : "s"}
                 </p>
@@ -1042,7 +1042,7 @@ function SpaceRoom() {
                         participant.profile?.username ||
                         "MEC Member"}
                     </p>
-                    <p className="text-xs capitalize text-white/40">
+                    <p className="text-xs capitalize text-gray-500">
                       {participant.role}
                     </p>
                   </div>
