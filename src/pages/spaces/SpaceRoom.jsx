@@ -23,7 +23,9 @@ import {
   joinSpace,
   leaveSpace,
   raiseHand,
+  removeParticipant,
   sendReaction,
+  updateParticipantRole,
 } from "../../services/spaces/spaceService"
 import {
   connectToSpace,
@@ -35,6 +37,8 @@ import {
   subscribeToSpace,
   unsubscribeFromSpace,
 } from "../../services/spaces/spaceRealtime"
+import ParticipantActionMenu from "../../components/spaces/ParticipantActionMenu"
+import ListenerCard from "../../components/spaces/ListenerCard"
 
 const REACTIONS = ["❤️", "👏", "😂", "🔥", "🎉", "😍", "👍", "🙌"]
 
@@ -191,10 +195,52 @@ function SpaceRoom() {
   const [mediaError, setMediaError] = useState("")
   const [remoteTracks, setRemoteTracks] = useState([])
   const [activeSpeakers, setActiveSpeakers] = useState([])
-
+  const [menuParticipant, setMenuParticipant] = useState(null)
+  const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0, rect: null })
+  
   const theme = THEME_MAP[space?.theme] || THEME_MAP.gold
 
   const isHost = space?.host_id === user?.id
+
+  const currentUserRole = (() => {
+    const me = participants.find((p) => p.user_id === user?.id)
+    return me?.role || (isHost ? "host" : "listener")
+  })()
+
+  const handleParticipantAction = async (actionKey) => {
+    if (!menuParticipant || !space?.id) return
+    const targetUserId = menuParticipant.user_id || menuParticipant.id
+    if (!targetUserId) return
+
+    try {
+      if (actionKey === "make-speaker") {
+        await updateParticipantRole({ spaceId: space.id, userId: targetUserId, newRole: "speaker" })
+      } else if (actionKey === "make-cohost") {
+        await updateParticipantRole({ spaceId: space.id, userId: targetUserId, newRole: "cohost" })
+      } else if (actionKey === "make-listener") {
+        await updateParticipantRole({ spaceId: space.id, userId: targetUserId, newRole: "listener" })
+      } else if (actionKey === "remove") {
+        await removeParticipant({ spaceId: space.id, userId: targetUserId })
+      }
+      await refreshParticipants?.()
+    } catch (err) {
+      console.error("Action failed:", err)
+      setMediaError("Could not update role. Try again.")
+    } finally {
+      setMenuParticipant(null)
+    }
+  }
+
+  const openParticipantMenu = (participant, event) => {
+    const rect = event?.currentTarget?.getBoundingClientRect?.()
+    const touch = event?.touches?.[0] || event
+    setMenuAnchor({
+      x: touch?.clientX || 0,
+      y: touch?.clientY || 0,
+      rect: rect || null,
+    })
+    setMenuParticipant(participant)
+  }
 
   const isVideoSpace =
     space?.mode === "video" || space?.mode === "audio_video"
@@ -247,6 +293,31 @@ function SpaceRoom() {
         if (mounted) {
           setParticipants(currentParticipants)
         }
+
+        // Realtime: subscribe to participant role updates
+        realtimeChannel = supabase
+          .channel(`space_participants-live:${spaceId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "space_participants",
+              filter: `space_id=eq.${spaceId}`,
+            },
+            () => refreshParticipants(),
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "space_participants",
+              filter: `space_id=eq.${spaceId}`,
+            },
+            () => refreshParticipants(),
+          )
+          .subscribe()
 
         const livekit = await connectToSpace({
           spaceId,
@@ -951,6 +1022,14 @@ function SpaceRoom() {
           }
         }
       `}</style>
+      <ParticipantActionMenu
+        participant={menuParticipant}
+        currentUserRole={currentUserRole}
+        anchor={menuAnchor}
+        onAction={handleParticipantAction}
+        onClose={() => setMenuParticipant(null)}
+      />
+
     </div>
   )
 }
