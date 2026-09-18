@@ -62,7 +62,7 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
             className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_30px_80px_-10px_rgba(0,0,0,0.35)]"
           >
             {/* Gold accent line at top */}
-            <div className="h-1 w-full bg-gradient-to-r from-transparent via-[#d9b86c] to-transparent" />
+            <div className="h-1 w-full bg-gradient-to-r from-transparent via-[#3B82F6] to-transparent" />
 
             {/* Blurred background using caller avatar */}
             {call.callerAvatar && (
@@ -80,11 +80,11 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
               {/* Header row */}
               <div className="flex items-center gap-2">
                 {call.mode === "video" ? (
-                  <Video size={13} className="text-[#a8873f]" />
+                  <Video size={13} className="text-[#2563EB]" />
                 ) : (
-                  <Phone size={13} className="text-[#a8873f]" />
+                  <Phone size={13} className="text-[#2563EB]" />
                 )}
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a8873f]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#2563EB]">
                   Incoming {call.mode === "video" ? "video call" : "call"}
                 </p>
                 <Volume2 size={12} className="ml-auto text-gray-300" />
@@ -96,17 +96,17 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
                   <motion.div
                     animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0, 0.6] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-                    className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/60"
+                    className="absolute inset-0 rounded-full border-2 border-[#3B82F6]/60"
                   />
                   <motion.div
                     animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
-                    className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/40"
+                    className="absolute inset-0 rounded-full border-2 border-[#3B82F6]/40"
                   />
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#f1e7cc] shadow-[0_10px_40px_-10px_rgba(217,184,108,0.6)]"
+                    className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#DBEAFE] shadow-[0_10px_40px_-10px_rgba(217,184,108,0.6)]"
                   >
                     {call.callerAvatar ? (
                       <img
@@ -115,7 +115,7 @@ export default function IncomingCallPopup({ call, onAccept, onDecline }) {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-3xl font-bold text-[#a8873f]">
+                      <span className="text-3xl font-bold text-[#2563EB]">
                         {call.callerName?.charAt(0) || <UserRound size={32} />}
                       </span>
                     )}

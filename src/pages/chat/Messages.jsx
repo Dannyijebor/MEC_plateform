@@ -35,11 +35,11 @@ import {
 const THEMES = {
   classic: {
     name: "Classic",
-    preview: "linear-gradient(135deg, #FCFBF7 0%, #D9B86C 100%)",
+    preview: "linear-gradient(135deg, #FCFBF7 0%, #3B82F6 100%)",
     page: "bg-gradient-to-br from-[#F7F5EF] via-[#FCFBF7] to-[#F1EFE8]",
     sidebar: "bg-[#FCFBF7]",
     chatBg: "bg-[#FAF8F3]",
-    ownBubble: "bg-[#F1E7CC] text-[#3A2F1B]",
+    ownBubble: "bg-[#DBEAFE] text-[#3A2F1B]",
     otherBubble: "bg-white text-[#111827] border border-[#DCD9D0]",
     accent: "#111827",
     accentText: "text-[#111827]",
@@ -49,8 +49,8 @@ const THEMES = {
     headerBorder: "border-[#DCD9D0]",
     inputBg: "bg-white",
     inputBorder: "border-[#DCD9D0]",
-    iconAccent: "text-[#A8873F]",
-    iconBg: "bg-[#F1E7CC]",
+    iconAccent: "text-[#2563EB]",
+    iconBg: "bg-[#DBEAFE]",
     text: "text-[#111827]",
     textMuted: "text-[#5F6673]",
     textFaint: "text-[#8A8F98]",
@@ -782,7 +782,7 @@ function Messages() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search conversations..."
-                className={`w-full rounded-full border ${theme.inputBorder} ${theme.inputBg} py-3 pl-11 pr-11 text-sm ${theme.text} outline-none transition focus:border-[#d9b86c] placeholder:${theme.textFaint}`}
+                className={`w-full rounded-full border ${theme.inputBorder} ${theme.inputBg} py-3 pl-11 pr-11 text-sm ${theme.text} outline-none transition focus:border-[#3B82F6] placeholder:${theme.textFaint}`}
               />
               <button
                 type="button"
@@ -862,14 +862,14 @@ function Messages() {
                       onClick={() => setSelectedConversation(conv)}
                       className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${
                         active
-                          ? "border-[#d9b86c]/40 bg-[#d9b86c]/5"
+                          ? "border-[#3B82F6]/40 bg-[#3B82F6]/5"
                           : theme.dark
                             ? "border-white/5 hover:border-white/10 hover:bg-white/5"
                             : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm"
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f1e7cc] text-sm font-bold text-[#a8873f]`}>
+                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#DBEAFE] text-sm font-bold text-[#2563EB]`}>
                           {conv.display_avatar ? (
                             <img src={conv.display_avatar} alt="" className="h-full w-full object-cover" />
                           ) : conv.is_direct ? (
@@ -1128,7 +1128,7 @@ function Messages() {
                                 mine ? theme.ownBubble : theme.otherBubble
                               } ${
                                 showMenuFor === message.id
-                                  ? "ring-2 ring-[#d9b86c] ring-offset-2 ring-offset-white/60 scale-[1.02]"
+                                  ? "ring-2 ring-[#3B82F6] ring-offset-2 ring-offset-white/60 scale-[1.02]"
                                   : ""
                               }`}
                             >
@@ -1188,7 +1188,7 @@ function Messages() {
                                         }
                                         className={`flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[11px] transition ${
                                           iReacted
-                                            ? "border-[#d9b86c] bg-[#d9b86c]/15"
+                                            ? "border-[#3B82F6] bg-[#3B82F6]/15"
                                             : "border-gray-200 bg-white/70 hover:bg-white"
                                         }`}
                                       >
@@ -1281,7 +1281,7 @@ function Messages() {
                   </div>
                 )}
                 {!editingMessage && replyingTo && (
-                  <div className={`mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl border-l-4 border-l-[#d9b86c] ${theme.inputBg} px-3 py-2 ${theme.headerBorder} border`}>
+                  <div className={`mx-auto mb-2 flex max-w-2xl items-center gap-2 rounded-xl border-l-4 border-l-[#3B82F6] ${theme.inputBg} px-3 py-2 ${theme.headerBorder} border`}>
                     <div className="min-w-0 flex-1">
                       <p className={`text-[10px] font-bold uppercase tracking-wider ${theme.iconAccent}`}>
                         Replying to {(() => {

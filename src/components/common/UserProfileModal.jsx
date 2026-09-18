@@ -59,7 +59,7 @@ export default function UserProfileModal({ userId, onClose }) {
           </div>
         ) : profile ? (
           <div className="flex flex-col items-center text-center">
-            <div className="mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-[#d9b86c]/30 bg-[#d9b86c]/10 text-2xl font-bold text-[#d9b86c]">
+            <div className="mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-[#3B82F6]/30 bg-[#3B82F6]/10 text-2xl font-bold text-[#3B82F6]">
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt={profile.full_name} className="h-full w-full object-cover" />
               ) : (
@@ -72,7 +72,7 @@ export default function UserProfileModal({ userId, onClose }) {
             </h2>
             
             {profile.username && (
-              <p className="mt-1 text-sm text-[#d9b86c]">@{profile.username}</p>
+              <p className="mt-1 text-sm text-[#3B82F6]">@{profile.username}</p>
             )}
 
             {profile.bio && (
@@ -86,7 +86,7 @@ export default function UserProfileModal({ userId, onClose }) {
                 <button
                   onClick={handleStartChat}
                   disabled={startingChat}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#d9b86c] py-3 text-sm font-bold text-gray-900 transition hover:bg-[#c4a45b] disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#3B82F6] py-3 text-sm font-bold text-gray-900 transition hover:bg-[#c4a45b] disabled:opacity-50"
                 >
                   <MessageCircle size={18} />
                   {startingChat ? "Starting..." : "Message"}

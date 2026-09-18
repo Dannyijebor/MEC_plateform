@@ -795,11 +795,11 @@ function Community() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#F1E7CC] text-[#A8873F]">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#DBEAFE] text-[#2563EB]">
                   <Sparkles size={14} />
                 </span>
 
-                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#A8873F]">
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#2563EB]">
                   MEC Community
                 </span>
               </div>
@@ -818,7 +818,7 @@ function Community() {
               type="button"
               onClick={() => loadPosts(true)}
               disabled={refreshing}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#DCD9D0] bg-[#FCFBF7] text-[#5F6673] shadow-[0_8px_30px_rgba(17,24,39,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#C9A85C]/50 hover:text-[#A8873F] disabled:opacity-50"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#DCD9D0] bg-[#FCFBF7] text-[#5F6673] shadow-[0_8px_30px_rgba(17,24,39,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#60A5FA]/50 hover:text-[#2563EB] disabled:opacity-50"
               aria-label="Refresh family feed"
             >
               <RefreshCw
@@ -858,7 +858,7 @@ function Community() {
         >
           <div className="p-4 sm:p-5">
             <div className="flex gap-3">
-              <div onClick={() => setViewingProfileId(post.author_id)} className="cursor-pointer flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#C9A85C]/25 bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+              <div onClick={() => setViewingProfileId(post.author_id)} className="cursor-pointer flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#60A5FA]/25 bg-[#DBEAFE] text-xs font-bold text-[#2563EB]">
                 {user?.user_metadata?.avatar_url ? (
                   <img
                     src={user.user_metadata.avatar_url}
@@ -1003,7 +1003,7 @@ function Community() {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-[30px] border border-[#DCD9D0] bg-[#FCFBF7] px-6 py-20 text-center shadow-[0_18px_60px_rgba(17,24,39,0.05)]"
           >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#F1E7CC] text-[#A8873F]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#DBEAFE] text-[#2563EB]">
               <Users size={26} />
             </div>
 
@@ -1054,12 +1054,12 @@ function Community() {
                     delay: Math.min(index * 0.035, 0.2),
                     duration: 0.35,
                   }}
-                  className="group overflow-hidden rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7] shadow-[0_12px_45px_rgba(17,24,39,0.055)] transition duration-300 hover:border-[#C9A85C]/30 hover:shadow-[0_18px_55px_rgba(17,24,39,0.085)]"
+                  className="group overflow-hidden rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7] shadow-[0_12px_45px_rgba(17,24,39,0.055)] transition duration-300 hover:border-[#60A5FA]/30 hover:shadow-[0_18px_55px_rgba(17,24,39,0.085)]"
                 >
                   {/* POST HEADER */}
                   <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-5 sm:pt-5">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#C9A85C]/20 bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#60A5FA]/20 bg-[#DBEAFE] text-xs font-bold text-[#2563EB]">
                         {profile?.avatar_url ? (
                           <img
                             src={profile.avatar_url}
@@ -1139,7 +1139,7 @@ function Community() {
                         }
                         autoFocus
                         rows={4}
-                        className="w-full resize-none rounded-2xl border border-[#C9A85C]/40 bg-[#F7F5EF] px-4 py-3 text-[15px] leading-7 text-[#111827] outline-none transition focus:border-[#4F7CFF]/50 focus:bg-white"
+                        className="w-full resize-none rounded-2xl border border-[#60A5FA]/40 bg-[#F7F5EF] px-4 py-3 text-[15px] leading-7 text-[#111827] outline-none transition focus:border-[#4F7CFF]/50 focus:bg-white"
                         placeholder="Edit your post..."
                       />
 
@@ -1325,7 +1325,7 @@ function Community() {
                     </button>
 
                     <div className="ml-auto hidden items-center gap-1.5 pr-2 text-[10px] text-[#B0B3B8] sm:flex">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#C9A85C]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#60A5FA]" />
                       Family only
                     </div>
                   </div>
@@ -1398,7 +1398,7 @@ function Community() {
                                       key={comment.id}
                                       className="flex gap-3"
                                     >
-                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#F1E7CC] text-[9px] font-bold text-[#A8873F]">
+                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#DBEAFE] text-[9px] font-bold text-[#2563EB]">
                                         {commentProfile?.avatar_url ? (
                                           <img
                                             src={
@@ -1485,7 +1485,7 @@ function Community() {
                                               }
                                               autoFocus
                                               rows={3}
-                                              className="w-full resize-none rounded-xl border border-[#C9A85C]/40 bg-[#F7F5EF] px-3 py-2.5 text-xs leading-5 text-[#111827] outline-none transition focus:border-[#4F7CFF]/50 focus:bg-white"
+                                              className="w-full resize-none rounded-xl border border-[#60A5FA]/40 bg-[#F7F5EF] px-3 py-2.5 text-xs leading-5 text-[#111827] outline-none transition focus:border-[#4F7CFF]/50 focus:bg-white"
                                               placeholder="Edit your comment..."
                                             />
 

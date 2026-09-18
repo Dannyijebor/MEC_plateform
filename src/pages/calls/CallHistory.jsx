@@ -108,10 +108,10 @@ export default function CallHistory() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F1E7CC] text-[#A8873F]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#DBEAFE] text-[#2563EB]">
               <Phone size={15} />
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#A8873F]">
+            <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#2563EB]">
               Call History
             </span>
           </div>
@@ -150,8 +150,8 @@ export default function CallHistory() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-3xl border border-[#DCD9D0] bg-white/70 px-6 py-16 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1E7CC]">
-              <Phone size={24} className="text-[#A8873F]" />
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#DBEAFE]">
+              <Phone size={24} className="text-[#2563EB]" />
             </div>
             <p className="text-sm font-semibold text-[#111827]">
               No calls yet
@@ -176,13 +176,13 @@ export default function CallHistory() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   onClick={() => navigate("/messages")}
-                  className="flex w-full items-center gap-3 rounded-2xl border border-[#DCD9D0] bg-white/80 px-4 py-3 text-left transition hover:border-[#C9A85C]/40 hover:bg-white"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-[#DCD9D0] bg-white/80 px-4 py-3 text-left transition hover:border-[#60A5FA]/40 hover:bg-white"
                 >
                   <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
                       isMissed
                         ? "bg-red-50 text-red-500"
-                        : "bg-[#F1E7CC] text-[#A8873F]"
+                        : "bg-[#DBEAFE] text-[#2563EB]"
                     }`}
                   >
                     {initial}

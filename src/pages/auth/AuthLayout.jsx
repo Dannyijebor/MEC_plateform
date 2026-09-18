@@ -12,10 +12,10 @@ function AuthLayout() {
         {/* Branding panel */}
         <section className="hidden w-1/2 flex-col justify-between border-r border-[#202635]/[0.09] bg-[#faf8f3]/82 p-10 backdrop-blur-xl lg:flex xl:p-14">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d9b86c]/20 bg-[#d9b86c]/10">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#3B82F6]/20 bg-[#3B82F6]/10">
               <Sparkles
                 size={20}
-                className="text-[#d9b86c]"
+                className="text-[#3B82F6]"
               />
             </div>
 
@@ -30,7 +30,7 @@ function AuthLayout() {
           </div>
 
           <div className="max-w-lg">
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.25em] text-[#d9b86c]">
+            <p className="mb-4 text-xs font-medium uppercase tracking-[0.25em] text-[#3B82F6]">
               One family. One community.
             </p>
 
@@ -53,10 +53,10 @@ function AuthLayout() {
         <main className="flex min-h-screen w-full items-center justify-center px-4 py-8 sm:px-6 lg:w-1/2 lg:px-10 xl:px-16">
           <div className="w-full max-w-md">
             <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#d9b86c]/20 bg-[#d9b86c]/10">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#3B82F6]/20 bg-[#3B82F6]/10">
                 <Sparkles
                   size={18}
-                  className="text-[#d9b86c]"
+                  className="text-[#3B82F6]"
                 />
               </div>
 

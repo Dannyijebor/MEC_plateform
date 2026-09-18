@@ -216,7 +216,7 @@ export default function Call() {
   if (!call) {
     return (
       <div className="flex h-[100dvh] w-full items-center justify-center bg-white">
-        <Loader2 size={28} className="animate-spin text-[#a8873f]" />
+        <Loader2 size={28} className="animate-spin text-[#2563EB]" />
       </div>
     )
   }
@@ -257,7 +257,7 @@ export default function Call() {
               <motion.div
                 animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0, 0.4] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-                className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/40"
+                className="absolute inset-0 rounded-full border-2 border-[#3B82F6]/40"
               />
               <motion.div
                 animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0, 0.4] }}
@@ -267,9 +267,9 @@ export default function Call() {
                   ease: "easeOut",
                   delay: 0.7,
                 }}
-                className="absolute inset-0 rounded-full border-2 border-[#d9b86c]/30"
+                className="absolute inset-0 rounded-full border-2 border-[#3B82F6]/30"
               />
-              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#f1e7cc] shadow-[0_20px_60px_-15px_rgba(217,184,108,0.5)]">
+              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#DBEAFE] shadow-[0_20px_60px_-15px_rgba(217,184,108,0.5)]">
                 {otherUser?.avatar_url ? (
                   <img
                     src={otherUser.avatar_url}
@@ -277,7 +277,7 @@ export default function Call() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-5xl font-bold text-[#a8873f]">
+                  <span className="text-5xl font-bold text-[#2563EB]">
                     {otherUser?.full_name?.charAt(0) || <UserRound size={48} />}
                   </span>
                 )}
@@ -292,7 +292,7 @@ export default function Call() {
               {otherUser?.full_name || "Connecting..."}
             </motion.p>
             {otherUser?.username && (
-              <p className="mt-1 text-sm text-[#a8873f]">
+              <p className="mt-1 text-sm text-[#2563EB]">
                 @{otherUser.username}
               </p>
             )}
@@ -303,7 +303,7 @@ export default function Call() {
               transition={{ delay: 0.2 }}
               className="mt-5 flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm"
             >
-              <Loader2 size={13} className="animate-spin text-[#a8873f]" />
+              <Loader2 size={13} className="animate-spin text-[#2563EB]" />
               <span className="text-xs font-medium tracking-wide text-gray-600">
                 {status}
               </span>
@@ -352,9 +352,9 @@ export default function Call() {
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="absolute bottom-32 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-[#d9b86c]/30 bg-[#d9b86c]/20 backdrop-blur-xl"
+          className="absolute bottom-32 right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-[#3B82F6]/30 bg-[#3B82F6]/20 backdrop-blur-xl"
         >
-          <Hand size={20} className="text-[#d9b86c]" />
+          <Hand size={20} className="text-[#3B82F6]" />
         </motion.div>
       )}
 
@@ -392,7 +392,7 @@ export default function Call() {
             className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
               audioOutput === "speaker"
                 ? "bg-white/15 text-white hover:bg-white/25"
-                : "bg-[#d9b86c] text-[#17130a]"
+                : "bg-[#3B82F6] text-[#ffffff]"
             }`}
             aria-label="Audio output"
           >
@@ -425,7 +425,7 @@ export default function Call() {
                     }}
                     className={`flex w-full items-center gap-3 px-3 py-2 text-left text-xs font-medium transition ${
                       active
-                        ? "bg-[#d9b86c]/20 text-[#d9b86c]"
+                        ? "bg-[#3B82F6]/20 text-[#3B82F6]"
                         : "text-white/80 hover:bg-white/10"
                     }`}
                   >
@@ -443,7 +443,7 @@ export default function Call() {
           onClick={toggleRaiseHand}
           className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
             handRaised
-              ? "bg-[#d9b86c] text-[#17130a]"
+              ? "bg-[#3B82F6] text-[#ffffff]"
               : "bg-white/15 text-white hover:bg-white/25"
           }`}
           aria-label="Raise hand"
@@ -456,7 +456,7 @@ export default function Call() {
             onClick={() => setShowEmojiPicker((v) => !v)}
             className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
               showEmojiPicker
-                ? "bg-[#d9b86c] text-[#17130a]"
+                ? "bg-[#3B82F6] text-[#ffffff]"
                 : "bg-white/15 text-white hover:bg-white/25"
             }`}
             aria-label="Send emoji"

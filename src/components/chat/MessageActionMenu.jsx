@@ -109,7 +109,7 @@ export default function MessageActionMenu({
                     onClick={() => onReact(emoji)}
                     className={`flex h-9 w-9 items-center justify-center rounded-full text-lg transition ${
                       isActive
-                        ? "bg-[#d9b86c]/20 ring-2 ring-[#d9b86c]"
+                        ? "bg-[#3B82F6]/20 ring-2 ring-[#3B82F6]"
                         : "hover:bg-white"
                     }`}
                   >

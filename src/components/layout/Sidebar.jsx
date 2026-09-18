@@ -45,7 +45,7 @@ function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-[#202635]/[0.09] bg-[#faf8f3]/92 backdrop-blur-2xl lg:flex lg:flex-col">
       <div className="flex h-16 items-center border-b border-[#202635]/[0.09] px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d9b86c] text-[#17130a]">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3B82F6] text-[#ffffff]">
           <Sparkles size={18} />
         </div>
 
@@ -76,8 +76,8 @@ function Sidebar() {
                 className={({ isActive }) =>
                   `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                     isActive
-                      ? "bg-[#d9b86c] text-[#17130a]"
-                      : "text-[#111827]/60 hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+                      ? "bg-[#3B82F6] text-[#ffffff]"
+                      : "text-[#111827]/60 hover:bg-[#3B82F6]/[0.08] hover:text-[#111827]"
                   }`
                 }
               >
@@ -86,7 +86,7 @@ function Sidebar() {
                 <span>{item.label}</span>
 
                 {item.label === "Messages" && (
-                  <span className="ml-auto rounded-full bg-[#d9b86c]/10 px-2 py-0.5 text-[10px] text-[#111827]/60">
+                  <span className="ml-auto rounded-full bg-[#3B82F6]/10 px-2 py-0.5 text-[10px] text-[#111827]/60">
                     3
                   </span>
                 )}
@@ -110,8 +110,8 @@ function Sidebar() {
                 className={({ isActive }) =>
                   `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                     isActive
-                      ? "bg-[#d9b86c] text-[#17130a]"
-                      : "text-[#111827]/60 hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+                      ? "bg-[#3B82F6] text-[#ffffff]"
+                      : "text-[#111827]/60 hover:bg-[#3B82F6]/[0.08] hover:text-[#111827]"
                   }`
                 }
               >
@@ -127,7 +127,7 @@ function Sidebar() {
       <div className="border-t border-[#202635]/[0.09] p-3">
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#3B82F6]/[0.08] hover:text-[#111827]"
         >
           <Bell size={17} />
           Notifications
@@ -135,7 +135,7 @@ function Sidebar() {
 
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#111827]/60 transition hover:bg-[#3B82F6]/[0.08] hover:text-[#111827]"
         >
           <Settings size={17} />
           Settings

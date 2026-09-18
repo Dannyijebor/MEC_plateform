@@ -62,7 +62,7 @@ function Register() {
   if (success) {
     return (
       <div className="py-4 text-center sm:py-6">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9b86c]/10 text-[#d9b86c]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#3B82F6]/10 text-[#3B82F6]">
           <UserPlus size={24} />
         </div>
 
@@ -77,7 +77,7 @@ function Register() {
 
         <Link
           to="/login"
-          className="mt-7 flex h-12 w-full items-center justify-center rounded-xl bg-[#d9b86c] px-4 text-sm font-semibold text-[#17130a] transition hover:bg-[#e4c982]"
+          className="mt-7 flex h-12 w-full items-center justify-center rounded-xl bg-[#3B82F6] px-4 text-sm font-semibold text-[#ffffff] transition hover:bg-[#e4c982]"
         >
           Return to sign in
         </Link>
@@ -88,7 +88,7 @@ function Register() {
   return (
     <div>
       <div className="mb-7">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#d9b86c]">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B82F6]">
           Join the family
         </p>
 
@@ -129,7 +129,7 @@ function Register() {
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
             placeholder="Your full name"
-            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/40 focus:bg-white/[0.05]"
+            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
           />
         </div>
 
@@ -149,7 +149,7 @@ function Register() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
-            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/40 focus:bg-white/[0.05]"
+            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
           />
         </div>
 
@@ -169,7 +169,7 @@ function Register() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="At least 6 characters"
-              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/40 focus:bg-white/[0.05]"
+              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
             />
 
             <button
@@ -199,7 +199,7 @@ function Register() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="Repeat your password"
-              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/40 focus:bg-white/[0.05]"
+              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
             />
 
             <button
@@ -226,7 +226,7 @@ function Register() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#d9b86c] px-4 text-sm font-semibold text-[#17130a] transition hover:bg-[#e4c982] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 text-sm font-semibold text-[#ffffff] transition hover:bg-[#e4c982] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             "Creating account..."

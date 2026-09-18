@@ -87,7 +87,7 @@ export default function NewChatModal({ open, onClose, onStartConversation }) {
 
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a8873f]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#2563EB]">
                   New chat
                 </p>
                 <h2 className="mt-0.5 text-xl font-semibold text-gray-900">
@@ -115,7 +115,7 @@ export default function NewChatModal({ open, onClose, onStartConversation }) {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search by name or username..."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#d9b86c] focus:bg-white"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#3B82F6] focus:bg-white"
                 />
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function NewChatModal({ open, onClose, onStartConversation }) {
                         disabled={!!starting}
                         className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-gray-50 disabled:opacity-50"
                       >
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f1e7cc] text-sm font-bold text-[#a8873f]">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#DBEAFE] text-sm font-bold text-[#2563EB]">
                           {profile.avatar_url ? (
                             <img
                               src={profile.avatar_url}
@@ -168,7 +168,7 @@ export default function NewChatModal({ open, onClose, onStartConversation }) {
                             {profile.full_name || "MEC Member"}
                           </p>
                           {profile.username && (
-                            <p className="mt-0.5 truncate text-xs text-[#a8873f]">
+                            <p className="mt-0.5 truncate text-xs text-[#2563EB]">
                               @{profile.username}
                             </p>
                           )}
@@ -181,7 +181,7 @@ export default function NewChatModal({ open, onClose, onStartConversation }) {
                         {isStarting ? (
                           <Loader2
                             size={16}
-                            className="shrink-0 animate-spin text-[#a8873f]"
+                            className="shrink-0 animate-spin text-[#2563EB]"
                           />
                         ) : (
                           <MessageCircle

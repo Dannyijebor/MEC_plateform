@@ -42,7 +42,7 @@ function Login() {
   return (
     <div>
       <div className="mb-7">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#d9b86c]">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#3B82F6]">
           Welcome back
         </p>
 
@@ -84,7 +84,7 @@ function Login() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
-            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/40 focus:bg-white/[0.05]"
+            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
           />
         </div>
 
@@ -99,7 +99,7 @@ function Login() {
 
             <button
               type="button"
-              className="text-[11px] text-[#d9b86c] transition hover:text-[#e4c982]"
+              className="text-[11px] text-[#3B82F6] transition hover:text-[#e4c982]"
             >
               Forgot password?
             </button>
@@ -113,7 +113,7 @@ function Login() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
-              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#d9b86c]/40 focus:bg-white/[0.05]"
+              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
             />
 
             <button
@@ -138,7 +138,7 @@ function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#d9b86c] px-4 text-sm font-semibold text-[#17130a] transition hover:bg-[#e4c982] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 text-sm font-semibold text-[#ffffff] transition hover:bg-[#e4c982] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             "Signing in..."

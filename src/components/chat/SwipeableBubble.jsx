@@ -38,7 +38,7 @@ export default function SwipeableBubble({ mine, onReply, onLongPress, messageId,
     >
       <motion.div
         style={{ opacity, scale }}
-        className={`pointer-events-none absolute top-1/2 z-0 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-[#d9b86c] shadow-lg ${
+        className={`pointer-events-none absolute top-1/2 z-0 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-[#3B82F6] shadow-lg ${
           mine ? "-right-12" : "-left-12"
         }`}
       >

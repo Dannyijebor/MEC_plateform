@@ -12,10 +12,10 @@ function Navbar() {
           to="/"
           className="flex min-w-0 items-center gap-2.5 lg:hidden"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#d9b86c]/20 bg-[#d9b86c]/10 sm:h-9 sm:w-9 sm:rounded-xl">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#3B82F6]/20 bg-[#3B82F6]/10 sm:h-9 sm:w-9 sm:rounded-xl">
             <Sparkles
               size={16}
-              className="text-[#9b7a2f] sm:size-[17px]"
+              className="text-[#1E40AF] sm:size-[17px]"
             />
           </div>
 
@@ -39,7 +39,7 @@ function Navbar() {
           <input
             type="search"
             placeholder="Search the clan..."
-            className="h-10 w-full rounded-xl border border-[#202635]/[0.09] bg-white/60 pl-10 pr-4 text-sm text-[#111827] outline-none placeholder:text-[#111827]/30 transition focus:border-[#d9b86c]/40 focus:bg-white"
+            className="h-10 w-full rounded-xl border border-[#202635]/[0.09] bg-white/60 pl-10 pr-4 text-sm text-[#111827] outline-none placeholder:text-[#111827]/30 transition focus:border-[#3B82F6]/40 focus:bg-white"
           />
         </div>
 
@@ -53,7 +53,7 @@ function Navbar() {
           >
             <Bell size={17} className="sm:size-[18px]" />
 
-            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#d9b86c] sm:right-2 sm:top-2" />
+            <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#3B82F6] sm:right-2 sm:top-2" />
           </motion.button>
 
           {/* Desktop profile */}
@@ -61,7 +61,7 @@ function Navbar() {
             to="/profile"
             className="hidden items-center gap-2 rounded-xl border border-[#202635]/[0.09] bg-white/70 px-2 py-1.5 transition hover:bg-white sm:flex"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d9b86c] text-[10px] font-bold text-[#17130a]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3B82F6] text-[10px] font-bold text-[#ffffff]">
               ME
             </div>
 

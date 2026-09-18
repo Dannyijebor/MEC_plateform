@@ -80,7 +80,7 @@ function MobileNav() {
       >
         <div className="flex h-16 items-center justify-between border-b border-[#202635]/[0.09] px-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d9b86c] text-[#17130a]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3B82F6] text-[#ffffff]">
               <span className="text-sm font-bold">ME</span>
             </div>
 
@@ -118,8 +118,8 @@ function MobileNav() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${
                     isActive
-                      ? "bg-[#d9b86c] text-[#17130a]"
-                      : "text-[#111827]/65 hover:bg-[#d9b86c]/[0.08] hover:text-[#111827]"
+                      ? "bg-[#3B82F6] text-[#ffffff]"
+                      : "text-[#111827]/65 hover:bg-[#3B82F6]/[0.08] hover:text-[#111827]"
                   }`
                 }
               >
@@ -136,8 +136,8 @@ function MobileNav() {
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${
                   isActive
-                    ? "bg-[#d9b86c] text-[#17130a]"
-                    : "text-[#111827]/65 hover:bg-[#d9b86c]/[0.08]"
+                    ? "bg-[#3B82F6] text-[#ffffff]"
+                    : "text-[#111827]/65 hover:bg-[#3B82F6]/[0.08]"
                 }`
               }
             >
@@ -148,7 +148,7 @@ function MobileNav() {
             <NavLink
               to="/settings"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#111827]/65 transition hover:bg-[#d9b86c]/[0.08]"
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#111827]/65 transition hover:bg-[#3B82F6]/[0.08]"
             >
               <Settings size={18} />
               Settings
@@ -176,7 +176,7 @@ function MobileNav() {
               className={({ isActive }) =>
                 `flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[9px] font-medium transition ${
                   isActive
-                    ? "bg-[#d9b86c]/10 text-[#9b7a2f]"
+                    ? "bg-[#3B82F6]/10 text-[#1E40AF]"
                     : "text-[#111827]/45"
                 }`
               }

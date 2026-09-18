@@ -76,7 +76,7 @@ export default function FloatingCallWidget() {
                   className="h-full w-full object-cover"
                 />
                 {/* Small avatar badge overlaid */}
-                <div className="absolute bottom-1.5 left-1.5 h-7 w-7 overflow-hidden rounded-full border-2 border-white bg-[#f1e7cc] shadow-md">
+                <div className="absolute bottom-1.5 left-1.5 h-7 w-7 overflow-hidden rounded-full border-2 border-white bg-[#DBEAFE] shadow-md">
                   {otherUser?.avatar_url ? (
                     <img
                       src={otherUser.avatar_url}
@@ -84,7 +84,7 @@ export default function FloatingCallWidget() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-[#a8873f]">
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-[#2563EB]">
                       {initial}
                     </div>
                   )}
@@ -93,7 +93,7 @@ export default function FloatingCallWidget() {
             ) : (
               <div className="flex flex-col items-center pt-3 pb-1">
                 <div className="relative h-14 w-14">
-                  <div className="h-full w-full overflow-hidden rounded-full border-2 border-[#d9b86c]/30 bg-[#f1e7cc]">
+                  <div className="h-full w-full overflow-hidden rounded-full border-2 border-[#3B82F6]/30 bg-[#DBEAFE]">
                     {otherUser?.avatar_url ? (
                       <img
                         src={otherUser.avatar_url}
@@ -101,7 +101,7 @@ export default function FloatingCallWidget() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-base font-bold text-[#a8873f]">
+                      <div className="flex h-full w-full items-center justify-center text-base font-bold text-[#2563EB]">
                         {initial}
                       </div>
                     )}
