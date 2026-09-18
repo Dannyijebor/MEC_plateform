@@ -40,6 +40,7 @@ export function CallProvider({ children }) {
   const [remoteHandRaised, setRemoteHandRaised] = useState(false)
   const [floatingEmojis, setFloatingEmojis] = useState([])
   const [endedReason, setEndedReason] = useState(null)
+  const [lastCallEndedAt, setLastCallEndedAt] = useState(0)
 
   const localStreamRef = useRef(null)
   const remoteStreamRef = useRef(null)
@@ -112,6 +113,7 @@ export function CallProvider({ children }) {
     setCall(null)
     setStatus("idle")
     setEndedReason(reason)
+    setLastCallEndedAt(Date.now())
     setTimeout(() => setEndedReason(null), 1800)
   }, [call, connected, user, cleanup])
 

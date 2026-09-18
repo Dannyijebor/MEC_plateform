@@ -33,6 +33,7 @@ export default function Call() {
     remoteHandRaised,
     floatingEmojis,
     endedReason,
+    lastCallEndedAt,
     localStreamRef,
     remoteStreamRef,
     startCall,
@@ -58,6 +59,7 @@ export default function Call() {
   useEffect(() => {
     if (!conversationId || !user?.id) return
     if (call?.conversationId === conversationId) return
+    if (lastCallEndedAt && Date.now() - lastCallEndedAt < 3000) return
 
     let cancelled = false
     async function boot() {
@@ -87,7 +89,7 @@ export default function Call() {
     return () => {
       cancelled = true
     }
-  }, [conversationId, user?.id, call?.conversationId, mode, startCall])
+  }, [conversationId, user?.id, call?.conversationId, lastCallEndedAt, mode, startCall])
 
   // Bind video streams continuously (streams become available at different times)
   useEffect(() => {
