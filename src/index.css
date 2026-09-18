@@ -356,3 +356,25 @@ input {
   -webkit-tap-highlight-color: transparent;
   border: none;
 }
+
+
+/* Hide app chrome during active call on mobile */
+@media (max-width: 1023px) {
+  body.call-active header.sticky,
+  body.call-active header[class*="sticky"] {
+    display: none !important;
+  }
+  body.call-active nav.fixed.inset-x-0.bottom-0,
+  body.call-active nav[class*="fixed"][class*="bottom-0"] {
+    display: none !important;
+  }
+  body.call-active button[class*="fixed"][class*="top-3"][class*="left-3"] {
+    display: none !important;
+  }
+  body.call-active aside[class*="fixed"][class*="inset-y-0"][class*="left-0"] {
+    display: none !important;
+  }
+  body.call-active .lg\:ml-64 {
+    margin-left: 0 !important;
+  }
+}

@@ -273,6 +273,16 @@ export function CallProvider({ children }) {
     broadcastEvent("emoji", { emoji, userId: user?.id })
   }, [broadcastEvent, user?.id])
 
+  // Toggle body class while a call is active
+  useEffect(() => {
+    if (call) {
+      document.body.classList.add("call-active")
+    } else {
+      document.body.classList.remove("call-active")
+    }
+    return () => document.body.classList.remove("call-active")
+  }, [call])
+
   return (
     <CallContext.Provider
       value={{

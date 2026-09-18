@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion"
 import { useAuth } from "../../hooks/useAuth"
 import { useCall } from "../../context/CallContext"
+import AudioWave from "../../components/chat/AudioWave"
 import { supabase } from "../../lib/supabase"
 
 export default function Call() {
@@ -54,6 +55,7 @@ export default function Call() {
 
   const [showAudioMenu, setShowAudioMenu] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [callDuration, setCallDuration] = useState(0)
   const [audioOutput, setAudioOutput] = useState("speaker")
   const [hasBluetooth, setHasBluetooth] = useState(false)
 
@@ -134,6 +136,24 @@ export default function Call() {
     const timer = setInterval(bind, 300)
     return () => clearInterval(timer)
   }, [call, connected, localStreamRef, remoteStreamRef])
+
+  // Live call duration timer
+  useEffect(() => {
+    if (!connected) {
+      setCallDuration(0)
+      return
+    }
+    const t = setInterval(() => setCallDuration((d) => d + 1), 1000)
+    return () => clearInterval(t)
+  }, [connected])
+
+  const formatDuration = (s) => {
+    const h = Math.floor(s / 3600)
+    const m = Math.floor((s % 3600) / 60)
+    const sec = s % 60
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
+    return `${m}:${String(sec).padStart(2, "0")}`
+  }
 
   // Auto-navigate away after a call ends
   useEffect(() => {
