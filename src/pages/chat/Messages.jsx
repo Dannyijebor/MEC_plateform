@@ -341,8 +341,12 @@ function Messages() {
   const { user } = useAuth()
   const onlineUsers = useOnlineUsers()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const targetConversationId = searchParams.get("conversation")
+  const incomingCallConv = searchParams.get("incomingCall")
+  const incomingCallMode = searchParams.get("mode") || "audio"
+  const incomingCallRingId = searchParams.get("ringId")
+  const incomingCallerName = searchParams.get("callerName")
 
   const [themeKey, setThemeKey, globalTheme] = useChatTheme()
 
@@ -454,10 +458,51 @@ function Messages() {
     swipeBackRef.current.active = false
   }
 
+  // If a push notification opened this page with call info, show the popup
+  useEffect(() => {
+    if (!incomingCallConv) return
+    setIncomingCall({
+      conversationId: incomingCallConv,
+      mode: incomingCallMode,
+      ringId: incomingCallRingId,
+      callerName: incomingCallerName ? decodeURIComponent(incomingCallerName) : "MEC Member",
+      callerAvatar: null,
+    })
+    // Fetch the caller's avatar for a premium look
+    if (incomingCallConv && user?.id) {
+      supabase
+        .from("conversation_members")
+        .select("user_id, profiles:user_id (full_name, avatar_url, username)")
+        .eq("conversation_id", incomingCallConv)
+        .neq("user_id", user.id)
+        .limit(1)
+        .single()
+        .then(({ data }) => {
+          if (data?.profiles) {
+            setIncomingCall((c) => c ? {
+              ...c,
+              callerName: data.profiles.full_name || data.profiles.username || c.callerName,
+              callerAvatar: data.profiles.avatar_url,
+            } : c)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [incomingCallConv, incomingCallMode, incomingCallRingId, incomingCallerName, user?.id])
+
   const handleAcceptIncoming = () => {
     if (!incomingCall) return
     const { conversationId, mode } = incomingCall
     setIncomingCall(null)
+    // Clear the incoming-call query params
+    try {
+      const params = new URLSearchParams(searchParams)
+      params.delete("incomingCall")
+      params.delete("mode")
+      params.delete("ringId")
+      params.delete("callerName")
+      setSearchParams(params, { replace: true })
+    } catch {}
     navigate(`/calls?conversation=${conversationId}&mode=${mode}`)
   }
 

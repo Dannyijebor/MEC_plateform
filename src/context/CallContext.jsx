@@ -148,6 +148,21 @@ export function CallProvider({ children }) {
 
     cleanup()
     setCall({ conversationId, mode, otherUser, startedAt: Date.now() })
+
+    // Notify the callee via push — insert a ring row that fires the DB trigger
+    if (otherUser?.id) {
+      try {
+        await supabase.from("call_rings").insert({
+          conversation_id: conversationId,
+          caller_id: user.id,
+          callee_id: otherUser.id,
+          mode,
+          status: "ringing",
+        })
+      } catch (err) {
+        console.warn("Failed to create call ring:", err)
+      }
+    }
     setStatus("Connecting...")
     setCameraOff(mode !== "video")
     startTimeRef.current = Date.now()
