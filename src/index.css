@@ -555,3 +555,57 @@ body.dark [class*="bg-[#F1E7CC]"]:not([data-chat-view]):not([data-chat-view] *) 
   /* Dark mode does not affect the chat view.
      It uses its own conversation theme. */
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD DARK FIX
+   ═══════════════════════════════════════════════════════ */
+
+/* Hero card / panels with light gradients → dark */
+body.dark [class*="from-white"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#FFF"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#fff"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#F0F"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#f0f"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#FAF"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#faf"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#FCF"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#fcf"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#F7F"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="from-[#f7f"]:not([data-chat-view]):not([data-chat-view] *) {
+  background-image: linear-gradient(to bottom right, #1a2232, #131a26) !important;
+}
+
+/* Additional light bg classes */
+body.dark [class*="bg-[#F0F6FF]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#f0f6ff]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#EFF6FF]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#E0E7FF]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#EBF2FF]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#E5EEFF]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#F8FAFF]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="bg-[#F1F5FF]"]:not([data-chat-view]):not([data-chat-view] *) {
+  background-color: #1a2232 !important;
+}
+
+/* Text inside dashboard */
+body.dark [class*="text-[#0B1020]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="text-[#1a1e2e]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="text-[#202635]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="text-[#111827]"]:not([data-chat-view]):not([data-chat-view] *) {
+  color: #f3f4f6 !important;
+}
+
+/* Muted section labels like MOMENTS */
+body.dark [class*="text-[#8A8F98]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="text-[#5F6673]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="text-[#94a3b8]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="text-[#9CA3AF]"]:not([data-chat-view]):not([data-chat-view] *) {
+  color: #9ca3af !important;
+}
+
+/* Buttons that look "muted" — restore visibility */
+body.dark [class*="border-[#DCD9D0]"]:not([data-chat-view]):not([data-chat-view] *),
+body.dark [class*="border-white"]:not([data-chat-view]):not([data-chat-view] *) {
+  border-color: #2a3441 !important;
+}
