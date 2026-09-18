@@ -3,7 +3,7 @@ import { Mic, MicOff, Hand, Crown, Shield } from "lucide-react"
 
 const ROLE_BADGE = {
   host: { label: "Host", icon: Crown, color: "bg-amber-100 text-amber-700 border-amber-200" },
-  cohost: { label: "Co-host", icon: Shield, color: "bg-blue-100 text-blue-700 border-blue-200" },
+  cohost: { label: "Co-host", icon: Shield, color: "bg-[#F1E7CC] text-[#A8873F] border-[#E9DFC5]" },
   speaker: { label: "Speaker", icon: Mic, color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   listener: { label: "Listener", icon: MicOff, color: "bg-gray-100 text-gray-600 border-gray-200" },
 }
@@ -29,11 +29,11 @@ export default function ListenerCard({
       whileHover={{ y: -2, scale: 1.015 }}
       whileTap={{ scale: 0.97 }}
       onClick={onTap}
-      className="group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 text-left shadow-[0_4px_12px_-6px_rgba(0,0,0,0.08)] transition hover:border-[#3B82F6]/40 hover:shadow-[0_10px_30px_-8px_rgba(59,130,246,0.25)]"
+      className="group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 text-left shadow-[0_4px_12px_-6px_rgba(0,0,0,0.08)] transition hover:border-[#A8873F]/40 hover:shadow-[0_10px_30px_-8px_rgba(168,135,63,0.25)]"
     >
       {/* Avatar */}
       <div className="relative h-12 w-12 shrink-0">
-        <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#DBEAFE] text-sm font-bold text-[#2563EB]">
+        <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#F1E7CC] text-sm font-bold text-[#A8873F]">
           {avatar ? (
             <img src={avatar} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -79,7 +79,7 @@ export default function ListenerCard({
       </div>
 
       {/* Chevron hint */}
-      <div className="shrink-0 text-gray-300 transition group-hover:text-[#3B82F6]">
+      <div className="shrink-0 text-gray-300 transition group-hover:text-[#A8873F]">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="9 18 15 12 9 6" />
         </svg>

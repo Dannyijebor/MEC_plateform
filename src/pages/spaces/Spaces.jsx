@@ -24,7 +24,7 @@ const themeStyles = {
     glow: "rgba(245, 158, 11, 0.18)",
   },
   blue: {
-    accent: "from-blue-400 to-cyan-500",
+    accent: "from-[#C9A85C] to-[#A8873F]",
     glow: "rgba(59, 130, 246, 0.18)",
   },
   purple: {
@@ -40,7 +40,7 @@ const themeStyles = {
     glow: "rgba(244, 63, 94, 0.18)",
   },
   custom: {
-    accent: "from-blue-400 to-violet-500",
+    accent: "from-[#C9A85C] to-violet-500",
     glow: "rgba(99, 102, 241, 0.18)",
   },
 }
@@ -327,20 +327,20 @@ export default function Spaces() {
       className="min-h-screen bg-white text-gray-900 dark:bg-[#070b16] dark:text-white"
     >
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-blue-500/10 via-transparent to-amber-400/5 p-6 sm:p-8">
-          <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#A8873F]/10 via-transparent to-amber-400/5 p-6 sm:p-8">
+          <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#A8873F]/10 blur-3xl" />
           <div className="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-amber-400/5 blur-3xl" />
 
           <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-400/15 bg-blue-400/10 px-3 py-1.5 text-xs font-medium text-blue-200">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#C9A85C]/15 bg-[#C9A85C]/10 px-3 py-1.5 text-xs font-medium text-[#A8873F]">
                 <Sparkles size={14} />
                 MEC Spaces
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
                 Connect. Talk.{" "}
-                <span className="bg-gradient-to-r from-blue-300 via-white to-amber-200 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#C9A85C] via-white to-amber-200 bg-clip-text text-transparent">
                   Together.
                 </span>
               </h1>

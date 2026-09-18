@@ -15,7 +15,7 @@ import { createSpace } from "../../services/spaces/spaceService"
 
 const themes = [
   { id: "gold", name: "Gold", className: "bg-amber-400" },
-  { id: "blue", name: "Blue", className: "bg-blue-500" },
+  { id: "gold", name: "Gold", className: "bg-[#A8873F]" },
   { id: "purple", name: "Purple", className: "bg-purple-500" },
   { id: "green", name: "Green", className: "bg-emerald-500" },
   { id: "rose", name: "Rose", className: "bg-rose-500" },
@@ -129,7 +129,7 @@ function CreateSpace() {
         </button>
 
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl">
-          <div className="border-b border-white/10 bg-gradient-to-r from-amber-400/10 via-blue-500/5 to-purple-500/10 p-6 sm:p-8">
+          <div className="border-b border-white/10 bg-gradient-to-r from-amber-400/10 via-[#A8873F]/5 to-amber-400/5 p-6 sm:p-8">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300/10 text-amber-300">
               <Sparkles size={24} />
             </div>

@@ -193,7 +193,7 @@ export default function ParticipantActionMenu({
             {/* Header — shows who we're acting on */}
             <div className="border-b border-gray-100 p-3">
               <div className="flex items-center gap-3">
-                <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#DBEAFE] text-sm font-bold text-[#2563EB]">
+                <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#F1E7CC] text-sm font-bold text-[#A8873F]">
                   {participant.profile?.avatar_url ? (
                     <img
                       src={participant.profile.avatar_url}
@@ -246,7 +246,7 @@ export default function ParticipantActionMenu({
                         action.color === "red"
                           ? "text-red-500 hover:bg-red-50"
                           : action.color === "blue"
-                            ? "text-[#2563EB] hover:bg-[#EFF6FF]"
+                            ? "text-[#A8873F] hover:bg-[#FEF9E7]"
                             : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -257,7 +257,7 @@ export default function ParticipantActionMenu({
                           action.color === "red"
                             ? "text-red-500"
                             : action.color === "blue"
-                              ? "text-[#2563EB]"
+                              ? "text-[#A8873F]"
                               : "text-gray-500"
                         }
                       />

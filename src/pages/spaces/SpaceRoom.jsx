@@ -48,7 +48,7 @@ const THEME_MAP = {
     glow: "shadow-amber-500/20",
   },
   blue: {
-    accent: "from-blue-400 to-cyan-500",
+    accent: "from-[#C9A85C] to-[#A8873F]",
     glow: "shadow-blue-500/20",
   },
   purple: {
@@ -691,7 +691,7 @@ function SpaceRoom() {
         <div
           className={`absolute left-1/2 top-[-180px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-gradient-to-br ${theme.accent} opacity-10 blur-[120px]`}
         />
-        <div className="absolute bottom-[-180px] right-[-100px] h-[420px] w-[420px] rounded-full bg-blue-600/10 blur-[120px]" />
+        <div className="absolute bottom-[-180px] right-[-100px] h-[420px] w-[420px] rounded-full bg-[#A8873F]/5 blur-[120px]" />
       </div>
 
       <header className="relative z-20 flex items-center justify-between border-b border-white/10 bg-slate-950/70 px-4 py-4 backdrop-blur-xl sm:px-6">
