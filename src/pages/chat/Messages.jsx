@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus, ChevronRight } from "lucide-react"
+import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus, ChevronRight, Mic } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import SwipeableBubble from "../../components/chat/SwipeableBubble"
 import MessageActionMenu from "../../components/chat/MessageActionMenu"
+import VoiceRecorder from "../../components/chat/VoiceRecorder"
+import VoiceMessagePlayer from "../../components/chat/VoiceMessagePlayer"
 import NewChatModal from "../../components/chat/NewChatModal"
 import { useAuth } from "../../hooks/useAuth"
 import { useOnlineUsers } from "../../context/PresenceContext"
@@ -278,6 +280,7 @@ function Messages() {
   const [editingMessage, setEditingMessage] = useState(null)
   const [reactions, setReactions] = useState({})
   const [showNewChatModal, setShowNewChatModal] = useState(false)
+  const [voiceRecording, setVoiceRecording] = useState(false)
   const [unreadCounts, setUnreadCounts] = useState({})
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
@@ -610,6 +613,43 @@ function Messages() {
   }, [user])
 
   // Send message
+  const handleSendVoiceNote = async (blob, mimeType, seconds) => {
+    if (!selectedConversation || !user?.id) return
+    try {
+      const ext = mimeType.includes("mp4") ? "m4a" : "webm"
+      const filePath = `${user.id}/voice-${Date.now()}.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from("community-media")
+        .upload(filePath, blob, { contentType: mimeType, upsert: false })
+
+      if (uploadError) throw uploadError
+
+      const newMessage = await sendMessage({
+        conversationId: selectedConversation.id,
+        senderId: user.id,
+        content: `[voice]${seconds}s`,
+      })
+
+      // Update the message row with media info
+      await supabase
+        .from("messages")
+        .update({ media_url: filePath, media_type: "voice" })
+        .eq("id", newMessage.id)
+
+      const enriched = { ...newMessage, media_url: filePath, media_type: "voice" }
+      setMessages((current) => {
+        if (current.some((m) => m.id === enriched.id)) return current
+        return [...current, enriched]
+      })
+    } catch (err) {
+      console.error("Voice upload failed:", err)
+      alert("Could not send voice note. Try again.")
+    } finally {
+      setVoiceRecording(false)
+    }
+  }
+
   const handleSendMessage = async (e) => {
     e.preventDefault()
     const content = messageText.trim()
@@ -1155,7 +1195,15 @@ function Messages() {
                                   </div>
                                 )
                               })()}
-                              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                              {message.media_type === "voice" && message.media_url ? (
+                                <VoiceMessagePlayer
+                                  mediaUrl={message.media_url}
+                                  mine={mine}
+                                  theme={theme}
+                                />
+                              ) : (
+                                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                              )}
                               {message.edited_at && (
                                 <p className="mt-1 text-[10px] opacity-60">(edited)</p>
                               )}
@@ -1332,14 +1380,25 @@ function Messages() {
                       className={`max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm ${theme.text} outline-none focus:outline-none focus:ring-0 focus:border-transparent appearance-none`}
                     />
                   </div>
-                  <button
-                    type="submit"
-                    disabled={!messageText.trim() || sending}
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${theme.accentBg} text-white shadow-lg transition ${theme.accentHover} disabled:cursor-not-allowed disabled:opacity-40`}
-                    aria-label="Send message"
-                  >
-                    {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                  </button>
+                  {messageText.trim() ? (
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#3B82F6] text-white shadow-lg transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-40`}
+                      aria-label="Send message"
+                    >
+                      {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setVoiceRecording(true)}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#3B82F6] text-white shadow-lg transition hover:bg-[#2563EB]"
+                      aria-label="Record voice note"
+                    >
+                      <Mic size={18} />
+                    </button>
+                  )}
                 </form>
                 <p className={`mt-2 text-center text-[10px] ${theme.textFaint}`}>
                   Messages disappear after 24 hours
@@ -1355,6 +1414,13 @@ function Messages() {
         onAccept={handleAcceptIncoming}
         onDecline={handleDeclineIncoming}
       />
+
+      {voiceRecording && (
+        <VoiceRecorder
+          onCancel={() => setVoiceRecording(false)}
+          onComplete={handleSendVoiceNote}
+        />
+      )}
 
       <NewChatModal
         open={showNewChatModal}
