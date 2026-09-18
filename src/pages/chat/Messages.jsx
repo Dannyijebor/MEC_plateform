@@ -9,6 +9,8 @@ import MessageActionMenu from "../../components/chat/MessageActionMenu"
 import VoiceRecorder from "../../components/chat/VoiceRecorder"
 import VoiceMessagePlayer from "../../components/chat/VoiceMessagePlayer"
 import Butterfly from "../../components/chat/Butterfly"
+import ChatHeaderMenu from "../../components/chat/ChatHeaderMenu"
+import UserProfileModal from "../../components/common/UserProfileModal"
 import NewChatModal from "../../components/chat/NewChatModal"
 import { useAuth } from "../../hooks/useAuth"
 import { useOnlineUsers } from "../../context/PresenceContext"
@@ -357,6 +359,9 @@ function Messages() {
   const [reactions, setReactions] = useState({})
   const [showNewChatModal, setShowNewChatModal] = useState(false)
   const [voiceRecording, setVoiceRecording] = useState(false)
+  const [showChatMenu, setShowChatMenu] = useState(false)
+  const [chatMuted, setChatMuted] = useState(false)
+  const [viewingProfileId, setViewingProfileId] = useState(null)
   const [unreadCounts, setUnreadCounts] = useState({})
   const [showMenuFor, setShowMenuFor] = useState(null)
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 })
@@ -1125,6 +1130,7 @@ function Messages() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setShowChatMenu(true)}
                     className={`flex h-10 w-10 items-center justify-center rounded-xl ${theme.textMuted} transition ${theme.dark ? "hover:bg-white/10" : "hover:bg-black/5"}`}
                     aria-label="Conversation options"
                   >
@@ -1489,6 +1495,38 @@ function Messages() {
         call={incomingCall}
         onAccept={handleAcceptIncoming}
         onDecline={handleDeclineIncoming}
+      />
+
+      {viewingProfileId && (
+        <UserProfileModal
+          userId={viewingProfileId}
+          onClose={() => setViewingProfileId(null)}
+        />
+      )}
+
+      <ChatHeaderMenu
+        open={showChatMenu}
+        onClose={() => setShowChatMenu(false)}
+        themeKey={themeKey}
+        onChangeTheme={setThemeKey}
+        muted={chatMuted}
+        onToggleMute={() => setChatMuted((v) => !v)}
+        onClearChat={() => {}}
+        onViewProfile={() => {
+          if (selectedConversation?.conversation_members) {
+            const other = selectedConversation.conversation_members.find(
+              (m) => m?.user_id !== user?.id
+            )
+            if (other?.user_id) {
+              setShowChatMenu(false)
+              setViewingProfileId?.(other.user_id)
+            }
+          }
+        }}
+        otherUser={{
+          full_name: selectedConversation?.display_name,
+        }}
+        theme={theme}
       />
 
       {voiceRecording && (
