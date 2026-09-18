@@ -211,3 +211,34 @@ export async function endSpace(spaceId) {
 
   return data
 }
+
+/**
+ * Update a participant's role in a space.
+ * allowedRoles: host, cohost, speaker, listener
+ */
+export async function updateParticipantRole({ spaceId, userId, newRole }) {
+  if (!spaceId || !userId || !newRole) return
+
+  const { error } = await supabase
+    .from("space_participants")
+    .update({ role: newRole })
+    .eq("space_id", spaceId)
+    .eq("user_id", userId)
+
+  if (error) throw error
+}
+
+/**
+ * Remove a participant entirely from a space.
+ */
+export async function removeParticipant({ spaceId, userId }) {
+  if (!spaceId || !userId) return
+
+  const { error } = await supabase
+    .from("space_participants")
+    .update({ left_at: new Date().toISOString() })
+    .eq("space_id", spaceId)
+    .eq("user_id", userId)
+
+  if (error) throw error
+}
