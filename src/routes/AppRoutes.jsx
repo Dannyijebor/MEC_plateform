@@ -167,7 +167,7 @@ function AppRoutes() {
         path="/family-tree"
         element={
           <ProtectedRoute>
-            <div className="p-8">Family Tree coming soon.</div>
+            <FamilyTree />
           </ProtectedRoute>
         }
       />
