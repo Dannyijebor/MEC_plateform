@@ -11,12 +11,13 @@ import {
   Sparkles,
   Users,
   X,
+  Send, Loader2,
   Eye,
   Volume2,
   VolumeX,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { supabase } from "../../lib/supabase"
 import StatusViewersModal from "../../components/community/StatusViewersModal"
@@ -25,6 +26,7 @@ import { useAuth } from "../../hooks/useAuth"
 const IMAGE_DURATION = 5000
 
 function DashboardHome() {
+  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [posts, setPosts] = useState([])
@@ -35,6 +37,8 @@ function DashboardHome() {
   const [storyMuted, setStoryMuted] = useState(true)
   const [storyPaused, setStoryPaused] = useState(false)
   const [showViewers, setShowViewers] = useState(false)
+  const [storyReply, setStoryReply] = useState("")
+  const [sendingReply, setSendingReply] = useState(false)
 
   const videoRef = useRef(null)
   const storyTimerRef = useRef(null)
@@ -155,6 +159,59 @@ function DashboardHome() {
       progressTimerRef.current = null
     }
   }, [])
+
+  const sendStoryReply = useCallback(async () => {
+    if (!currentStory || !user?.id || !storyReply.trim()) return
+    setSendingReply(true)
+    try {
+      const { data: myConvs } = await supabase
+        .from("conversation_members")
+        .select("conversation_id, conversations!inner(type)")
+        .eq("user_id", user.id)
+        .eq("conversations.type", "direct")
+
+      let conversationId = null
+      if (myConvs && myConvs.length > 0) {
+        const convIds = myConvs.map((c) => c.conversation_id)
+        const { data: match } = await supabase
+          .from("conversation_members")
+          .select("conversation_id")
+          .eq("user_id", currentStory.author_id)
+          .in("conversation_id", convIds)
+          .maybeSingle()
+        if (match) conversationId = match.conversation_id
+      }
+
+      if (!conversationId) {
+        const newId = crypto.randomUUID()
+        await supabase.from("conversations").insert({
+          id: newId,
+          type: "direct",
+          created_by: user.id,
+        })
+        await supabase.from("conversation_members").insert([
+          { conversation_id: newId, user_id: user.id },
+          { conversation_id: newId, user_id: currentStory.author_id },
+        ])
+        conversationId = newId
+      }
+
+      await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: storyReply.trim(),
+        status_post_id: currentStory.id,
+      })
+
+      setStoryReply("")
+      closeStory()
+      navigate(`/messages?conversation=${conversationId}`)
+    } catch (err) {
+      console.error("Reply failed:", err)
+    } finally {
+      setSendingReply(false)
+    }
+  }, [currentStory, user?.id, storyReply])
 
   const closeStory = useCallback(() => {
     clearStoryTimers()
@@ -1039,7 +1096,37 @@ function DashboardHome() {
                 </div>
               </div>
 
-              {currentStory.author_id === user?.id && (
+              {currentStory.author_id !== user?.id && (
+              <div className="absolute inset-x-4 bottom-6 z-30 flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-2 py-2 backdrop-blur-xl">
+                <input
+                  type="text"
+                  value={storyReply}
+                  onChange={(e) => setStoryReply(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      sendStoryReply()
+                    }
+                  }}
+                  placeholder="Reply to story..."
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/50"
+                />
+                <button
+                  type="button"
+                  onClick={sendStoryReply}
+                  disabled={!storyReply.trim() || sendingReply}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1E40AF] text-white transition disabled:opacity-40"
+                >
+                  {sendingReply ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <Send size={15} />
+                  )}
+                </button>
+              </div>
+            )}
+
+            {currentStory.author_id === user?.id && (
               <button
                 type="button"
                 onClick={() => setShowViewers(true)}
