@@ -1108,6 +1108,13 @@ function Community() {
                       </button>
 
                       {postMenuId === post.id && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setPostMenuId(null)}
+                            className="fixed inset-0 z-40 cursor-default bg-black/25 backdrop-blur-sm"
+                            aria-label="Close menu"
+                          />
                         <div className="absolute right-0 top-full z-[60] mt-1 w-40 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_30px_-8px_rgba(0,0,0,0.15)]">
                           {user?.id === post.author_id && canEditPost(post) && (
                             <button
@@ -1138,6 +1145,7 @@ function Community() {
                             </button>
                           )}
                         </div>
+                        </>
                       )}
                     </div>
                   </div>
