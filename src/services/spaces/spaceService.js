@@ -16,6 +16,7 @@ export async function createSpace({
   const { data, error } = await supabase
     .from("spaces")
     .insert({
+      user_name: userName,
       host_id: hostId,
       title: title.trim(),
       description: description?.trim() || null,
@@ -156,6 +157,7 @@ export async function getParticipants(spaceId) {
 export async function sendReaction({
   spaceId,
   userId,
+  userName,
   emoji,
 }) {
   const { data, error } = await supabase
@@ -163,6 +165,7 @@ export async function sendReaction({
     .insert({
       space_id: spaceId,
       user_id: userId,
+      user_name: userName,
       emoji,
     })
     .select()

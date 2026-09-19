@@ -211,6 +211,12 @@ function SpaceRoom() {
 
   const isHost = space?.host_id === user?.id
 
+  // Hide app chrome while in a space
+  useEffect(() => {
+    document.body.classList.add("space-open")
+    return () => document.body.classList.remove("space-open")
+  }, [])
+
   const currentUserRole = (() => {
     const me = participants.find((p) => p.user_id === user?.id)
     return me?.role || (isHost ? "host" : "listener")
@@ -483,6 +489,7 @@ function SpaceRoom() {
         const item = {
           id: `${reaction.id}-${Date.now()}`,
           emoji: reaction.emoji,
+          userName: reaction.user_name || reaction.userName || "MEC Member",
         }
 
         setReactions((current) => [...current, item])
@@ -642,13 +649,30 @@ function SpaceRoom() {
   async function handleReaction(emoji) {
     if (!user?.id) return
 
+    const myName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.username ||
+      user.email?.split("@")[0] ||
+      "You"
+
+    // Optimistic: show my own emoji instantly
+    const localItem = {
+      id: `local-${Date.now()}-${Math.random()}`,
+      emoji,
+      userName: myName,
+    }
+    setReactions((current) => [...current, localItem])
+    window.setTimeout(() => {
+      setReactions((current) => current.filter((r) => r.id !== localItem.id))
+    }, 3200)
+
     try {
       await sendReaction({
         spaceId,
         userId: user.id,
+        userName: myName,
         emoji,
       })
-
       setShowReactionPicker(false)
     } catch (error) {
       console.error(error)
@@ -896,17 +920,22 @@ function SpaceRoom() {
           </div>
         )}
 
-        {/* Floating emojis */}
+        {/* Floating emojis with username */}
         <div className="pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center overflow-hidden">
-          <div className="relative h-48 w-24">
+          <div className="relative h-64 w-full max-w-md">
             {reactions.map((reaction, index) => (
-              <span
+              <div
                 key={reaction.id}
-                className="absolute bottom-0 animate-[floatReaction_3.2s_ease-out_forwards] text-3xl"
-                style={{ left: `${20 + ((index * 29) % 50)}px` }}
+                className="absolute bottom-0 flex animate-[floatReaction_3.2s_ease-out_forwards] flex-col items-center gap-0.5"
+                style={{ left: `${15 + ((index * 22) % 60)}%` }}
               >
-                {reaction.emoji}
-              </span>
+                <span className="text-3xl drop-shadow-lg">{reaction.emoji}</span>
+                {reaction.userName && (
+                  <span className="whitespace-nowrap rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                    {reaction.userName.split(" ")[0]}
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -916,22 +945,55 @@ function SpaceRoom() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 sm:px-6">
         <div className="mx-auto flex max-w-lg items-end justify-between gap-2">
 
-          {/* Left: Request mic */}
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={handleToggleMic}
-              className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition ${
-                micOn
-                  ? "border-emerald-400 bg-emerald-500 text-white"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-              aria-label={micOn ? "Mute" : "Request to speak"}
-            >
-              {micOn ? <Mic size={20} /> : <Mic size={20} />}
-            </button>
-            <span className="text-[10px] font-medium text-gray-500">
-              {micOn ? "Mute" : "Request"}
-            </span>
+          {/* Left: Request mic + Emoji */}
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-1">
+              <button
+                onClick={handleToggleMic}
+                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition ${
+                  micOn
+                    ? "border-emerald-400 bg-emerald-500 text-white"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+                aria-label={micOn ? "Mute" : "Request to speak"}
+              >
+                <Mic size={20} />
+              </button>
+              <span className="text-[10px] font-medium text-gray-500">
+                {micOn ? "Mute" : "Request"}
+              </span>
+            </div>
+
+            {/* Emoji button */}
+            <div className="relative flex flex-col items-center gap-1">
+              <button
+                onClick={() => setShowReactionPicker((v) => !v)}
+                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition ${
+                  showReactionPicker
+                    ? "border-[#A8873F] bg-[#F1E7CC]"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+                aria-label="Send emoji"
+              >
+                <span className="text-xl">❤️</span>
+              </button>
+              <span className="text-[10px] font-medium text-gray-500">React</span>
+
+              {showReactionPicker && (
+                <div className="absolute bottom-full left-1/2 z-50 mb-3 flex -translate-x-1/2 gap-1 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl">
+                  {REACTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => handleReaction(emoji)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:scale-125 hover:bg-gray-100"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right: actions */}

@@ -1122,3 +1122,13 @@ body:not(.dark) [data-space-room-page] [class*="text-slate"] {
 [data-space-room-page] [class*="border-white/"] {
   border-color: #e5e7eb !important;
 }
+
+
+/* Hide chrome while in a MEC Space */
+@media (max-width: 1023px) {
+  body.space-open header.sticky,
+  body.space-open header[class*="sticky"] { display: none !important; }
+  body.space-open button[class*="fixed"][class*="top-3"][class*="left-3"] { display: none !important; }
+  body.space-open aside[class*="fixed"][class*="inset-y-0"][class*="left-0"] { display: none !important; }
+  body.space-open .lg\:ml-64 { margin-left: 0 !important; }
+}
