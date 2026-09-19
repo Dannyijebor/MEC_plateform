@@ -1038,7 +1038,7 @@ function SpaceRoom() {
         {/* ═══════ STICKY BOTTOM BAR (inside sheet, above nav) ═══════ */}
         <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3">
           <div className="flex items-center justify-between gap-2">
-            {/* Left: mic + emoji */}
+            {/* Left: mic + camera + emoji */}
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-center gap-0.5">
                 <button
@@ -1048,6 +1048,7 @@ function SpaceRoom() {
                       ? "border-emerald-400 bg-emerald-500 text-white"
                       : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                   }`}
+                  aria-label={micOn ? "Mute" : "Request to speak"}
                 >
                   <Mic size={18} />
                 </button>
@@ -1055,6 +1056,26 @@ function SpaceRoom() {
                   {micOn ? "Mute" : "Request"}
                 </span>
               </div>
+
+              {/* Camera toggle — only for video spaces */}
+              {isVideoSpace && (
+                <div className="flex flex-col items-center gap-0.5">
+                  <button
+                    onClick={handleToggleCamera}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition ${
+                      cameraOn
+                        ? "border-emerald-400 bg-emerald-500 text-white"
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                    aria-label={cameraOn ? "Turn camera off" : "Turn camera on"}
+                  >
+                    {cameraOn ? <Camera size={18} /> : <CameraOff size={18} />}
+                  </button>
+                  <span className="text-[9px] font-medium text-gray-500">
+                    {cameraOn ? "Cam on" : "Cam off"}
+                  </span>
+                </div>
+              )}
 
               <div className="relative flex flex-col items-center gap-0.5">
                 <button
