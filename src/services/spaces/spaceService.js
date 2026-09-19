@@ -175,26 +175,23 @@ export async function sendReaction({
   return data
 }
 
-export async function raiseHand(spaceId, userId) {
+export async function raiseHand(spaceId, userId, userName, raised = true) {
+  // Upsert: insert or update the raise state
   const { data, error } = await supabase
     .from("space_hand_raises")
     .upsert(
       {
         space_id: spaceId,
         user_id: userId,
-        status: "pending",
-        created_at: new Date().toISOString(),
-        responded_at: null,
+        user_name: userName,
+        raised,
       },
-      {
-        onConflict: "space_id,user_id",
-      },
+      { onConflict: "space_id,user_id" }
     )
     .select()
     .single()
 
   if (error) throw error
-
   return data
 }
 

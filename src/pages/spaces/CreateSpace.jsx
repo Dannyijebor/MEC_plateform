@@ -178,7 +178,7 @@ function CreateSpace() {
                 Space type
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {[
                   {
                     id: "audio",
@@ -192,13 +192,7 @@ function CreateSpace() {
                     description: "See everyone live",
                     icon: Video,
                   },
-                  {
-                    id: "audio_video",
-                    title: "Audio + Video",
-                    description: "Full live experience",
-                    icon: Sparkles,
-                  },
-                ].map((item) => {
+                                  ].map((item) => {
                   const Icon = item.icon
                   const selected = mode === item.id
 

@@ -45,6 +45,7 @@ import {
   unsubscribeFromSpace,
 } from "../../services/spaces/spaceRealtime"
 import ParticipantActionMenu from "../../components/spaces/ParticipantActionMenu"
+import { VideoTile } from "../../components/spaces/VideoTile"
 import ListenerCard from "../../components/spaces/ListenerCard"
 
 const REACTIONS = ["❤️", "👏", "😂", "🔥", "🎉", "😍", "👍", "🙌"]
@@ -696,9 +697,24 @@ function SpaceRoom() {
   async function handleRaiseHand() {
     if (!user?.id) return
 
+    const myName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.username ||
+      user.email?.split("@")[0] ||
+      "MEC Member"
+
     try {
-      await raiseHand(spaceId, user.id)
-      setHandRaised(true)
+      const nextRaised = !handRaised
+      await raiseHand(spaceId, user.id, myName, nextRaised)
+      setHandRaised(nextRaised)
+
+      setParticipants((current) =>
+        current.map((p) =>
+          p.user_id === user.id
+            ? { ...p, hand_raised: nextRaised }
+            : p
+        )
+      )
     } catch (error) {
       console.error(error)
     }
@@ -828,8 +844,72 @@ function SpaceRoom() {
             </div>
           )}
 
-          {/* Speakers grid (circular) */}
-          <div className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4">
+          {/* Zoom-style video tiles (only for video spaces) */}
+          {isVideoSpace && (
+            <div className="mb-6 -mx-4 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-3 px-4 snap-x snap-mandatory">
+                {/* My own tile */}
+                <VideoTile
+                  participant={{
+                    profile: {
+                      full_name: user?.user_metadata?.full_name || user?.email,
+                      avatar_url: user?.user_metadata?.avatar_url,
+                    },
+                    user_id: user?.id,
+                    name: user?.user_metadata?.full_name || "You",
+                    isMicrophoneEnabled: micOn,
+                    is_local: true,
+                  }}
+                  isLocal
+                  isActive={activeSpeakers.includes(user?.id)}
+                  videoElement={
+                    roomRef.current?.localParticipant?.getTrackPublication?.("camera")
+                      ? {
+                          attached: false,
+                          attach: (el) => {
+                            const pub = roomRef.current?.localParticipant?.getTrackPublication?.("camera")
+                            if (pub?.track?.attach) pub.track.attach(el)
+                          },
+                        }
+                      : null
+                  }
+                  onClick={() => {}}
+                />
+
+                {/* Remote tiles */}
+                {remoteVideoTracks.map((item) => {
+                  const p = liveParticipants.find(
+                    (x) => x.user_id === item.participant.identity
+                  ) || item.participant
+                  return (
+                    <VideoTile
+                      key={item.trackSid}
+                      participant={{
+                        profile: p.profile,
+                        user_id: p.user_id || item.participant.identity,
+                        name: item.participant.name || item.participant.identity,
+                        isMicrophoneEnabled: p.isMicrophoneEnabled,
+                        hand_raised: p.hand_raised,
+                      }}
+                      videoElement={{
+                        attached: false,
+                        attach: (el) => {
+                          if (item.track && item.track.attach) item.track.attach(el)
+                        },
+                      }}
+                      isActive={activeSpeakers.includes(
+                        p.user_id || item.participant.identity
+                      )}
+                      onClick={(e) => openParticipantMenu(p, e)}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Speakers grid (circular) — only for audio spaces */}
+          <div className={`grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 ${isVideoSpace ? "hidden" : ""}`}>
             {liveParticipants
               .filter((p) => ["host", "cohost", "speaker"].includes(p.role))
               .slice(0, 20)
@@ -849,6 +929,10 @@ function SpaceRoom() {
                       ? "Co-host"
                       : "Speaker"
 
+                const hasHandRaised = participant.hand_raised ||
+                  (participant.user_id === user?.id && handRaised) ||
+                  (participant.profile?.id === user?.id && handRaised)
+
                 return (
                   <button
                     key={participant.id}
@@ -856,15 +940,22 @@ function SpaceRoom() {
                     onClick={(e) => openParticipantMenu(participant, e)}
                     className="flex flex-col items-center gap-2 transition"
                   >
-                    <div
-                      className={`flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-full text-lg font-bold ring-2 ring-offset-2 ring-offset-white transition ${
-                        isActive ? "ring-emerald-400" : "ring-gray-200"
-                      } bg-[#F1E7CC] text-[#A8873F]`}
-                    >
-                      {avatar ? (
-                        <img src={avatar} alt={name} className="h-full w-full object-cover" />
-                      ) : (
-                        initials(name)
+                    <div className="relative">
+                      <div
+                        className={`flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-full text-lg font-bold ring-2 ring-offset-2 ring-offset-white transition ${
+                          isActive ? "ring-emerald-400" : "ring-gray-200"
+                        } bg-[#F1E7CC] text-[#A8873F]`}
+                      >
+                        {avatar ? (
+                          <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                        ) : (
+                          initials(name)
+                        )}
+                      </div>
+                      {hasHandRaised && (
+                        <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-amber-400 text-sm shadow-md">
+                          ✋
+                        </span>
                       )}
                     </div>
                     <div className="w-full text-center">
@@ -999,10 +1090,12 @@ function SpaceRoom() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleRaiseHand}
-                disabled={handRaised}
-                className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
-                  handRaised ? "bg-amber-100 text-amber-600" : "text-gray-600 hover:bg-gray-100"
+                className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition ${
+                  handRaised
+                    ? "border-amber-400 bg-amber-400 text-white shadow-lg shadow-amber-400/30"
+                    : "border-transparent text-gray-600 hover:bg-gray-100"
                 }`}
+                aria-label={handRaised ? "Lower hand" : "Raise hand"}
               >
                 <Hand size={19} />
               </button>
@@ -1031,9 +1124,9 @@ function SpaceRoom() {
           onClick={() => setCollapsed(false)}
           className="fixed inset-x-0 bottom-[68px] z-50 flex items-center gap-3 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)]"
         >
-          {/* Speaker avatars stack */}
-          <div className="flex -space-x-2">
-            {liveParticipants.slice(0, 4).map((p) => {
+          {/* All participant avatars, scrollable */}
+          <div className="flex -space-x-2 overflow-x-auto max-w-[140px] shrink-0 scrollbar-hide">
+            {liveParticipants.map((p) => {
               const av = p.profile?.avatar_url
               const nm = p.profile?.full_name || p.name || "M"
               return (
