@@ -742,10 +742,12 @@ function SpaceRoom() {
   return (
     <div className="fixed inset-0 z-40">
       {/* ═══════ BLURRED BACKDROP ═══════ */}
-      <div
-        onClick={() => setCollapsed(true)}
-        className="absolute inset-0 bg-black/25 backdrop-blur-md"
-      />
+      {!collapsed && (
+        <div
+          onClick={() => setCollapsed(true)}
+          className="absolute inset-0 bg-black/25 backdrop-blur-md"
+        />
+      )}
 
       {/* ═══════ BOTTOM SHEET ═══════ */}
       <div
@@ -785,6 +787,13 @@ function SpaceRoom() {
               className="flex h-9 items-center rounded-full bg-red-50 px-3 text-[11px] font-semibold text-red-500 transition hover:bg-red-100"
             >
               Leave
+            </button>
+            <button
+              onClick={handleLeave}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
+              aria-label="Close space"
+            >
+              <X size={16} />
             </button>
           </div>
         </header>
@@ -890,15 +899,7 @@ function SpaceRoom() {
             </div>
           )}
 
-          {/* Follow host CTA */}
-          <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gray-50 px-4 py-2.5">
-            <span className="text-[12px] font-medium text-gray-700">
-              Like what you're hearing?
-            </span>
-            <span className="rounded-full bg-gray-900 px-3 py-1 text-[11px] font-semibold text-white">
-              Follow host
-            </span>
-          </button>
+
 
           {/* Listeners row */}
           {liveParticipants.filter((p) => p.role === "listener").length > 0 && (
@@ -1013,9 +1014,7 @@ function SpaceRoom() {
                 <Users size={19} />
               </button>
 
-              <button className="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100">
-                <Heart size={19} />
-              </button>
+
 
               <button className="flex h-10 items-center gap-1.5 rounded-full border-2 border-[#1E40AF] bg-[#1E40AF] px-3.5 text-white transition active:border-[#1E40AF] active:bg-transparent active:text-[#1E40AF]">
                 <MessageCircle size={15} />
@@ -1076,8 +1075,21 @@ function SpaceRoom() {
             className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
               spaceMuted ? "bg-red-100 text-red-500" : "bg-gray-100 text-gray-700"
             }`}
+            aria-label="Mute space"
           >
             <Volume2 size={16} />
+          </button>
+
+          {/* Close (leave space) */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleLeave()
+            }}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-red-50 hover:text-red-500"
+            aria-label="Leave space"
+          >
+            <X size={16} />
           </button>
 
           <ChevronUp size={18} className="text-gray-400" />
