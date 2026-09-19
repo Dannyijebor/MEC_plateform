@@ -1379,3 +1379,84 @@ body.dark [data-family-tree] [class*="bg-white"][class*="rounded-3xl"] {
 body.dark [data-family-tree] .bg-gray-100 {
   background-color: #1a2232 !important;
 }
+
+
+/* Hide bottom nav when event modal is open */
+body.event-modal-open nav.fixed.inset-x-0.bottom-0,
+body.event-modal-open nav[class*="fixed"][class*="bottom-0"] {
+  display: none !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   EVENTS DARK MODE
+   ═══════════════════════════════════════════════════════ */
+
+body.dark [data-events-page] {
+  background-color: #0a0f18 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Header border */
+body.dark [data-events-page] [class*="border-gray-100"] {
+  border-color: #1f2937 !important;
+}
+
+/* Blue chip */
+body.dark [data-events-page] [class*="bg-blue-50"] {
+  background-color: rgba(96, 165, 250, 0.12) !important;
+  color: #93c5fd !important;
+}
+
+/* Headings & dark text */
+body.dark [data-events-page] h1,
+body.dark [data-events-page] h2,
+body.dark [data-events-page] h3 {
+  color: #f3f4f6 !important;
+}
+
+body.dark [data-events-page] .text-gray-900,
+body.dark [data-events-page] .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+body.dark [data-events-page] .text-gray-500,
+body.dark [data-events-page] .text-gray-600 {
+  color: #9ca3af !important;
+}
+
+body.dark [data-events-page] .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+/* Birthday cards — dark amber */
+body.dark [data-events-page] [class*="from-amber-50"] {
+  background: linear-gradient(to bottom right, rgba(251, 191, 36, 0.08), #131a26) !important;
+  border-color: rgba(251, 191, 36, 0.25) !important;
+}
+
+body.dark [data-events-page] [class*="bg-amber-100"] {
+  background-color: rgba(251, 191, 36, 0.15) !important;
+  color: #fcd34d !important;
+}
+
+body.dark [data-events-page] [class*="border-amber-100"] {
+  border-color: rgba(251, 191, 36, 0.25) !important;
+}
+
+/* Other event cards */
+body.dark [data-events-page] [class*="bg-white"]:not([class*="bg-white/"]) {
+  background-color: #131a26 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Empty state */
+body.dark [data-events-page] [class*="bg-gray-50"] {
+  background-color: #0f1622 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Create button — brighten blue in dark */
+body.dark [data-events-page] [class*="bg-[#1E40AF]"] {
+  background-color: #3b82f6 !important;
+}

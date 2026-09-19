@@ -17,6 +17,12 @@ export default function Events() {
   const [showCreate, setShowCreate] = useState(false)
 
   useEffect(() => {
+    if (showCreate) document.body.classList.add("event-modal-open")
+    else document.body.classList.remove("event-modal-open")
+    return () => document.body.classList.remove("event-modal-open")
+  }, [showCreate])
+
+  useEffect(() => {
     let cancelled = false
     async function load() {
       const { data } = await supabase
@@ -76,7 +82,7 @@ export default function Events() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24 text-gray-900">
+    <div data-events-page className="min-h-screen bg-white pb-24 text-gray-900 dark:bg-[#0a0f18] dark:text-white">
       <div className="border-b border-gray-100 px-5 py-5">
         <div className="mx-auto max-w-4xl">
           <div className="flex items-center justify-between">
