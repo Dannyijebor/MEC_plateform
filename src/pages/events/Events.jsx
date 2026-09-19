@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Calendar, Plus, Cake, Crown, MapPin, Loader2 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
+import CreateEventModal from "../../components/events/CreateEventModal"
 
 function initials(name = "MEC") {
   return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
@@ -13,6 +14,7 @@ export default function Events() {
   const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -95,6 +97,14 @@ export default function Events() {
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6">
+        <button
+          onClick={() => setShowCreate(true)}
+          className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1E40AF] py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#1E40AF]/90"
+        >
+          <Plus size={16} />
+          Create event
+        </button>
+
         {birthdayEvents.length > 0 && (
           <div className="mb-8">
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-gray-400">
@@ -187,6 +197,18 @@ export default function Events() {
           </div>
         )}
       </div>
+
+      <CreateEventModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={(created) => {
+          setEvents((list) =>
+            [...list, created].sort(
+              (a, b) => new Date(a.event_date) - new Date(b.event_date)
+            )
+          )
+        }}
+      />
     </div>
   )
 }
