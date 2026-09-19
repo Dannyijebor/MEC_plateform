@@ -1057,7 +1057,7 @@ function Community() {
                     delay: Math.min(index * 0.035, 0.2),
                     duration: 0.35,
                   }}
-                  className="group overflow-hidden rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7] shadow-[0_12px_45px_rgba(17,24,39,0.055)] transition duration-300 hover:border-[#60A5FA]/30 hover:shadow-[0_18px_55px_rgba(17,24,39,0.085)]"
+                  className="group rounded-[26px] border border-[#DCD9D0] bg-[#FCFBF7] shadow-[0_12px_45px_rgba(17,24,39,0.055)] transition duration-300 hover:border-[#60A5FA]/30 hover:shadow-[0_18px_55px_rgba(17,24,39,0.085)]"
                 >
                   {/* POST HEADER */}
                   <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-5 sm:pt-5">
@@ -1093,7 +1093,7 @@ function Community() {
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-1">
+                    <div className="relative flex shrink-0 items-center gap-1">
                       
 
                       <button
@@ -1108,7 +1108,7 @@ function Community() {
                       </button>
 
                       {postMenuId === post.id && (
-                        <div className="absolute right-4 top-14 z-50 w-40 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_30px_-8px_rgba(0,0,0,0.15)]">
+                        <div className="absolute right-0 top-full z-[60] mt-1 w-40 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_30px_-8px_rgba(0,0,0,0.15)]">
                           {user?.id === post.author_id && canEditPost(post) && (
                             <button
                               type="button"
