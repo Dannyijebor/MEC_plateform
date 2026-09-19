@@ -67,10 +67,8 @@ export default function AIBubble() {
             .filter((m) => m.role === "user" || m.role === "assistant")
             .map((m) => ({ role: m.role, content: m.content })),
           mode,
+          user_id: session?.user?.id,
         },
-        headers: session?.access_token
-          ? { Authorization: "Bearer " + session.access_token }
-          : undefined,
       })
 
       if (res.error) throw res.error
