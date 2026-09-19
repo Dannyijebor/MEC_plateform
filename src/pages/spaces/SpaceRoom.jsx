@@ -13,6 +13,7 @@ import {
   Hand,
   Mic,
   MicOff,
+  Plus,
   MoreHorizontal,
   PhoneOff,
   Send,
@@ -198,6 +199,8 @@ function SpaceRoom() {
   const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [spaceMuted, setSpaceMuted] = useState(false)
+  const [showPostComposer, setShowPostComposer] = useState(false)
+  const [postText, setPostText] = useState("")
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
@@ -1130,9 +1133,13 @@ function SpaceRoom() {
 
 
 
-              <button className="flex h-10 items-center gap-1.5 rounded-full border-2 border-[#1E40AF] bg-[#1E40AF] px-3.5 text-white transition active:border-[#1E40AF] active:bg-transparent active:text-[#1E40AF]">
-                <MessageCircle size={15} />
-                <span className="text-xs font-bold">{participantCount}</span>
+              <button
+                onClick={() => setShowPostComposer(true)}
+                className="flex h-10 items-center gap-1.5 rounded-full border-2 border-[#1E40AF] bg-[#1E40AF] px-3.5 text-white transition hover:bg-[#1E40AF]/90"
+                aria-label="Post in Space"
+              >
+                <Plus size={15} />
+                <span className="text-xs font-bold">Post</span>
               </button>
             </div>
           </div>
@@ -1216,58 +1223,83 @@ function SpaceRoom() {
           <button
             className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={() => setShowParticipants(false)}
+            aria-label="Close"
           />
-          <aside className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto border-l border-gray-200 bg-white p-5 shadow-2xl">
-            <div className="mb-6 flex items-center justify-between">
+          <aside className="absolute inset-x-0 bottom-0 top-[15%] flex flex-col overflow-hidden rounded-t-[28px] bg-white shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.3)] sm:inset-x-auto sm:inset-y-0 sm:right-0 sm:top-0 sm:w-[380px] sm:rounded-none sm:rounded-l-[28px]">
+            <div className="flex justify-center py-3 sm:hidden">
+              <div className="h-1.5 w-12 rounded-full bg-gray-200" />
+            </div>
+
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
               <div>
                 <p className="text-lg font-bold text-gray-900">People in Space</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   {participantCount} participant{participantCount === 1 ? "" : "s"}
                 </p>
               </div>
               <button
                 onClick={() => setShowParticipants(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200"
+                aria-label="Close"
               >
-                <X size={18} />
+                <X size={17} />
               </button>
             </div>
 
-            <div className="space-y-2">
-              {liveParticipants.map((participant) => {
-                const name =
-                  participant.profile?.full_name ||
-                  participant.profile?.username ||
-                  participant.name ||
-                  participant.identity ||
-                  "MEC Member"
-                const avatar = participant.profile?.avatar_url
-                return (
-                  <button
-                    key={participant.id}
-                    type="button"
-                    onClick={(e) => openParticipantMenu(participant, e)}
-                    className="flex w-full items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 text-left transition hover:bg-gray-50"
-                  >
-                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[#F1E7CC] text-sm font-bold text-[#A8873F]">
-                      {avatar ? (
-                        <img src={avatar} alt={name} className="h-full w-full object-cover" />
+            <div className="flex-1 overflow-y-auto p-3">
+              <div className="space-y-1.5">
+                {liveParticipants.map((participant) => {
+                  const name =
+                    participant.profile?.full_name ||
+                    participant.profile?.username ||
+                    participant.name ||
+                    participant.identity ||
+                    "MEC Member"
+                  const avatar = participant.profile?.avatar_url
+                  const role = participant.role || "listener"
+
+                  const roleStyles = {
+                    host: "border-amber-200 bg-amber-50 text-amber-700",
+                    cohost: "border-blue-200 bg-blue-50 text-blue-700",
+                    speaker: "border-emerald-200 bg-emerald-50 text-emerald-700",
+                    listener: "border-gray-200 bg-gray-50 text-gray-600",
+                  }
+
+                  return (
+                    <button
+                      key={participant.id}
+                      type="button"
+                      onClick={(e) => openParticipantMenu(participant, e)}
+                      className="flex w-full items-center gap-2.5 rounded-full border border-gray-200 bg-white py-1.5 pl-1.5 pr-3 text-left transition hover:bg-gray-50 hover:shadow-sm"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+                        {avatar ? (
+                          <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                        ) : (
+                          initials(name)
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {name}
+                        </p>
+                        <span
+                          className={`mt-0.5 inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold capitalize ${
+                            roleStyles[role] || roleStyles.listener
+                          }`}
+                        >
+                          {role}
+                        </span>
+                      </div>
+                      {participant.isMicrophoneEnabled ? (
+                        <Mic size={14} className="shrink-0 text-emerald-500" />
                       ) : (
-                        initials(name)
+                        <MicOff size={14} className="shrink-0 text-red-400" />
                       )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-gray-900">{name}</p>
-                      <p className="text-xs capitalize text-gray-500">{participant.role}</p>
-                    </div>
-                    {participant.isMicrophoneEnabled ? (
-                      <Mic size={14} className="text-emerald-500" />
-                    ) : (
-                      <MicOff size={14} className="text-red-400" />
-                    )}
-                  </button>
-                )
-              })}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </aside>
         </div>
@@ -1305,6 +1337,81 @@ function SpaceRoom() {
                 className="rounded-2xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
               >
                 Stay in Space
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Post composer modal */}
+      {showPostComposer && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
+          <button
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowPostComposer(false)}
+            aria-label="Close"
+          />
+          <div className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-gray-100 bg-white p-5 shadow-2xl sm:rounded-3xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#A8873F]">
+                  Post in this Space
+                </p>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Only people in the space can see this
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPostComposer(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <textarea
+              value={postText}
+              onChange={(e) => setPostText(e.target.value)}
+              rows={4}
+              placeholder="Share a thought with the space..."
+              className="mt-4 w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#A8873F] focus:bg-white"
+            />
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => {
+                  setPostText("")
+                  setShowPostComposer(false)
+                }}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!postText.trim()}
+                onClick={async () => {
+                  if (!postText.trim() || !user?.id) return
+                  try {
+                    const hostProfile = liveParticipants.find((p) => p.role === "host")
+                    const hostName = hostProfile?.profile?.full_name || hostProfile?.profile?.username || "the host"
+                    await supabase.from("posts").insert({
+                      author_id: user.id,
+                      content: postText.trim(),
+                      space_id: space?.id,
+                      space_host_name: hostName,
+                      space_title: space?.title,
+                      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                    })
+                    setPostText("")
+                    setShowPostComposer(false)
+                  } catch (err) {
+                    console.error("Post failed:", err)
+                    setMediaError("Could not post to space.")
+                  }
+                }}
+                className="rounded-xl bg-[#1E40AF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1E40AF]/90 disabled:opacity-50"
+              >
+                Post
               </button>
             </div>
           </div>
