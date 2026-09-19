@@ -58,6 +58,10 @@ export function AuthProvider({ children }) {
     email,
     password,
     fullName,
+    username,
+    birthday,
+    parentSlug,
+    relationshipType,
   }) => {
     return await supabase.auth.signUp({
       email,
@@ -65,6 +69,10 @@ export function AuthProvider({ children }) {
       options: {
         data: {
           full_name: fullName,
+          username: username || null,
+          birthday: birthday || null,
+          parent_slug: parentSlug || null,
+          relationship_type: relationshipType || null,
         },
       },
     })
