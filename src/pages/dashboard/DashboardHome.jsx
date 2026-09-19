@@ -115,6 +115,16 @@ function DashboardHome() {
   const currentStory =
     storyIndex !== null ? storyPosts[storyIndex] : null
 
+  // Hide app chrome while a story is open
+  useEffect(() => {
+    if (storyIndex !== null) {
+      document.body.classList.add("story-open")
+    } else {
+      document.body.classList.remove("story-open")
+    }
+    return () => document.body.classList.remove("story-open")
+  }, [storyIndex])
+
   const clearStoryTimers = useCallback(() => {
     if (storyTimerRef.current) {
       clearTimeout(storyTimerRef.current)
@@ -851,7 +861,7 @@ function DashboardHome() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-0 backdrop-blur-2xl sm:p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black p-0 backdrop-blur-2xl sm:bg-black/90 sm:p-6"
           >
 
             <button

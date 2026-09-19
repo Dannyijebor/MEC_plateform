@@ -1140,3 +1140,27 @@ body:not(.dark) [data-space-room-page] [class*="text-slate"] {
   80% { opacity: 1; transform: translateY(-220px) scale(1); }
   100% { opacity: 0; transform: translateY(-280px) scale(1.1); }
 }
+
+
+/* Hide chrome when a story is open */
+body.story-open header.sticky,
+body.story-open header[class*="sticky"] {
+  display: none !important;
+}
+
+body.story-open nav.fixed.inset-x-0.bottom-0,
+body.story-open nav[class*="fixed"][class*="bottom-0"] {
+  display: none !important;
+}
+
+body.story-open button[class*="fixed"][class*="top-3"][class*="left-3"] {
+  display: none !important;
+}
+
+body.story-open aside[class*="fixed"][class*="inset-y-0"][class*="left-0"] {
+  display: none !important;
+}
+
+body.story-open .lg\:ml-64 {
+  margin-left: 0 !important;
+}
