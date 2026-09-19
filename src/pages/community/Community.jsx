@@ -38,6 +38,7 @@ function Community() {
   const [commentInputs, setCommentInputs] = useState({})
   const [openComments, setOpenComments] = useState({})
   const [editingPostId, setEditingPostId] = useState(null)
+  const [postMenuId, setPostMenuId] = useState(null)
   const [editingPostText, setEditingPostText] = useState("")
   const [savingEdit, setSavingEdit] = useState(false)
   const [editingCommentId, setEditingCommentId] = useState(null)
@@ -1093,41 +1094,51 @@ function Community() {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
-                      {user?.id === post.author_id && (
-                        <>
-                          {canEditPost(post) && (
-                            <button
-                              type="button"
-                              onClick={() => startEditingPost(post)}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#EAF0FF] hover:text-[#4F7CFF]"
-                              aria-label="Edit post"
-                              title="Edit post"
-                            >
-                              <Edit3 size={16} />
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleDeletePost(post.id)
-                            }
-                            className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#FFF3F0] hover:text-[#B44B40]"
-                            aria-label="Delete post"
-                            title="Delete post"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </>
-                      )}
+                      
 
                       <button
                         type="button"
+                        onClick={() =>
+                          setPostMenuId(postMenuId === post.id ? null : post.id)
+                        }
                         className="flex h-9 w-9 items-center justify-center rounded-xl text-[#8A8F98] transition hover:bg-[#F1EFE8] hover:text-[#111827]"
                         aria-label="Post options"
                       >
                         <MoreHorizontal size={18} />
                       </button>
+
+                      {postMenuId === post.id && (
+                        <div className="absolute right-4 top-14 z-50 w-40 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_30px_-8px_rgba(0,0,0,0.15)]">
+                          {user?.id === post.author_id && canEditPost(post) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                startEditingPost(post)
+                                setPostMenuId(null)
+                              }}
+                              className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                            >
+                              <Edit3 size={15} className="text-gray-500" />
+                              Edit
+                            </button>
+                          )}
+                          {user?.id === post.author_id && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleDeletePost(post.id)
+                                setPostMenuId(null)
+                              }}
+                              className={`flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm font-medium text-red-500 transition hover:bg-red-50 ${
+                                canEditPost(post) ? "border-t border-gray-100" : ""
+                              }`}
+                            >
+                              <Trash2 size={15} className="text-red-500" />
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
