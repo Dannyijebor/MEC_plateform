@@ -196,10 +196,18 @@ function DashboardHome() {
         conversationId = newId
       }
 
+      // Embed status media in the message content (bulletproof — no join needed)
+      const statusRef = {
+        mediaUrl: currentStory.media_display_url,
+        mediaType: currentStory.media_type || "image",
+        authorName: currentStory.profiles?.full_name || currentStory.profiles?.username || "MEC Member",
+      }
+      const contentWithStatus = `[MEC_STATUS]${JSON.stringify(statusRef)}\n\n${storyReply.trim()}`
+
       await supabase.from("messages").insert({
         conversation_id: conversationId,
         sender_id: user.id,
-        content: storyReply.trim(),
+        content: contentWithStatus,
         status_post_id: currentStory.id,
       })
 

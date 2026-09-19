@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Vid
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
+import { parseStatusReply, StatusReplyPreview } from "../../components/chat/StatusReplyPreview"
 import SwipeableBubble from "../../components/chat/SwipeableBubble"
 import MessageActionMenu from "../../components/chat/MessageActionMenu"
 import VoiceRecorder from "../../components/chat/VoiceRecorder"
@@ -1400,9 +1401,19 @@ function Messages() {
                                   mine={mine}
                                   theme={theme}
                                 />
-                              ) : (
-                                <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                              )}
+                              ) : (() => {
+                                const parsed = parseStatusReply(message.content)
+                                return (
+                                  <>
+                                    {parsed.isStatus && (
+                                      <StatusReplyPreview status={parsed.status} />
+                                    )}
+                                    <p className="whitespace-pre-wrap break-words">
+                                      {parsed.isStatus ? parsed.text : message.content}
+                                    </p>
+                                  </>
+                                )
+                              })()}
                               {message.edited_at && (
                                 <p className="mt-1 text-[10px] opacity-60">(edited)</p>
                               )}
