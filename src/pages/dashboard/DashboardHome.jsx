@@ -33,6 +33,7 @@ function DashboardHome() {
   const [storyIndex, setStoryIndex] = useState(null)
   const [storyProgress, setStoryProgress] = useState(0)
   const [storyMuted, setStoryMuted] = useState(true)
+  const [storyPaused, setStoryPaused] = useState(false)
   const [showViewers, setShowViewers] = useState(false)
 
   const videoRef = useRef(null)
@@ -209,6 +210,7 @@ function DashboardHome() {
     const startedAt = Date.now()
 
     progressTimerRef.current = setInterval(() => {
+      if (storyPaused) return
       const elapsed = Date.now() - startedAt
 
       setStoryProgress(
@@ -979,6 +981,10 @@ function DashboardHome() {
 
               <div
                 className="absolute inset-0"
+                onPointerDown={() => setStoryPaused(true)}
+                onPointerUp={() => setStoryPaused(false)}
+                onPointerCancel={() => setStoryPaused(false)}
+                onPointerLeave={() => setStoryPaused(false)}
                 onClick={(event) => {
 
                   const bounds =
