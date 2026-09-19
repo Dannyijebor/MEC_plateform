@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
@@ -234,7 +236,13 @@ export default function AIBubble() {
                               : "border border-gray-100 bg-gray-50 text-gray-800")
                           }
                         >
-                          <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                          {m.role === "assistant" ? (
+                              <div className="break-words text-sm leading-relaxed [&_h1]:font-bold [&_h1]:text-lg [&_h1]:my-2 [&_h2]:font-bold [&_h2]:my-2 [&_h3]:font-semibold [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_table]:text-xs [&_table]:border-collapse [&_table]:my-2 [&_td]:border [&_td]:border-gray-300 [&_td]:p-1 [&_th]:border [&_th]:border-gray-300 [&_th]:p-1 [&_strong]:font-semibold [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-100 [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_a]:text-blue-600 [&_a]:underline">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                            )}
                           {!mine && m.id !== "greet" && (
                             <button
                               onClick={() => speak(m.content)}
