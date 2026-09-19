@@ -891,18 +891,6 @@ function DashboardHome() {
               {storyMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </button>
 
-            {currentStory.author_id === user?.id && (
-              <button
-                type="button"
-                onClick={() => setShowViewers(true)}
-                className="absolute right-16 top-4 z-30 flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-3 text-white backdrop-blur-xl transition hover:bg-white/20"
-                aria-label="View activity"
-              >
-                <Eye size={16} />
-                <span className="text-xs font-semibold">Views</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={closeStory}
@@ -1044,6 +1032,19 @@ function DashboardHome() {
                   Tap sides to navigate
                 </div>
               </div>
+
+              {currentStory.author_id === user?.id && (
+              <button
+                type="button"
+                onClick={() => setShowViewers(true)}
+                className="absolute bottom-6 right-4 z-30 flex h-11 items-center gap-2 rounded-full bg-black/60 px-4 text-white backdrop-blur-xl transition hover:bg-black/80"
+                aria-label="View activity"
+              >
+                <Eye size={16} />
+                <span className="text-xs font-semibold">Views</span>
+              </button>
+            )}
+            
 
             </div>
 
