@@ -1,10 +1,11 @@
 import { Bell, Search, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useHideTopChrome } from "../../hooks/useHideTopChrome"
 import { useAuthRoute } from "../../hooks/useAuthRoute"
 
 function Navbar() {
+  const navigate = useNavigate()
   const hideTopChrome = useHideTopChrome()
   const isAuthRoute = useAuthRoute()
 
@@ -55,6 +56,7 @@ function Navbar() {
           <motion.button
             whileTap={{ scale: 0.92 }}
             type="button"
+            onClick={() => navigate("/notifications")}
             aria-label="Notifications"
             className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-[#202635]/[0.09] bg-white/70 text-[#111827]/65 transition hover:bg-white hover:text-[#111827] sm:h-10 sm:w-10 sm:rounded-xl"
           >
