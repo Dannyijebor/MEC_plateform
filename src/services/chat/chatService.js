@@ -81,6 +81,11 @@ export async function getMyConversations(userId) {
       last_message_preview: (() => {
         const m = lastByConv[conv.id]
         if (!m) return null
+
+        // Voice note
+        if (m.media_type === "voice") return "🎤 Voice note"
+
+        // Call event
         if (m.type === "call_event" || m.content?.startsWith("[MEC_CALL]")) {
           try {
             const info = JSON.parse(m.content.slice(10))
@@ -92,6 +97,25 @@ export async function getMyConversations(userId) {
             return "📞 Call"
           }
         }
+
+        // Theme change
+        if (m.content?.startsWith("[MEC_THEME]")) {
+          try {
+            const info = JSON.parse(m.content.slice(11))
+            return "🎨 Theme changed to " + (info.themeName || "a new theme")
+          } catch {
+            return "🎨 Theme changed"
+          }
+        }
+
+        // Status reply
+        if (m.content?.startsWith("[MEC_STATUS]")) {
+          const raw = m.content.slice(12)
+          const idx = raw.indexOf("\n\n")
+          const text = idx !== -1 ? raw.slice(idx + 2) : ""
+          return text ? "🎬 " + text : "🎬 Replied to a status"
+        }
+
         return m.content || null
       })(),
       last_message_mine: lastByConv[conv.id]?.sender_id === userId,
