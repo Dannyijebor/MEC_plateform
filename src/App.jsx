@@ -5,6 +5,7 @@ import Sidebar from "./components/layout/Sidebar"
 import MobileNav from "./components/layout/MobileNav"
 import PageContainer from "./components/layout/PageContainer"
 import AppRoutes from "./routes/AppRoutes"
+import PageTransition from "./components/layout/PageTransition"
 import { usePushNotifications } from "./hooks/usePushNotifications"
 import { useAuth } from "./hooks/useAuth"
 import FloatingCallWidget from "./components/chat/FloatingCallWidget"
@@ -25,7 +26,9 @@ function App() {
             <Navbar />
 
             <PageContainer>
+              <PageTransition>
               <AppRoutes />
+            </PageTransition>
             </PageContainer>
 
             <MobileNav />
