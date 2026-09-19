@@ -18,10 +18,12 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import UserProfileModal from "../../components/common/UserProfileModal"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 
 function Community() {
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   const [postText, setPostText] = useState("")
   const [selectedMedia, setSelectedMedia] = useState(null)
@@ -858,7 +860,7 @@ function Community() {
         >
           <div className="p-4 sm:p-5">
             <div className="flex gap-3">
-              <div onClick={() => setViewingProfileId(post.author_id)} className="cursor-pointer flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#60A5FA]/25 bg-[#DBEAFE] text-xs font-bold text-[#2563EB]">
+              <div onClick={() => navigate(`/user/${post.author_id}`)} className="cursor-pointer flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#60A5FA]/25 bg-[#DBEAFE] text-xs font-bold text-[#2563EB]">
                 {user?.user_metadata?.avatar_url ? (
                   <img
                     src={user.user_metadata.avatar_url}
@@ -1073,7 +1075,7 @@ function Community() {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p onClick={() => setViewingProfileId(post.author_id)} className="cursor-pointer hover:underline truncate text-sm font-semibold text-[#111827]">
+                          <p onClick={() => navigate(`/user/${post.author_id}`)} className="cursor-pointer hover:underline truncate text-sm font-semibold text-[#111827]">
                             {name}
                           </p>
 

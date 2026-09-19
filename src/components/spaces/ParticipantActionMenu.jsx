@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
+  UserRound,
   Crown,
   Star,
   Mic,
@@ -36,6 +37,14 @@ const ROLE_ICONS = {
 function buildActions(currentRole, targetRole, isSelf) {
   const actions = []
   if (isSelf) return actions
+
+  // Everyone can view profiles
+  actions.push({
+    key: "view-profile",
+    label: "View profile",
+    icon: UserRound,
+    color: "gray",
+  })
 
   const iAmHost = currentRole === "host"
   const iAmCohost = currentRole === "cohost"

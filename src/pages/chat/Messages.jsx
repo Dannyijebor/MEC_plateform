@@ -1617,7 +1617,7 @@ function Messages() {
             )
             if (other?.user_id) {
               setShowChatMenu(false)
-              setViewingProfileId?.(other.user_id)
+              navigate(`/user/${other.user_id}`)
             }
           }
         }}

@@ -10,6 +10,7 @@ import Login from "../pages/auth/Login"
 import Register from "../pages/auth/Register"
 import AuthLayout from "../pages/auth/AuthLayout"
 import Profile from "../pages/profile/Profile"
+import UserProfile from "../pages/profile/UserProfile"
 import Call from "../pages/calls/Call"
 import CallHistory from "../pages/calls/CallHistory"
 
@@ -64,6 +65,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DashboardHome />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/user/:userId"
+        element={
+          <ProtectedRoute>
+            <UserProfile />
           </ProtectedRoute>
         }
       />

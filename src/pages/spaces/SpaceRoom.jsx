@@ -221,7 +221,9 @@ function SpaceRoom() {
     if (!targetUserId) return
 
     try {
-      if (actionKey === "make-speaker") {
+      if (actionKey === "view-profile") {
+        navigate(`/user/${targetUserId}`)
+      } else if (actionKey === "make-speaker") {
         await updateParticipantRole({ spaceId: space.id, userId: targetUserId, newRole: "speaker" })
       } else if (actionKey === "make-cohost") {
         await updateParticipantRole({ spaceId: space.id, userId: targetUserId, newRole: "cohost" })
