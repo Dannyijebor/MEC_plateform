@@ -63,10 +63,16 @@ export function AuthProvider({ children }) {
     parentSlug,
     relationshipType,
   }) => {
+    const redirectTo =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin + "/welcome"
+        : "https://mec-platform-nu.vercel.app/welcome"
+
     return await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectTo,
         data: {
           full_name: fullName,
           username: username || null,
