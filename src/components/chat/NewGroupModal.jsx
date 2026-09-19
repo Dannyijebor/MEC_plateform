@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { X, Search, Loader2, Check, Users } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { sheetUp } from "../../lib/motion"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
 import { createGroupConversation } from "../../services/chat/chatService"
@@ -74,10 +75,10 @@ export default function NewGroupModal({ open, onClose, onCreated }) {
         onClick={onClose}
       >
         <motion.div
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          variants={sheetUp}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           onClick={(e) => e.stopPropagation()}
           className="relative flex h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:h-auto sm:max-h-[80vh] sm:rounded-3xl"
         >

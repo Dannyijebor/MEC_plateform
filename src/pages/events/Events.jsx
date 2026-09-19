@@ -1,3 +1,4 @@
+import { motion } from "framer-motion"
 import { useEffect, useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Calendar, Plus, Cake, Crown, MapPin, Loader2 } from "lucide-react"
@@ -121,8 +122,11 @@ export default function Events() {
                 const bday = e.birthday_user
                 const nm = bday?.full_name || bday?.username || "MEC Member"
                 return (
-                  <div
+                  <motion.div
                     key={e.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
                     onClick={() => bday?.id && navigate(`/user/${bday.id}`)}
                     className="flex cursor-pointer items-center gap-4 rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50/60 to-white p-4 transition hover:border-amber-200"
                   >
@@ -144,7 +148,7 @@ export default function Events() {
                         {fmt(e.event_date)} · {fmtTime(e.event_date)}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>

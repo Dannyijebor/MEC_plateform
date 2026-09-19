@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { X, Eye, Heart, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { sheetUp } from "../../lib/motion"
 import { supabase } from "../../lib/supabase"
 
 function initials(name = "MEC") {
@@ -58,10 +59,10 @@ export default function StatusViewersModal({ postId, open, onClose, liked }) {
         onClick={onClose}
       >
         <motion.div
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          variants={sheetUp}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           onClick={(e) => e.stopPropagation()}
           className="relative flex h-[75vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white sm:h-auto sm:max-h-[75vh] sm:rounded-3xl"
         >

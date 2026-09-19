@@ -1,6 +1,7 @@
 import { useState } from "react"
 import {X, MapPin, Loader2, Check, Calendar, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { sheetUp } from "../../lib/motion"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
 
@@ -81,10 +82,10 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
         onClick={handleClose}
       >
         <motion.div
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          variants={sheetUp}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
           onClick={(e) => e.stopPropagation()}
           className="relative flex h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl"
         >

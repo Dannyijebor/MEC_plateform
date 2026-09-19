@@ -523,7 +523,7 @@ function DashboardHome() {
               {[1, 2, 3, 4, 5].map((item) => (
                 <div
                   key={item}
-                  className="h-52 w-32 shrink-0 animate-pulse rounded-3xl bg-black/[0.04]"
+                  className="skeleton h-52 w-32 shrink-0 rounded-3xl"
                 />
               ))}
             </div>
@@ -671,7 +671,7 @@ function DashboardHome() {
                 {[1, 2, 3].map((item) => (
                   <div
                     key={item}
-                    className="h-72 animate-pulse rounded-3xl bg-black/[0.035]"
+                    className="skeleton h-72 rounded-3xl"
                   />
                 ))}
               </div>
