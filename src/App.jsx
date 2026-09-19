@@ -9,6 +9,7 @@ import AppRoutes from "./routes/AppRoutes"
 import { usePushNotifications } from "./hooks/usePushNotifications"
 import { useAuth } from "./hooks/useAuth"
 import FloatingCallWidget from "./components/chat/FloatingCallWidget"
+import AIBubble from "./components/ai/AIBubble"
 import { PresenceProvider } from "./context/PresenceContext"
 
 function AppContent() {
@@ -44,6 +45,7 @@ function AppContent() {
         </div>
 
         <FloatingCallWidget />
+        <AIBubble />
       </div>
     </PresenceProvider>
   )
