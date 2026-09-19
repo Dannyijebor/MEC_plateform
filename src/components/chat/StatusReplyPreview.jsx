@@ -2,7 +2,7 @@ export function parseStatusReply(content) {
   if (!content || !content.startsWith("[MEC_STATUS]")) {
     return { isStatus: false, status: null, text: content || "" }
   }
-  const raw = content.slice(11)
+  const raw = content.slice(12)
   const newlineIdx = raw.indexOf("\n\n")
   const jsonPart = newlineIdx !== -1 ? raw.slice(0, newlineIdx) : raw
   const textPart = newlineIdx !== -1 ? raw.slice(newlineIdx + 2) : ""
