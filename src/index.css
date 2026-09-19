@@ -1260,3 +1260,122 @@ body.modal-open nav.fixed.inset-x-0.bottom-0,
 body.modal-open nav[class*="fixed"][class*="bottom-0"] {
   display: none !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   FAMILY TREE DARK MODE
+   ═══════════════════════════════════════════════════════ */
+
+/* Hero background — dark navy in dark mode */
+body.dark [data-family-tree] > div:first-child {
+  background: linear-gradient(to bottom right, #0a0f18, #131a26, #1a2232) !important;
+}
+
+/* Chip / badge */
+body.dark [data-family-tree] [class*="border-[#1E40AF]"] {
+  border-color: rgba(96, 165, 250, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Stat boxes inside hero */
+body.dark [data-family-tree] [class*="bg-white/80"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Headings + text */
+body.dark [data-family-tree] h1,
+body.dark [data-family-tree] h2,
+body.dark [data-family-tree] h3,
+body.dark [data-family-tree] .text-gray-900,
+body.dark [data-family-tree] [class*="text-gray-9"] {
+  color: #f3f4f6 !important;
+}
+
+body.dark [data-family-tree] .text-gray-600,
+body.dark [data-family-tree] .text-gray-500,
+body.dark [data-family-tree] [class*="text-gray-6"],
+body.dark [data-family-tree] [class*="text-gray-5"] {
+  color: #9ca3af !important;
+}
+
+body.dark [data-family-tree] .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+/* Search input */
+body.dark [data-family-tree] input[type="search"] {
+  background-color: #131a26 !important;
+  border-color: #1f2937 !important;
+  color: #f3f4f6 !important;
+}
+
+body.dark [data-family-tree] input[type="search"]::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Grandparent cards — dark gold → navy with gold accents */
+body.dark [data-family-tree] [class*="from-[#FEF9E7]"],
+body.dark [data-family-tree] [class*="to-[#F1E7CC]"] {
+  background: linear-gradient(to bottom right, #1a2232, #131a26) !important;
+  border-color: rgba(168, 135, 63, 0.4) !important;
+}
+
+body.dark [data-family-tree] [class*="bg-[#A8873F]"] {
+  background-color: #A8873F !important;
+}
+
+/* Children cards */
+body.dark [data-family-tree] [class*="bg-white"]:not([class*="bg-white/"]) {
+  background-color: #131a26 !important;
+  border-color: #1f2937 !important;
+}
+
+body.dark [data-family-tree] [class*="border-gray-100"] {
+  border-color: #1f2937 !important;
+}
+
+/* Descendant chip parent area */
+body.dark [data-family-tree] [class*="bg-gray-50"] {
+  background-color: #0f1622 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Descendant chips */
+body.dark [data-family-tree] button[class*="bg-white"][class*="border-gray-200"] {
+  background-color: #1a2232 !important;
+  border-color: #2a3441 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark [data-family-tree] [class*="bg-[#DBEAFE]"] {
+  background-color: rgba(96, 165, 250, 0.15) !important;
+  color: #93c5fd !important;
+}
+
+/* Birthdays section */
+body.dark [data-family-tree] [class*="bg-amber-100"] {
+  background-color: rgba(251, 191, 36, 0.15) !important;
+  color: #fcd34d !important;
+}
+
+/* CTA card at bottom */
+body.dark [data-family-tree] [class*="from-[#EFF6FF]"],
+body.dark [data-family-tree] [class*="to-[#DBEAFE]"] {
+  background: linear-gradient(to bottom right, #131a26, #1a2232) !important;
+  border-color: rgba(96, 165, 250, 0.25) !important;
+}
+
+/* CTA button */
+body.dark [data-family-tree] [class*="bg-[#1E40AF]"] {
+  background-color: #3b82f6 !important;
+}
+
+/* Modal */
+body.dark [data-family-tree] [class*="bg-white"][class*="rounded-3xl"] {
+  background-color: #131a26 !important;
+  border-color: #1f2937 !important;
+}
+
+body.dark [data-family-tree] .bg-gray-100 {
+  background-color: #1a2232 !important;
+}

@@ -30,7 +30,7 @@ export default function FamilyTree() {
   const memberCount = profiles.length
 
   return (
-    <div className="min-h-screen bg-white pb-24 text-gray-900">
+    <div data-family-tree className="min-h-screen bg-white pb-24 text-gray-900 dark:bg-[#0a0f18] dark:text-white">
       <div className="bg-gradient-to-br from-[#F1E7CC] via-[#FEF9E7] to-[#DBEAFE] px-5 pb-8 pt-6">
         <div className="mx-auto max-w-2xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#1E40AF]/15 bg-white/70 px-3 py-1.5">
