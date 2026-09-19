@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { X, MapPin, Loader2, Check } from "lucide-react"
+import {X, MapPin, Loader2, Check, Calendar, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
@@ -137,11 +137,40 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
             <div className="mb-4 grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Date *</label>
-                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+                <div className="relative">
+                  <Calendar
+                    size={15}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1E40AF]"
+                  />
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm font-medium text-gray-900 outline-none transition focus:border-[#1E40AF] focus:bg-white"
+                  />
+                </div>
+                {!date && (
+                  <p className="mt-1 text-[10px] text-gray-400">Tap to pick a date</p>
+                )}
               </div>
               <div>
                 <label className={labelCls}>Time</label>
-                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={inputCls} />
+                <div className="relative">
+                  <Clock
+                    size={15}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1E40AF]"
+                  />
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm font-medium text-gray-900 outline-none transition focus:border-[#1E40AF] focus:bg-white"
+                  />
+                </div>
+                {!time && (
+                  <p className="mt-1 text-[10px] text-gray-400">Optional</p>
+                )}
               </div>
             </div>
 
