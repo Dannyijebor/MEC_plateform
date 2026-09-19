@@ -1457,80 +1457,144 @@ function SpaceRoom() {
 
       {/* Post composer modal */}
       {showPostComposer && (
-        <div className="fixed inset-0 z-[9999] flex items-end justify-center pb-24 sm:items-center sm:pb-0">
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center">
           <button
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowPostComposer(false)}
             aria-label="Close"
           />
-          <div className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-gray-100 bg-white p-5 shadow-2xl sm:rounded-3xl">
-            <div className="flex items-center justify-between">
-              <div>
+
+          <div className="relative flex h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[28px] border border-gray-100 bg-white shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.35)] sm:h-[70vh] sm:rounded-3xl sm:rounded-b-none">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#A8873F]">
                   Post in this Space
                 </p>
-                <p className="mt-0.5 text-xs text-gray-500">
-                  Only people in the space can see this
+                <p className="mt-0.5 truncate text-xs text-gray-500">
+                  Only people in this space can see these
                 </p>
               </div>
               <button
                 onClick={() => setShowPostComposer(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200"
+                aria-label="Close"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <textarea
-              value={postText}
-              onChange={(e) => setPostText(e.target.value)}
-              rows={4}
-              placeholder="Share a thought with the space..."
-              className="mt-4 w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#A8873F] focus:bg-white"
-            />
-
-            <div className="mt-4 flex items-center justify-end gap-2">
-              <button
-                onClick={() => {
-                  setPostText("")
-                  setShowPostComposer(false)
-                }}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={!postText.trim()}
-                onClick={async () => {
-                  if (!postText.trim() || !user?.id) return
-                  try {
+            {/* Composer textarea */}
+            <div className="border-b border-gray-100 px-5 py-4">
+              <textarea
+                value={postText}
+                onChange={(e) => setPostText(e.target.value)}
+                rows={3}
+                placeholder="Share a thought with the space..."
+                className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#A8873F] focus:bg-white"
+              />
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setPostText("")}
+                  disabled={!postText.trim()}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+                >
+                  Clear
+                </button>
+                <button
+                  disabled={!postText.trim()}
+                  onClick={async () => {
+                    if (!postText.trim() || !user?.id) return
                     const hostProfile = liveParticipants.find((p) => p.role === "host")
                     const hostName = hostProfile?.profile?.full_name || hostProfile?.profile?.username || "the host"
-                    await supabase.from("posts").insert({
-                      author_id: user.id,
-                      content: postText.trim(),
-                      space_id: space?.id,
-                      space_host_name: hostName,
-                      space_title: space?.title,
-                      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                    })
-                    setPostText("")
-                    setShowPostComposer(false)
-                  } catch (err) {
-                    console.error("Post failed:", err)
-                    setMediaError("Could not post to space.")
-                  }
-                }}
-                className="rounded-xl bg-[#1E40AF] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1E40AF]/90 disabled:opacity-50"
-              >
-                Post
-              </button>
+                    try {
+                      await supabase.from("posts").insert({
+                        author_id: user.id,
+                        content: postText.trim(),
+                        space_id: space?.id,
+                        space_host_name: hostName,
+                        space_title: space?.title,
+                        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                      })
+                      setPostText("")
+                      // Refresh list without closing the sheet
+                      if (typeof loadSpacePosts === "function") {
+                        await loadSpacePosts()
+                      }
+                    } catch (err) {
+                      console.error("Post failed:", err)
+                      setMediaError("Could not post to space.")
+                    }
+                  }}
+                  className="rounded-xl bg-[#1E40AF] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#1E40AF]/90 disabled:opacity-40"
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+
+            {/* Posts list (scrollable) */}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                All posts · {spacePosts.length}
+              </p>
+
+              {spacePosts.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-10 text-center">
+                  <p className="text-sm font-semibold text-gray-600">No posts yet</p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    Your post will be the first one
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 pb-4">
+                  {spacePosts.map((post) => {
+                    const an =
+                      post.profiles?.full_name ||
+                      post.profiles?.username ||
+                      "MEC Member"
+                    const av = post.profiles?.avatar_url
+                    const mine = post.author_id === user?.id
+                    return (
+                      <div
+                        key={post.id}
+                        className="rounded-2xl border border-gray-200 bg-white p-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+                            {av ? (
+                              <img src={av} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              an.charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-gray-900">
+                              {an}
+                              {mine ? " · You" : ""}
+                            </p>
+                            <p className="text-[10px] text-gray-400">
+                              {new Date(post.created_at).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-800">
+                          {post.content}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      <ParticipantActionMenu
+            <ParticipantActionMenu
         participant={menuParticipant}
         currentUserRole={currentUserRole}
         anchor={menuAnchor}
