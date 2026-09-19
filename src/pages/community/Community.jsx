@@ -17,6 +17,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "../../lib/supabase"
+import LikesModal from "../../components/community/LikesModal"
 import UserProfileModal from "../../components/common/UserProfileModal"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
@@ -39,6 +40,7 @@ function Community() {
   const [openComments, setOpenComments] = useState({})
   const [editingPostId, setEditingPostId] = useState(null)
   const [postMenuId, setPostMenuId] = useState(null)
+  const [likesPostId, setLikesPostId] = useState(null)
   const [editingPostText, setEditingPostText] = useState("")
   const [savingEdit, setSavingEdit] = useState(false)
   const [editingCommentId, setEditingCommentId] = useState(null)
@@ -1247,15 +1249,16 @@ function Community() {
                     <div className="flex items-center justify-between px-4 pt-3 sm:px-5">
                       <div className="flex items-center gap-2">
                         {likes > 0 && (
-                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#8A8F98]">
+                          <button
+                            type="button"
+                            onClick={() => setLikesPostId(post.id)}
+                            className="flex items-center gap-1.5 text-[11px] font-medium text-[#8A8F98] transition hover:text-[#E15B65]"
+                          >
                             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FFF0F0] text-[#E15B65]">
-                              <Heart
-                                size={10}
-                                fill="currentColor"
-                              />
+                              <Heart size={10} fill="currentColor" />
                             </span>
-                            {likes}
-                          </div>
+                            {likes} {likes === 1 ? "like" : "likes"}
+                          </button>
                         )}
                       </div>
 
@@ -1626,13 +1629,19 @@ function Community() {
           </div>
         )}
       </div>
-          <UserProfileModal
+
+      <UserProfileModal
         userId={viewingProfileId}
         onClose={() => setViewingProfileId(null)}
       />
-</div>
+
+      <LikesModal
+        open={likesPostId !== null}
+        postId={likesPostId}
+        onClose={() => setLikesPostId(null)}
+      />
+    </div>
   )
 }
 
-      
-export default Community// Deploy: Thu Sep 17 11:24:42 WAT 2026
+export default Community
