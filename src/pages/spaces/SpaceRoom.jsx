@@ -1392,55 +1392,6 @@ function SpaceRoom() {
               </button>
             </div>
 
-            {/* Composer textarea */}
-            <div className="border-b border-gray-100 px-5 py-4">
-              <textarea
-                value={postText}
-                onChange={(e) => setPostText(e.target.value)}
-                rows={3}
-                placeholder="Share a thought with the space..."
-                className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#A8873F] focus:bg-white"
-              />
-              <div className="mt-3 flex items-center justify-end gap-2">
-                <button
-                  onClick={() => setPostText("")}
-                  disabled={!postText.trim()}
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-40"
-                >
-                  Clear
-                </button>
-                <button
-                  disabled={!postText.trim()}
-                  onClick={async () => {
-                    if (!postText.trim() || !user?.id) return
-                    const hostProfile = liveParticipants.find((p) => p.role === "host")
-                    const hostName = hostProfile?.profile?.full_name || hostProfile?.profile?.username || "the host"
-                    try {
-                      await supabase.from("posts").insert({
-                        author_id: user.id,
-                        content: postText.trim(),
-                        space_id: space?.id,
-                        space_host_name: hostName,
-                        space_title: space?.title,
-                        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                      })
-                      setPostText("")
-                      // Refresh list without closing the sheet
-                      if (typeof loadSpacePosts === "function") {
-                        await loadSpacePosts()
-                      }
-                    } catch (err) {
-                      console.error("Post failed:", err)
-                      setMediaError("Could not post to space.")
-                    }
-                  }}
-                  className="rounded-xl bg-[#1E40AF] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#1E40AF]/90 disabled:opacity-40"
-                >
-                  Post
-                </button>
-              </div>
-            </div>
-
             {/* Posts list (scrollable) */}
             <div className="flex-1 overflow-y-auto px-5 py-4">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">
@@ -1499,6 +1450,56 @@ function SpaceRoom() {
               )}
             </div>
           </div>
+{/* Composer textarea */}
+            <div className="mt-auto border-t border-gray-100 bg-white px-5 py-4">
+              <textarea
+                value={postText}
+                onChange={(e) => setPostText(e.target.value)}
+                rows={3}
+                placeholder="Share a thought with the space..."
+                className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#A8873F] focus:bg-white"
+              />
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setPostText("")}
+                  disabled={!postText.trim()}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+                >
+                  Clear
+                </button>
+                <button
+                  disabled={!postText.trim()}
+                  onClick={async () => {
+                    if (!postText.trim() || !user?.id) return
+                    const hostProfile = liveParticipants.find((p) => p.role === "host")
+                    const hostName = hostProfile?.profile?.full_name || hostProfile?.profile?.username || "the host"
+                    try {
+                      await supabase.from("posts").insert({
+                        author_id: user.id,
+                        content: postText.trim(),
+                        space_id: space?.id,
+                        space_host_name: hostName,
+                        space_title: space?.title,
+                        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                      })
+                      setPostText("")
+                      // Refresh list without closing the sheet
+                      if (typeof loadSpacePosts === "function") {
+                        await loadSpacePosts()
+                      }
+                    } catch (err) {
+                      console.error("Post failed:", err)
+                      setMediaError("Could not post to space.")
+                    }
+                  }}
+                  className="rounded-xl bg-[#1E40AF] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#1E40AF]/90 disabled:opacity-40"
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+
+            
         </div>
       )}
 
