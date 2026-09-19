@@ -11,6 +11,7 @@ import {
   Sparkles,
   Users,
   X,
+  Eye,
   Volume2,
   VolumeX,
 } from "lucide-react"
@@ -18,6 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { supabase } from "../../lib/supabase"
+import StatusViewersModal from "../../components/community/StatusViewersModal"
 import { useAuth } from "../../hooks/useAuth"
 
 const IMAGE_DURATION = 5000
@@ -31,6 +33,7 @@ function DashboardHome() {
   const [storyIndex, setStoryIndex] = useState(null)
   const [storyProgress, setStoryProgress] = useState(0)
   const [storyMuted, setStoryMuted] = useState(true)
+  const [showViewers, setShowViewers] = useState(false)
 
   const videoRef = useRef(null)
   const storyTimerRef = useRef(null)
@@ -114,6 +117,21 @@ function DashboardHome() {
 
   const currentStory =
     storyIndex !== null ? storyPosts[storyIndex] : null
+
+  // Track that I viewed this story
+  useEffect(() => {
+    if (!currentStory || !user?.id) return
+    if (currentStory.author_id === user.id) return // don't track own view
+
+    supabase
+      .from("post_views")
+      .upsert(
+        { post_id: currentStory.id, user_id: user.id },
+        { onConflict: "post_id,user_id" }
+      )
+      .then(() => {})
+      .catch(() => {})
+  }, [currentStory, user?.id])
 
   // Hide app chrome while a story is open
   useEffect(() => {
@@ -873,6 +891,18 @@ function DashboardHome() {
               {storyMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
             </button>
 
+            {currentStory.author_id === user?.id && (
+              <button
+                type="button"
+                onClick={() => setShowViewers(true)}
+                className="absolute right-16 top-4 z-30 flex h-10 items-center gap-1.5 rounded-full bg-white/10 px-3 text-white backdrop-blur-xl transition hover:bg-white/20"
+                aria-label="View activity"
+              >
+                <Eye size={16} />
+                <span className="text-xs font-semibold">Views</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={closeStory}
@@ -1022,8 +1052,14 @@ function DashboardHome() {
         )}
 
       </AnimatePresence>
-    </>
-  )
+    
+
+      <StatusViewersModal
+        postId={currentStory?.id}
+        open={showViewers}
+        onClose={() => setShowViewers(false)}
+      />
+</>  )
 }
 
 export default DashboardHome
