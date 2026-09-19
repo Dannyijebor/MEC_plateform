@@ -9,6 +9,7 @@ import MessageActionMenu from "../../components/chat/MessageActionMenu"
 import VoiceRecorder from "../../components/chat/VoiceRecorder"
 import VoiceMessagePlayer from "../../components/chat/VoiceMessagePlayer"
 import Butterfly from "../../components/chat/Butterfly"
+import { BugFly } from "../../components/chat/Bug"
 import ChatHeaderMenu from "../../components/chat/ChatHeaderMenu"
 import UserProfileModal from "../../components/common/UserProfileModal"
 import NewChatModal from "../../components/chat/NewChatModal"
@@ -1213,6 +1214,7 @@ function Messages() {
                   <div className="mx-auto max-w-2xl space-y-3">
                     {messages.map((message) => {
                       const mine = message.sender_id === user?.id
+                      const isLastMessage = index === messages.length - 1
                       const isCallEvent = message.content?.startsWith("[MEC_CALL]")
 
                       const isThemeEvent = message.content?.startsWith("[MEC_THEME]")
