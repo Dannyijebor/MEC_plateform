@@ -1212,7 +1212,7 @@ function Messages() {
                   </div>
                 ) : (
                   <div className="mx-auto max-w-2xl space-y-3">
-                    {messages.map((message) => {
+                    {messages.map((message, index) => {
                       const mine = message.sender_id === user?.id
                       const isLastMessage = index === messages.length - 1
                       const isCallEvent = message.content?.startsWith("[MEC_CALL]")
