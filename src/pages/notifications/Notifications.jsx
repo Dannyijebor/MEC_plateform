@@ -12,6 +12,7 @@ import {
   CheckCheck,
   Loader2,
 } from "lucide-react"
+import { motion } from "framer-motion"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
 
@@ -192,8 +193,11 @@ export default function Notifications() {
                     const Icon = ICONS[n.type] || Bell
                     const color = COLORS[n.type] || COLORS.system
                     return (
-                      <button
+                      <motion.button
                         key={n.id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1], delay: Math.min(i * 0.04, 0.35) }}
                         onClick={() => handleTap(n)}
                         className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-gray-50 ${
                           i < list.length - 1 ? "border-b border-gray-100" : ""
@@ -218,7 +222,7 @@ export default function Notifications() {
                         {!n.is_read && (
                           <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#1E40AF]" />
                         )}
-                      </button>
+                      </motion.button>
                     )
                   })}
                 </div>

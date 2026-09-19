@@ -1052,9 +1052,12 @@ function Messages() {
                   })()
 
                   return (
-                    <button
+                    <motion.button
                       key={conv.id}
                       type="button"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1], delay: Math.min(filteredConversations.indexOf(conv) * 0.04, 0.4) }}
                       onClick={() => setSelectedConversation(conv)}
                       className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition ${
                         active
@@ -1109,7 +1112,7 @@ function Messages() {
                         </div>
                       </div>
                       <ChevronRight size={15} className="ml-0.5 shrink-0 text-gray-300" />
-                    </button>
+                    </motion.button>
                   )
                 })}
               </div>
