@@ -11,6 +11,8 @@ import {
   Sparkles,
   Users,
   X,
+  Volume2,
+  VolumeX,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
@@ -28,6 +30,7 @@ function DashboardHome() {
   const [error, setError] = useState("")
   const [storyIndex, setStoryIndex] = useState(null)
   const [storyProgress, setStoryProgress] = useState(0)
+  const [storyMuted, setStoryMuted] = useState(true)
 
   const videoRef = useRef(null)
   const storyTimerRef = useRef(null)
@@ -105,7 +108,7 @@ function DashboardHome() {
   )
 
   const recentPosts = useMemo(
-    () => posts.slice(0, 8),
+    () => posts.slice(0, 7),
     [posts]
   )
 
@@ -623,7 +626,7 @@ function DashboardHome() {
                       key={post.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mec-surface overflow-hidden rounded-3xl border shadow-[var(--mec-shadow)]"
+                      className="mec-surface overflow-hidden rounded-3xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.15)]"
                     >
 
                       <div className="flex items-center gap-3 p-5">
@@ -853,6 +856,15 @@ function DashboardHome() {
 
             <button
               type="button"
+              onClick={() => setStoryMuted((v) => !v)}
+              className="absolute right-16 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-xl transition hover:bg-white/20"
+              aria-label={storyMuted ? "Unmute" : "Mute"}
+            >
+              {storyMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+
+            <button
+              type="button"
               onClick={closeStory}
               className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-xl transition hover:bg-white/20"
               aria-label="Close story"
@@ -961,7 +973,7 @@ function DashboardHome() {
                     key={currentStory.id}
                     src={currentStory.media_display_url}
                     autoPlay
-                    muted
+                    muted={storyMuted}
                     playsInline
                     className="h-full w-full object-contain"
                   />
