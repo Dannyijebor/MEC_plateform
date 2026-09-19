@@ -1069,12 +1069,12 @@ function SpaceRoom() {
                   onClick={handleToggleMic}
                   className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition ${
                     micOn
-                      ? "border-emerald-400 bg-emerald-500 text-white"
-                      : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      ? "border-emerald-400 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                      : "border-red-300 bg-white text-red-500 hover:bg-red-50"
                   }`}
-                  aria-label={micOn ? "Mute" : "Request to speak"}
+                  aria-label={micOn ? "Mute" : "Unmute"}
                 >
-                  <Mic size={18} />
+                  {micOn ? <Mic size={18} /> : <MicOff size={18} />}
                 </button>
                 <span className="text-[9px] font-medium text-gray-500">
                   {micOn ? "Mute" : "Request"}
