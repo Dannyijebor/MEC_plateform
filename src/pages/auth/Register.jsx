@@ -18,9 +18,9 @@ const STEPS = [
 ]
 
 const slideVariants = {
-  enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+  enter: (dir) => ({ x: dir > 0 ? 32 : -32, opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: (dir) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+  exit: (dir) => ({ x: dir > 0 ? -32 : 32, opacity: 0 }),
 }
 
 export default function Register() {
@@ -171,74 +171,47 @@ export default function Register() {
         </p>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex items-center gap-1.5">
-        {STEPS.map((s, idx) => {
-          const active = s.num === step
-          const done = s.num < step
-          return (
-            <div key={s.num} className="flex flex-1 items-center gap-2">
+      {/* Compact progress */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          {STEPS.map((s) => {
+            const active = s.num === step
+            const done = s.num < step
+            return (
               <div
+                key={s.num}
                 className={
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 " +
-                  (done
-                    ? "bg-[#EFF6FF] text-[#3B82F6]"
-                    : active
-                      ? "bg-[#3B82F6] text-white shadow-lg shadow-blue-500/30"
-                      : "bg-gray-50 text-gray-300")
+                  "rounded-full transition-all duration-500 ease-out " +
+                  (active
+                    ? "h-1.5 w-8 bg-[#3B82F6]"
+                    : done
+                      ? "h-1.5 w-1.5 bg-[#93C5FD]"
+                      : "h-1.5 w-1.5 bg-gray-200")
                 }
-              >
-                {done ? <Check size={14} strokeWidth={3} /> : s.num}
-              </div>
-              <div className="flex flex-1 flex-col">
-                <span
-                  className={
-                    "text-[10px] font-semibold uppercase tracking-wider transition " +
-                    (active ? "text-[#3B82F6]" : "text-gray-300")
-                  }
-                >
-                  Step {s.num}
-                </span>
-                <span
-                  className={
-                    "text-[11px] font-medium transition " +
-                    (active ? "text-gray-900" : "text-gray-400")
-                  }
-                >
-                  {s.label}
-                </span>
-              </div>
-              {idx < STEPS.length - 1 && (
-                <div
-                  className={
-                    "h-[3px] w-6 rounded-full transition-colors duration-300 " +
-                    (done ? "bg-[#DBEAFE]" : "bg-gray-100")
-                  }
-                />
-              )}
-            </div>
-          )
-        })}
+              />
+            )
+          })}
+        </div>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#3B82F6]">
+          {STEPS[step - 1].label}
+        </span>
       </div>
 
       {/* Error */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="rounded-2xl bg-[#FEF2F2] px-4 py-3 text-xs font-medium text-red-600">
-              {error}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25 }}
+        >
+          <div className="rounded-2xl bg-[#FEF2F2] px-4 py-3 text-xs font-medium text-red-600">
+            {error}
+          </div>
+        </motion.div>
+      )}
 
       {/* Step content */}
-      <div className="relative" style={{ minHeight: 340 }}>
+      <div className="relative" style={{ minHeight: 380 }}>
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}
@@ -247,7 +220,7 @@ export default function Register() {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
             className="space-y-5"
           >
             {/* ═════════ STEP 1 — ABOUT YOU ═════════ */}
