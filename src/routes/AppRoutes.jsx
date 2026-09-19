@@ -12,6 +12,7 @@ import AuthLayout from "../pages/auth/AuthLayout"
 import Profile from "../pages/profile/Profile"
 import UserProfile from "../pages/profile/UserProfile"
 import Settings from "../pages/settings/Settings"
+import Notifications from "../pages/notifications/Notifications"
 import Call from "../pages/calls/Call"
 import CallHistory from "../pages/calls/CallHistory"
 
@@ -75,6 +76,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <UserProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
           </ProtectedRoute>
         }
       />
