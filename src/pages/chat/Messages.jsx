@@ -1334,6 +1334,15 @@ function Messages() {
                                   : ""
                               }`}
                             >
+                              {!theme.hasButterfly && isLastMessage && !isCallEvent && !isThemeEvent && (
+                                <BugFly
+                                  key={`bug-${message.id}`}
+                                  color={theme.dark ? "#FCD34D" : "#78350F"}
+                                  size={20}
+                                  playKey={`bug-${message.id}`}
+                                />
+                              )}
+
                               {message.reply_to_id && (() => {
                                 const original = messages.find((m) => m.id === message.reply_to_id)
                                 if (!original) return null
