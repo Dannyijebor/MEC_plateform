@@ -192,6 +192,7 @@ function SpaceRoom() {
   const [participants, setParticipants] = useState([])
   const [loading, setLoading] = useState(true)
   const [ending, setEnding] = useState(false)
+  const [showEndConfirm, setShowEndConfirm] = useState(false)
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
@@ -591,12 +592,18 @@ function SpaceRoom() {
   }
 
   async function handleLeave() {
+    // Host: show white confirmation dialog first
+    if (isHost) {
+      setShowEndConfirm(true)
+      return
+    }
+
+    // Non-host: leave immediately
     try {
       if (roomRef.current) {
         await disconnectFromSpace(roomRef.current)
         roomRef.current = null
       }
-
       if (user?.id) {
         await leaveSpace(spaceId, user.id)
       }
@@ -609,12 +616,7 @@ function SpaceRoom() {
 
   async function handleEndSpace() {
     if (!isHost) return
-
-    const confirmed = window.confirm(
-      "End this MEC Space for everyone?",
-    )
-
-    if (!confirmed) return
+    setShowEndConfirm(false)
 
     try {
       setEnding(true)
@@ -1036,6 +1038,51 @@ function SpaceRoom() {
               })}
             </div>
           </aside>
+        </div>
+      )}
+
+      {/* White confirmation dialog for host leaving */}
+      {showEndConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+          <button
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowEndConfirm(false)}
+            aria-label="Cancel"
+          />
+          <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+              <PhoneOff size={22} className="text-red-500" />
+            </div>
+
+            <h2 className="mt-4 text-center text-lg font-bold text-gray-900">
+              End Space for everyone?
+            </h2>
+            <p className="mt-1 text-center text-sm text-gray-500">
+              You're the host. Leaving will end this MEC Space and disconnect
+              everyone.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleEndSpace}
+                disabled={ending}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-red-500 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:opacity-50"
+              >
+                <PhoneOff size={15} />
+                {ending ? "Ending..." : "End for everyone"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowEndConfirm(false)}
+                disabled={ending}
+                className="rounded-2xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                Stay in Space
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
