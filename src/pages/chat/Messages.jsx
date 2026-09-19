@@ -367,6 +367,14 @@ function Messages() {
   const [reactions, setReactions] = useState({})
   const [showNewChatModal, setShowNewChatModal] = useState(false)
   const [showGroupModal, setShowGroupModal] = useState(false)
+
+  // Hide bottom nav while a modal is open
+  useEffect(() => {
+    const anyOpen = showNewChatModal || showGroupModal
+    if (anyOpen) document.body.classList.add("modal-open")
+    else document.body.classList.remove("modal-open")
+    return () => document.body.classList.remove("modal-open")
+  }, [showNewChatModal, showGroupModal])
   const [voiceRecording, setVoiceRecording] = useState(false)
   const [showChatMenu, setShowChatMenu] = useState(false)
   const [chatMuted, setChatMuted] = useState(false)

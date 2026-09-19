@@ -1253,3 +1253,10 @@ body.dark .skeleton {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.15);
 }
+
+
+/* Hide bottom nav when a full modal is open */
+body.modal-open nav.fixed.inset-x-0.bottom-0,
+body.modal-open nav[class*="fixed"][class*="bottom-0"] {
+  display: none !important;
+}
