@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Make dark: respond to the app's .dark class instead of OS preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* =========================================================
    MEC — GLOBAL DESIGN SYSTEM
    "Our home on the internet."

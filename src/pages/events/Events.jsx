@@ -82,7 +82,7 @@ export default function Events() {
   }
 
   return (
-    <div data-events-page className="min-h-screen bg-white pb-24 text-gray-900 dark:bg-[#0a0f18] dark:text-white">
+    <div data-events-page className="min-h-screen bg-white pb-24 text-gray-900">
       <div className="border-b border-gray-100 px-5 py-5">
         <div className="mx-auto max-w-4xl">
           <div className="flex items-center justify-between">
