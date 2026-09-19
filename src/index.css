@@ -1132,3 +1132,11 @@ body:not(.dark) [data-space-room-page] [class*="text-slate"] {
   body.space-open aside[class*="fixed"][class*="inset-y-0"][class*="left-0"] { display: none !important; }
   body.space-open .lg\:ml-64 { margin-left: 0 !important; }
 }
+
+
+@keyframes floatReaction {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  10% { opacity: 1; transform: translateY(-20px) scale(1); }
+  80% { opacity: 1; transform: translateY(-220px) scale(1); }
+  100% { opacity: 0; transform: translateY(-280px) scale(1.1); }
+}

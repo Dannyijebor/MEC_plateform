@@ -495,19 +495,14 @@ function SpaceRoom() {
       onParticipantChange: refreshParticipants,
       onReaction: (reaction) => {
         if (!mounted) return
-
         const item = {
           id: `${reaction.id}-${Date.now()}`,
           emoji: reaction.emoji,
-          userName: reaction.user_name || reaction.userName || "MEC Member",
+          userName: reaction.user_name || "MEC Member",
         }
-
-        setReactions((current) => [...current, item])
-
+        setReactions((c) => [...c, item])
         window.setTimeout(() => {
-          setReactions((current) =>
-            current.filter((reactionItem) => reactionItem.id !== item.id),
-          )
+          setReactions((c) => c.filter((r) => r.id !== item.id))
         }, 3200)
       },
       onHandRaise: refreshParticipants,
@@ -668,24 +663,21 @@ function SpaceRoom() {
 
   async function handleReaction(emoji) {
     if (!user?.id) return
-
     const myName =
       user.user_metadata?.full_name ||
       user.user_metadata?.username ||
       user.email?.split("@")[0] ||
       "You"
-
-    // Optimistic: show my own emoji instantly
-    const localItem = {
-      id: `local-${Date.now()}-${Math.random()}`,
+    const item = {
+      id: `r-${Date.now()}-${Math.random()}`,
       emoji,
       userName: myName,
     }
-    setReactions((current) => [...current, localItem])
+    setReactions((c) => [...c, item])
     window.setTimeout(() => {
-      setReactions((current) => current.filter((r) => r.id !== localItem.id))
+      setReactions((c) => c.filter((r) => r.id !== item.id))
     }, 3200)
-
+    setShowReactionPicker(false)
     try {
       await sendReaction({
         spaceId,
@@ -693,9 +685,8 @@ function SpaceRoom() {
         userName: myName,
         emoji,
       })
-      setShowReactionPicker(false)
-    } catch (error) {
-      console.error(error)
+    } catch (e) {
+      console.warn("Reaction send failed:", e)
     }
   }
 
@@ -1365,6 +1356,26 @@ function SpaceRoom() {
       )}
 
       {/* Post composer modal */}
+      {/* Floating emojis with sender names */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[60] flex justify-center overflow-hidden">
+        <div className="relative h-64 w-full max-w-md">
+          {reactions.map((reaction, index) => (
+            <div
+              key={reaction.id}
+              className="absolute bottom-0 flex animate-[floatReaction_3.2s_ease-out_forwards] flex-col items-center gap-1"
+              style={{ left: `${10 + ((index * 18) % 70)}%` }}
+            >
+              <span className="text-4xl drop-shadow-2xl">{reaction.emoji}</span>
+              {reaction.userName && (
+                <span className="whitespace-nowrap rounded-full bg-black/70 px-2.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                  {reaction.userName.split(" ")[0]}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       <SpaceComposerSheet
         open={showPostComposer}
         onClose={() => setShowPostComposer(false)}
