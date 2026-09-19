@@ -3,6 +3,8 @@ import {
   ArrowLeft,
   // unused
   ChevronDown,
+  ChevronUp,
+  Volume2,
   Share2,
   Heart,
   MessageCircle,
@@ -193,6 +195,8 @@ function SpaceRoom() {
   const [loading, setLoading] = useState(true)
   const [ending, setEnding] = useState(false)
   const [showEndConfirm, setShowEndConfirm] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+  const [spaceMuted, setSpaceMuted] = useState(false)
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [handRaised, setHandRaised] = useState(false)
@@ -646,6 +650,16 @@ function SpaceRoom() {
     }
   }
 
+  const toggleSpaceMute = () => {
+    const next = !spaceMuted
+    setSpaceMuted(next)
+    try {
+      for (const audio of audioElementsRef.current.values()) {
+        audio.muted = next
+      }
+    } catch {}
+  }
+
   async function handleReaction(emoji) {
     if (!user?.id) return
 
@@ -726,83 +740,87 @@ function SpaceRoom() {
   }
 
   return (
-    <div data-space-room-page className="relative flex min-h-screen flex-col bg-white text-gray-900">
+    <div className="fixed inset-0 z-40">
+      {/* ═══════ BLURRED BACKDROP ═══════ */}
+      <div
+        onClick={() => setCollapsed(true)}
+        className="absolute inset-0 bg-black/25 backdrop-blur-md"
+      />
 
-      {/* ═══════════ HEADER ═══════════ */}
-      <header className="relative z-30 flex items-center justify-between px-4 py-3 sm:px-6">
+      {/* ═══════ BOTTOM SHEET ═══════ */}
+      <div
+        className="absolute inset-x-0 bottom-[68px] top-[10%] flex flex-col overflow-hidden rounded-t-[28px] bg-white shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.35)] transition-transform duration-300"
+        style={{ transform: collapsed ? "translateY(calc(100% - 76px))" : "translateY(0)" }}
+      >
+        {/* Drag handle */}
         <button
-          onClick={handleLeave}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
-          aria-label="Minimize"
+          onClick={() => setCollapsed((v) => !v)}
+          className="flex w-full justify-center pt-3 pb-1"
+          aria-label="Toggle collapse"
         >
-          <ChevronDown size={20} strokeWidth={2.5} />
+          <div className="h-1.5 w-12 rounded-full bg-gray-300" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-          <span className="text-xs font-bold tracking-[0.22em] text-gray-900">MEC LIVE</span>
-        </div>
-
-        <div className="flex items-center gap-1.5">
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
           <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
-            aria-label="Share"
+            onClick={() => setCollapsed(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
+            aria-label="Minimize"
           >
-            <Share2 size={18} />
+            <ChevronDown size={18} strokeWidth={2.5} />
           </button>
-          <button
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
-            aria-label="More"
-          >
-            <MoreHorizontal size={18} />
-          </button>
-          <button
-            onClick={handleLeave}
-            className="flex h-10 items-center rounded-full bg-red-50 px-4 text-sm font-semibold text-red-500 transition hover:bg-red-100"
-          >
-            Leave
-          </button>
-        </div>
-      </header>
 
-      {/* ═══════════ MAIN CONTENT ═══════════ */}
-      <main className="relative z-10 flex-1 overflow-y-auto px-4 pb-40 sm:px-6">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            <span className="text-[11px] font-bold tracking-[0.22em] text-gray-900">MEC LIVE</span>
+          </div>
 
-        {/* Space title + status pills */}
-        <div className="mb-6 text-center">
-          <h1 className="line-clamp-1 text-lg font-semibold text-gray-900">
-            {space?.title || "MEC Space"}
-          </h1>
-          {space?.description && (
-            <p className="mx-auto mt-1 line-clamp-1 max-w-md text-xs text-gray-500">
-              {space.description}
-            </p>
+          <div className="flex items-center gap-1.5">
+            <button className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200">
+              <Share2 size={16} />
+            </button>
+            <button
+              onClick={handleLeave}
+              className="flex h-9 items-center rounded-full bg-red-50 px-3 text-[11px] font-semibold text-red-500 transition hover:bg-red-100"
+            >
+              Leave
+            </button>
+          </div>
+        </header>
+
+        {/* Scrollable content */}
+        <main className="flex-1 overflow-y-auto px-4 pb-6 pt-4">
+          {/* Title + pills */}
+          <div className="mb-4 text-center">
+            <h1 className="line-clamp-1 text-base font-semibold text-gray-900">
+              {space?.title || "MEC Space"}
+            </h1>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="rounded-full bg-[#F1E7CC] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#A8873F]">
+                {space?.mode === "video" ? "Video Space" : "Audio Space"}
+              </span>
+              <span
+                className={`rounded-full px-3 py-1 text-[10px] font-semibold ${
+                  connectionState === "connected"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "bg-amber-50 text-amber-600"
+                }`}
+              >
+                {connectionState === "connected" ? "Connected" : connectionState}
+              </span>
+            </div>
+          </div>
+
+          {mediaError && (
+            <div className="mx-auto mb-4 flex items-start justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <p>{mediaError}</p>
+              <button onClick={() => setMediaError("")}><X size={16} /></button>
+            </div>
           )}
 
-          <div className="mt-3 flex items-center justify-center gap-2">
-            <span className="rounded-full bg-[#F1E7CC] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#A8873F]">
-              {space?.mode === "video" ? "Video Space" : "Audio Space"}
-            </span>
-            <span className={`rounded-full px-3 py-1 text-[10px] font-semibold ${
-              connectionState === "connected"
-                ? "bg-emerald-50 text-emerald-600"
-                : "bg-amber-50 text-amber-600"
-            }`}>
-              {connectionState === "connected" ? "Connected" : connectionState}
-            </span>
-          </div>
-        </div>
-
-        {mediaError && (
-          <div className="mx-auto mb-5 flex max-w-md items-start justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <p>{mediaError}</p>
-            <button onClick={() => setMediaError("")}><X size={16} /></button>
-          </div>
-        )}
-
-        {/* ═══ SPEAKERS GRID (circular, X Spaces style) ═══ */}
-        <div className="mb-4">
-          <div className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 lg:grid-cols-5">
+          {/* Speakers grid (circular) */}
+          <div className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4">
             {liveParticipants
               .filter((p) => ["host", "cohost", "speaker"].includes(p.role))
               .slice(0, 20)
@@ -815,40 +833,42 @@ function SpaceRoom() {
                   "MEC Member"
                 const avatar = participant.profile?.avatar_url
                 const isActive = activeSpeakers.includes(participant.user_id)
-                const roleLabel = participant.role === "host" ? "Host" : participant.role === "cohost" ? "Co-host" : "Speaker"
-                const micLive = participant.isMicrophoneEnabled
+                const roleLabel =
+                  participant.role === "host"
+                    ? "Host"
+                    : participant.role === "cohost"
+                      ? "Co-host"
+                      : "Speaker"
 
                 return (
                   <button
                     key={participant.id}
                     type="button"
                     onClick={(e) => openParticipantMenu(participant, e)}
-                    className="group flex flex-col items-center gap-2 transition"
+                    className="flex flex-col items-center gap-2 transition"
                   >
-                    <div className="relative">
-                      <div className={`flex h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full text-xl font-bold ring-2 ring-offset-2 ring-offset-white transition ${
+                    <div
+                      className={`flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-full text-lg font-bold ring-2 ring-offset-2 ring-offset-white transition ${
                         isActive ? "ring-emerald-400" : "ring-gray-200"
-                      } bg-[#F1E7CC] text-[#A8873F]`}>
-                        {avatar ? (
-                          <img src={avatar} alt={name} className="h-full w-full object-cover" />
-                        ) : (
-                          initials(name)
-                        )}
-                      </div>
+                      } bg-[#F1E7CC] text-[#A8873F]`}
+                    >
+                      {avatar ? (
+                        <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                      ) : (
+                        initials(name)
+                      )}
                     </div>
                     <div className="w-full text-center">
-                      <p className="truncate text-[13px] font-semibold text-gray-900">{name}</p>
+                      <p className="truncate text-[12px] font-semibold text-gray-900">
+                        {name}
+                      </p>
                       <div className="mt-0.5 flex items-center justify-center gap-1">
-                        {micLive ? (
+                        {participant.isMicrophoneEnabled ? (
                           <Mic size={10} className="text-emerald-500" />
                         ) : (
                           <MicOff size={10} className="text-red-500" />
                         )}
-                        <span className={`text-[11px] font-medium ${
-                          participant.role === "host" ? "text-amber-600" :
-                          participant.role === "cohost" ? "text-gray-600" :
-                          "text-gray-500"
-                        }`}>
+                        <span className="text-[10px] font-medium text-gray-500">
                           {roleLabel}
                         </span>
                       </div>
@@ -858,194 +878,218 @@ function SpaceRoom() {
               })}
           </div>
 
-          {liveParticipants.filter((p) => ["host", "cohost", "speaker"].includes(p.role)).length === 0 && (
-            <div className="py-10 text-center">
-              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                <Users className="text-gray-300" size={26} />
+          {liveParticipants.filter((p) =>
+            ["host", "cohost", "speaker"].includes(p.role)
+          ).length === 0 && (
+            <div className="py-8 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
+                <Users className="text-gray-300" size={22} />
               </div>
               <p className="text-sm font-semibold text-gray-700">Waiting for speakers</p>
               <p className="mt-1 text-xs text-gray-400">Tap Request to join the stage</p>
             </div>
           )}
-        </div>
 
-        {/* ═══ FOLLOW HOST CTA ═══ */}
-        <div className="mt-6 flex items-center justify-center gap-2 rounded-full bg-gray-50 px-3 py-2">
-          <p className="text-[13px] font-medium text-gray-700">Like what you're hearing?</p>
-          <button className="rounded-full bg-gray-900 px-4 py-1.5 text-[12px] font-semibold text-white transition hover:bg-gray-800">
-            Follow host
+          {/* Follow host CTA */}
+          <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gray-50 px-4 py-2.5">
+            <span className="text-[12px] font-medium text-gray-700">
+              Like what you're hearing?
+            </span>
+            <span className="rounded-full bg-gray-900 px-3 py-1 text-[11px] font-semibold text-white">
+              Follow host
+            </span>
           </button>
-          <button className="flex h-6 w-6 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100">
-            <X size={14} />
-          </button>
-        </div>
 
-        {/* ═══ LISTENERS ROW ═══ */}
-        {liveParticipants.filter((p) => p.role === "listener").length > 0 && (
-          <div className="mt-8">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-              Listeners · {liveParticipants.filter((p) => p.role === "listener").length}
-            </p>
-            <div className="grid grid-cols-4 gap-x-3 gap-y-5 sm:grid-cols-6 lg:grid-cols-8">
-              {liveParticipants
-                .filter((p) => p.role === "listener")
-                .slice(0, 24)
-                .map((participant) => {
-                  const name =
-                    participant.profile?.full_name ||
-                    participant.profile?.username ||
-                    participant.name ||
-                    participant.identity ||
-                    "MEC Member"
-                  const avatar = participant.profile?.avatar_url
-                  return (
-                    <button
-                      key={participant.id}
-                      type="button"
-                      onClick={(e) => openParticipantMenu(participant, e)}
-                      className="flex flex-col items-center gap-1.5 transition hover:opacity-80"
-                    >
-                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#F1E7CC] text-sm font-bold text-[#A8873F]">
-                        {avatar ? (
-                          <img src={avatar} alt={name} className="h-full w-full object-cover" />
-                        ) : (
-                          initials(name)
-                        )}
-                      </div>
-                      <p className="w-full truncate text-[10px] text-gray-500">{name.split(" ")[0]}</p>
-                    </button>
-                  )
-                })}
+          {/* Listeners row */}
+          {liveParticipants.filter((p) => p.role === "listener").length > 0 && (
+            <div className="mt-6">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                Listeners · {liveParticipants.filter((p) => p.role === "listener").length}
+              </p>
+              <div className="grid grid-cols-4 gap-x-3 gap-y-4 sm:grid-cols-6">
+                {liveParticipants
+                  .filter((p) => p.role === "listener")
+                  .slice(0, 24)
+                  .map((participant) => {
+                    const name =
+                      participant.profile?.full_name ||
+                      participant.profile?.username ||
+                      participant.name ||
+                      participant.identity ||
+                      "MEC"
+                    const avatar = participant.profile?.avatar_url
+                    return (
+                      <button
+                        key={participant.id}
+                        type="button"
+                        onClick={(e) => openParticipantMenu(participant, e)}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[#F1E7CC] text-xs font-bold text-[#A8873F]">
+                          {avatar ? (
+                            <img src={avatar} alt={name} className="h-full w-full object-cover" />
+                          ) : (
+                            initials(name)
+                          )}
+                        </div>
+                        <p className="w-full truncate text-[9px] text-gray-500">
+                          {name.split(" ")[0]}
+                        </p>
+                      </button>
+                    )
+                  })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </main>
 
-        {/* Floating emojis with username */}
-        <div className="pointer-events-none fixed inset-x-0 bottom-24 z-40 flex justify-center overflow-hidden">
-          <div className="relative h-64 w-full max-w-md">
-            {reactions.map((reaction, index) => (
-              <div
-                key={reaction.id}
-                className="absolute bottom-0 flex animate-[floatReaction_3.2s_ease-out_forwards] flex-col items-center gap-0.5"
-                style={{ left: `${15 + ((index * 22) % 60)}%` }}
-              >
-                <span className="text-3xl drop-shadow-lg">{reaction.emoji}</span>
-                {reaction.userName && (
-                  <span className="whitespace-nowrap rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
-                    {reaction.userName.split(" ")[0]}
-                  </span>
+        {/* ═══════ STICKY BOTTOM BAR (inside sheet, above nav) ═══════ */}
+        <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* Left: mic + emoji */}
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-0.5">
+                <button
+                  onClick={handleToggleMic}
+                  className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition ${
+                    micOn
+                      ? "border-emerald-400 bg-emerald-500 text-white"
+                      : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <Mic size={18} />
+                </button>
+                <span className="text-[9px] font-medium text-gray-500">
+                  {micOn ? "Mute" : "Request"}
+                </span>
+              </div>
+
+              <div className="relative flex flex-col items-center gap-0.5">
+                <button
+                  onClick={() => setShowReactionPicker((v) => !v)}
+                  className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition ${
+                    showReactionPicker
+                      ? "border-[#A8873F] bg-[#F1E7CC]"
+                      : "border-gray-300 bg-white hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="text-lg">❤️</span>
+                </button>
+                <span className="text-[9px] font-medium text-gray-500">React</span>
+
+                {showReactionPicker && (
+                  <div className="absolute bottom-full left-1/2 z-50 mb-3 flex -translate-x-1/2 gap-1 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl">
+                    {REACTIONS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => handleReaction(emoji)}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:scale-125 hover:bg-gray-100"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      {/* ═══════════ BOTTOM BAR (X Spaces style) ═══════════ */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 sm:px-6">
-        <div className="mx-auto flex max-w-lg items-end justify-between gap-2">
-
-          {/* Left: Request mic + Emoji */}
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col items-center gap-1">
-              <button
-                onClick={handleToggleMic}
-                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition ${
-                  micOn
-                    ? "border-emerald-400 bg-emerald-500 text-white"
-                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-                aria-label={micOn ? "Mute" : "Request to speak"}
-              >
-                <Mic size={20} />
-              </button>
-              <span className="text-[10px] font-medium text-gray-500">
-                {micOn ? "Mute" : "Request"}
-              </span>
             </div>
 
-            {/* Emoji button */}
-            <div className="relative flex flex-col items-center gap-1">
+            {/* Right: actions */}
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowReactionPicker((v) => !v)}
-                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition ${
-                  showReactionPicker
-                    ? "border-[#A8873F] bg-[#F1E7CC]"
-                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                onClick={handleRaiseHand}
+                disabled={handRaised}
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+                  handRaised ? "bg-amber-100 text-amber-600" : "text-gray-600 hover:bg-gray-100"
                 }`}
-                aria-label="Send emoji"
               >
-                <span className="text-xl">❤️</span>
+                <Hand size={19} />
               </button>
-              <span className="text-[10px] font-medium text-gray-500">React</span>
 
-              {showReactionPicker && (
-                <div className="absolute bottom-full left-1/2 z-50 mb-3 flex -translate-x-1/2 gap-1 rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl">
-                  {REACTIONS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => handleReaction(emoji)}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl text-xl transition hover:scale-125 hover:bg-gray-100"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <button
+                onClick={() => setShowParticipants(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100"
+              >
+                <Users size={19} />
+              </button>
+
+              <button className="flex h-10 w-10 items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100">
+                <Heart size={19} />
+              </button>
+
+              <button className="flex h-10 items-center gap-1.5 rounded-full border-2 border-[#1E40AF] bg-[#1E40AF] px-3.5 text-white transition active:border-[#1E40AF] active:bg-transparent active:text-[#1E40AF]">
+                <MessageCircle size={15} />
+                <span className="text-xs font-bold">{participantCount}</span>
+              </button>
             </div>
-          </div>
-
-          {/* Right: actions */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleRaiseHand}
-              disabled={handRaised}
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
-                handRaised ? "bg-amber-100 text-amber-600" : "text-gray-700 hover:bg-gray-100"
-              }`}
-              aria-label="Raise hand"
-            >
-              <Hand size={20} />
-            </button>
-
-            <button
-              onClick={() => setShowParticipants(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100"
-              aria-label="People"
-            >
-              <Users size={20} />
-            </button>
-
-            <button
-              className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100"
-              aria-label="Like"
-            >
-              <Heart size={20} />
-            </button>
-
-            {/* Blue message pill — transparent when tapped */}
-            <button
-              onClick={() => {
-                const el = document.activeElement
-                el?.blur?.()
-              }}
-              className="group flex h-10 items-center gap-1.5 rounded-full border-2 border-[#1E40AF] bg-[#1E40AF] px-3.5 text-white transition active:border-[#1E40AF] active:bg-transparent active:text-[#1E40AF]"
-            >
-              <MessageCircle size={16} />
-              <span className="text-xs font-bold">{participantCount}</span>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* ═══════════ PARTICIPANTS PANEL ═══════════ */}
+      {/* ═══════ COLLAPSED BAR (when minimized) ═══════ */}
+      {collapsed && (
+        <button
+          onClick={() => setCollapsed(false)}
+          className="fixed inset-x-0 bottom-[68px] z-50 flex items-center gap-3 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)]"
+        >
+          {/* Speaker avatars stack */}
+          <div className="flex -space-x-2">
+            {liveParticipants.slice(0, 4).map((p) => {
+              const av = p.profile?.avatar_url
+              const nm = p.profile?.full_name || p.name || "M"
+              return (
+                <div
+                  key={p.id}
+                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#F1E7CC] text-[10px] font-bold text-[#A8873F]"
+                >
+                  {av ? (
+                    <img src={av} alt={nm} className="h-full w-full object-cover" />
+                  ) : (
+                    nm.charAt(0).toUpperCase()
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="min-w-0 flex-1 text-left">
+            <p className="truncate text-xs font-semibold text-gray-900">
+              {activeSpeakers.length > 0
+                ? liveParticipants
+                    .filter((p) => activeSpeakers.includes(p.user_id))
+                    .map((p) => (p.profile?.full_name || p.name || "Someone").split(" ")[0])
+                    .slice(0, 2)
+                    .join(", ") + (activeSpeakers.length > 2 ? ` +${activeSpeakers.length - 2}` : "")
+                : space?.title || "MEC Space"}
+            </p>
+            <p className="text-[10px] text-gray-500">
+              {participantCount} listening · tap to expand
+            </p>
+          </div>
+
+          {/* Mute space */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleSpaceMute()
+            }}
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+              spaceMuted ? "bg-red-100 text-red-500" : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            <Volume2 size={16} />
+          </button>
+
+          <ChevronUp size={18} className="text-gray-400" />
+        </button>
+      )}
+
+      {/* Participants panel */}
       {showParticipants && (
         <div className="fixed inset-0 z-50">
           <button
             className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={() => setShowParticipants(false)}
-            aria-label="Close"
           />
           <aside className="absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto border-l border-gray-200 bg-white p-5 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
@@ -1103,30 +1147,25 @@ function SpaceRoom() {
         </div>
       )}
 
-      {/* White confirmation dialog for host leaving */}
+      {/* Host-leave confirmation */}
       {showEndConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
           <button
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowEndConfirm(false)}
-            aria-label="Cancel"
           />
           <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-2xl">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
               <PhoneOff size={22} className="text-red-500" />
             </div>
-
             <h2 className="mt-4 text-center text-lg font-bold text-gray-900">
               End Space for everyone?
             </h2>
             <p className="mt-1 text-center text-sm text-gray-500">
-              You're the host. Leaving will end this MEC Space and disconnect
-              everyone.
+              You're the host. Leaving will end this MEC Space and disconnect everyone.
             </p>
-
             <div className="mt-6 flex flex-col gap-2">
               <button
-                type="button"
                 onClick={handleEndSpace}
                 disabled={ending}
                 className="flex items-center justify-center gap-2 rounded-2xl bg-red-500 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-600 disabled:opacity-50"
@@ -1134,12 +1173,10 @@ function SpaceRoom() {
                 <PhoneOff size={15} />
                 {ending ? "Ending..." : "End for everyone"}
               </button>
-
               <button
-                type="button"
                 onClick={() => setShowEndConfirm(false)}
                 disabled={ending}
-                className="rounded-2xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-2xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
               >
                 Stay in Space
               </button>
@@ -1157,7 +1194,6 @@ function SpaceRoom() {
       />
     </div>
   )
-
 }
 
 export default SpaceRoom
