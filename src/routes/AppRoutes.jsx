@@ -4,6 +4,7 @@ import DashboardHome from "../pages/dashboard/DashboardHome"
 import Messages from "../pages/chat/Messages"
 import GroupInfo from "../pages/chat/GroupInfo"
 import FamilyTree from "../pages/family/FamilyTree"
+import Events from "../pages/events/Events"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
 import CreateSpace from "../pages/spaces/CreateSpace"
@@ -185,7 +186,7 @@ function AppRoutes() {
         path="/events"
         element={
           <ProtectedRoute>
-            <div className="p-8">Events coming soon.</div>
+            <Events />
           </ProtectedRoute>
         }
       />
