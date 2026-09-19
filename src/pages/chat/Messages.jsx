@@ -1167,7 +1167,16 @@ function Messages() {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h2 className={`truncate text-sm font-semibold ${theme.text}`}>
+                  <h2
+                    onClick={() => {
+                      if (!selectedConversation.is_direct) {
+                        navigate(`/group/${selectedConversation.id}`)
+                      }
+                    }}
+                    className={`truncate text-sm font-semibold ${theme.text} ${
+                      !selectedConversation.is_direct ? "cursor-pointer hover:underline" : ""
+                    }`}
+                  >
                     {selectedConversation.display_name || "Conversation"}
                   </h2>
                   <p className={`text-xs ${theme.textMuted}`}>

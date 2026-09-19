@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 
 import DashboardHome from "../pages/dashboard/DashboardHome"
 import Messages from "../pages/chat/Messages"
+import GroupInfo from "../pages/chat/GroupInfo"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
 import CreateSpace from "../pages/spaces/CreateSpace"
@@ -103,6 +104,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/group/:conversationId"
+        element={
+          <ProtectedRoute>
+            <GroupInfo />
           </ProtectedRoute>
         }
       />
