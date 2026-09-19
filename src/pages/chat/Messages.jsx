@@ -13,6 +13,7 @@ import { BugFly } from "../../components/chat/Bug"
 import ChatHeaderMenu from "../../components/chat/ChatHeaderMenu"
 import UserProfileModal from "../../components/common/UserProfileModal"
 import NewChatModal from "../../components/chat/NewChatModal"
+import NewGroupModal from "../../components/chat/NewGroupModal"
 import { useAuth } from "../../hooks/useAuth"
 import { useOnlineUsers } from "../../context/PresenceContext"
 import { supabase } from "../../lib/supabase"
@@ -365,6 +366,7 @@ function Messages() {
   const [editingMessage, setEditingMessage] = useState(null)
   const [reactions, setReactions] = useState({})
   const [showNewChatModal, setShowNewChatModal] = useState(false)
+  const [showGroupModal, setShowGroupModal] = useState(false)
   const [voiceRecording, setVoiceRecording] = useState(false)
   const [showChatMenu, setShowChatMenu] = useState(false)
   const [chatMuted, setChatMuted] = useState(false)
@@ -943,6 +945,15 @@ function Messages() {
                   title="Start new chat"
                 >
                   <Plus size={20} strokeWidth={2.5} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGroupModal(true)}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-[#1E40AF] transition hover:bg-gray-50"
+                  aria-label="New group"
+                  title="New group"
+                >
+                  <Users size={18} />
                 </button>
               </div>
             </div>
@@ -1644,6 +1655,19 @@ function Messages() {
           onComplete={handleSendVoiceNote}
         />
       )}
+
+      <NewGroupModal
+        open={showGroupModal}
+        onClose={() => setShowGroupModal(false)}
+        onCreated={async (convId) => {
+          try {
+            const data = await getMyConversations(user.id)
+            setConversations(data || [])
+            const target = (data || []).find((c) => c.id === convId)
+            if (target) setSelectedConversation(target)
+          } catch {}
+        }}
+      />
 
       <NewChatModal
         open={showNewChatModal}

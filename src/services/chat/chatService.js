@@ -449,3 +449,39 @@ export async function logThemeChange({
   if (error) throw error
   return data
 }
+
+/**
+ * Create a group conversation with the current user + selected members.
+ */
+export async function createGroupConversation({ name, creatorId, memberIds }) {
+  if (!creatorId || !memberIds || memberIds.length === 0) {
+    throw new Error("Missing creator or members")
+  }
+
+  const { data: conv, error: convErr } = await supabase
+    .from("conversations")
+    .insert({
+      type: "group",
+      name,
+      created_by: creatorId,
+    })
+    .select()
+    .single()
+
+  if (convErr) throw convErr
+
+  const members = [
+    { conversation_id: conv.id, user_id: creatorId },
+    ...memberIds
+      .filter((id) => id !== creatorId)
+      .map((id) => ({ conversation_id: conv.id, user_id: id })),
+  ]
+
+  const { error: memberErr } = await supabase
+    .from("conversation_members")
+    .insert(members)
+
+  if (memberErr) throw memberErr
+
+  return conv
+}
