@@ -1,6 +1,6 @@
 import { BrowserRouter, useLocation } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
-import Fireflies from "./components/effects/Fireflies"
+import NetworkField from "./components/effects/NetworkField"
 import Navbar from "./components/layout/Navbar"
 import Sidebar from "./components/layout/Sidebar"
 import MobileNav from "./components/layout/MobileNav"
@@ -20,7 +20,7 @@ function AppContent() {
   return (
     <PresenceProvider>
       <div className="min-h-screen overflow-x-hidden bg-[#faf8f3] text-[#202635]">
-        {!["/login", "/register", "/welcome"].includes(location.pathname) && <Fireflies />}
+        {!["/login", "/register", "/welcome"].includes(location.pathname) && <NetworkField />}
 
         <div className="relative z-10">
           <Sidebar />
