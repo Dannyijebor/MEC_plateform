@@ -120,3 +120,14 @@ self.addEventListener("message", (event) => {
     self.skipWaiting()
   }
 })
+
+// ─────────────────────────────────────────────
+// FETCH: minimal no-op handler
+// Chrome Android requires a service worker with a fetch listener
+// to install a PWA as a WebAPK. This satisfies that requirement
+// without interfering with our push notification flow.
+// ─────────────────────────────────────────────
+self.addEventListener("fetch", () => {
+  // Intentionally empty.
+})
+
