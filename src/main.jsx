@@ -18,3 +18,14 @@ createRoot(document.getElementById("root")).render(
     </AuthProvider>
   </StrictMode>
 )
+
+// Register the service worker as early as possible so the PWA is
+// installable even from the login screen (before the user signs in).
+// The push-subscription flow still waits for auth — this just boots the SW.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((err) => {
+      console.warn("Service worker registration failed:", err)
+    })
+  })
+}
