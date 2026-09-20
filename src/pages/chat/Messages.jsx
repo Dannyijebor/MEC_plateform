@@ -1310,9 +1310,9 @@ function Messages() {
               </header>
 
               {/* Messages area */}
-              <div className={`relative flex-1 overflow-hidden ${theme.chatBg}`}>
+              <div className={`relative flex flex-1 min-h-0 flex-col overflow-hidden ${theme.chatBg}`}>
                 {theme.hasRain && <RainBackground />}
-                <div className="relative z-10 h-full overflow-y-auto px-3 py-5 sm:px-6">
+                <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-3 py-5 sm:px-6">
                 {messagesLoading ? (
                   <div className={`flex h-full items-center justify-center text-sm ${theme.textMuted}`}>
                     <Loader2 size={18} className="mr-2 animate-spin" />
@@ -1695,8 +1695,9 @@ function Messages() {
                     ) : (
                       <video
                         src={mediaDraft.url}
-                        className="h-14 w-14 rounded-lg object-cover"
-                        muted
+                        controls
+                        playsInline
+                        className="h-16 w-24 rounded-lg object-cover"
                       />
                     )}
                     <div className="min-w-0 flex-1">
