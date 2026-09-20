@@ -19,6 +19,7 @@ import {
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
 import { getOrCreateConversation } from "../../services/chat/chatService"
+import ProfileHeader from "../../components/profile/ProfileHeader"
 
 function initials(name = "MEC") {
   return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
@@ -178,7 +179,7 @@ export default function UserProfile() {
   }
 
   const name = profile.full_name || profile.username || "MEC Member"
-  const cover = profile.cover_url
+  const cover = profile.banner_url
 
   return (
     <div data-user-profile className="min-h-screen bg-white pb-24 text-gray-900">
@@ -197,153 +198,46 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* ─── COVER ─── */}
-      <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-[#F1E7CC] to-[#D9B86C] sm:h-52">
-        {cover && (
-          <img src={cover} alt="" className="h-full w-full object-cover" />
-        )}
-      </div>
-
-      {/* ─── AVATAR + ACTIONS ─── */}
-      <div className="relative px-4 sm:px-6">
-        <div className="-mt-14 mb-3 flex items-end justify-between sm:-mt-16">
-          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-[#F1E7CC] text-3xl font-bold text-[#A8873F] shadow-md sm:h-32 sm:w-32">
-            {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt={name} className="h-full w-full object-cover" />
-            ) : (
-              initials(name)
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 pb-1">
-            {isMe ? (
-              <Link
-                to="/profile"
-                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
-              >
-                Edit profile
-              </Link>
-            ) : (
-              <>
-                <button
-                  onClick={handleMessage}
-                  disabled={startingChat}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 transition hover:bg-gray-50 disabled:opacity-50"
-                  aria-label="Message"
-                >
-                  {startingChat ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
-                </button>
-                <button
-                  onClick={handleFollow}
-                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                    following
-                      ? "border border-gray-300 text-gray-900 hover:bg-gray-50"
-                      : "bg-gray-900 text-white hover:bg-gray-800"
-                  }`}
-                >
-                  {following ? "Following" : "Follow"}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── IDENTITY ─── */}
-      <div className="px-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold leading-tight text-gray-900">{name}</h1>
-          {profile.verified && (
-            <CheckCircle2 size={20} className="text-[#1E40AF]" fill="currentColor" stroke="white" />
-          )}
-        </div>
-        {profile.username && (
-          <p className="mt-0.5 text-sm text-gray-500">@{profile.username}</p>
-        )}
-
-        {profile.bio && (
-          <p className="mt-3 whitespace-pre-wrap text-[15px] leading-6 text-gray-800">
-            {profile.bio}
-          </p>
-        )}
-
-        {/* Meta rows */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-500">
-          {profile.occupation && (
-            <span className="flex items-center gap-1.5">
-              <Briefcase size={14} />
-              {profile.occupation}
-            </span>
-          )}
-          {profile.location && (
-            <span className="flex items-center gap-1.5">
-              <MapPin size={14} />
-              {profile.location}
-            </span>
-          )}
-          {profile.birthday && (
-            <span className="flex items-center gap-1.5">
-              <Cake size={14} />
-              Born {formatDate(profile.birthday)}
-            </span>
-          )}
-          {profile.created_at && (
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} />
-              Joined {formatJoined(profile.created_at)}
-            </span>
-          )}
-        </div>
-
-        {/* Links */}
-        {(profile.website || profile.instagram || profile.linkedin) && (
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
-            {profile.website && (
-              <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[#1E40AF] hover:underline">
-                <LinkIcon size={14} />
-                {profile.website.replace(/^https?:\/\//, "")}
-              </a>
-            )}
-            {profile.instagram && (
-              <a href={`https://instagram.com/${profile.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[#1E40AF] hover:underline">
-                <AtSign size={14} />
-                {profile.instagram}
-              </a>
-            )}
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="mt-4 flex items-center gap-5 text-sm">
-          <span>
-            <strong className="font-bold text-gray-900">{followCounts.following}</strong>{" "}
-            <span className="text-gray-500">Following</span>
-          </span>
-          <span>
-            <strong className="font-bold text-gray-900">{followCounts.followers}</strong>{" "}
-            <span className="text-gray-500">Followers</span>
-          </span>
-        </div>
-
-        {/* Share button (full width) */}
-        <div className="mt-4 flex gap-2">
-          <button
-            className="flex flex-1 items-center justify-center gap-2 rounded-full border border-gray-300 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
-          >
-            <Share2 size={15} />
-            Share
-          </button>
-          {isMe && (
+      <ProfileHeader
+        profile={profile}
+        displayName={name}
+        followCounts={followCounts}
+        actions={
+          isMe ? (
             <Link
               to="/profile"
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gray-900 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800"
+              className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
             >
-              <Pencil size={14} />
-              Edit
+              Edit profile
             </Link>
-          )}
-        </div>
-      </div>
+          ) : (
+            <>
+              <button
+                onClick={handleMessage}
+                disabled={startingChat}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 transition hover:bg-gray-50 disabled:opacity-50"
+                aria-label="Message"
+              >
+                {startingChat ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <MessageCircle size={16} />
+                )}
+              </button>
+              <button
+                onClick={handleFollow}
+                className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                  following
+                    ? "border border-gray-300 text-gray-900 hover:bg-gray-50"
+                    : "bg-gray-900 text-white hover:bg-gray-800"
+                }`}
+              >
+                {following ? "Following" : "Follow"}
+              </button>
+            </>
+          )
+        }
+      />
 
       {/* ─── TABS ─── */}
       <div className="mt-6 flex items-center border-b border-gray-100">
