@@ -756,6 +756,73 @@ function Profile() {
                   </div>
                 </div>
 
+                <label>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Date of birth
+                  </span>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={form.dateOfBirth}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-black/30 focus:bg-white"
+                  />
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Family member
+                  </span>
+                  <select
+                    name="relatedToSlug"
+                    value={form.relatedToSlug}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-black/30 focus:bg-white"
+                  >
+                    <option value="">Choose a family member</option>
+                    {CHILDREN.map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
+                    Relationship
+                  </span>
+                  <select
+                    name="relationshipType"
+                    value={form.relationshipType}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-black/10 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-black/30 focus:bg-white"
+                  >
+                    <option value="">Choose relationship</option>
+                    {RELATIONSHIP_OPTIONS.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="sm:col-span-2 rounded-2xl border border-black/5 bg-black/[0.02] px-4 py-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/45 mb-2">
+                    Your connections
+                  </p>
+                  <div className="flex gap-6 text-sm">
+                    <div>
+                      <span className="font-bold text-[#202635]">{followCounts.followers}</span>
+                      <span className="ml-1.5 text-black/55">Followers</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[#202635]">{followCounts.following}</span>
+                      <span className="ml-1.5 text-black/55">Following</span>
+                    </div>
+                  </div>
+                </div>
+
                 <label className="sm:col-span-2">
                   <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-black/45">
                     About you
