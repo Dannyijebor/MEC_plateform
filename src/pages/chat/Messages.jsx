@@ -1483,7 +1483,29 @@ function Messages() {
                                   </div>
                                 )
                               })()}
-                              {message.media_type === "voice" && message.media_url ? (
+                              {message.media_type?.startsWith("image/") && message.media_url ? (
+                                <a
+                                  href={message.media_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block"
+                                >
+                                  <img
+                                    src={message.media_url}
+                                    alt="attachment"
+                                    className="max-h-80 w-auto max-w-full rounded-xl object-cover"
+                                    loading="lazy"
+                                  />
+                                </a>
+                              ) : message.media_type?.startsWith("video/") && message.media_url ? (
+                                <video
+                                  src={message.media_url}
+                                  controls
+                                  playsInline
+                                  preload="metadata"
+                                  className="max-h-80 w-auto max-w-full rounded-xl"
+                                />
+                              ) : message.media_type === "voice" && message.media_url ? (
                                 <VoiceMessagePlayer
                                   mediaUrl={message.media_url}
                                   mine={mine}
