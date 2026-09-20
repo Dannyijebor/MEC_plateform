@@ -946,7 +946,7 @@ function DashboardHome() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black p-0 backdrop-blur-2xl sm:bg-black/90 sm:p-6"
+            className="fixed inset-0 z-[160] flex items-center justify-center bg-black p-0 backdrop-blur-2xl sm:bg-black/90 sm:p-6"
           >
 
             <button

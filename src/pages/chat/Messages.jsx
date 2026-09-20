@@ -558,7 +558,12 @@ function Messages() {
     setError("")
     try {
       const data = await getMyConversations(user.id)
-      setConversations(data)
+      const sorted = [...(data || [])].sort((a, b) => {
+        const aT = new Date(a.updated_at || a.created_at || 0).getTime()
+        const bT = new Date(b.updated_at || b.created_at || 0).getTime()
+        return bT - aT
+      })
+      setConversations(sorted)
 
       try {
         const counts = await getUnreadCounts(user.id)
@@ -1727,8 +1732,9 @@ function Messages() {
         onCreated={async (convId) => {
           try {
             const data = await getMyConversations(user.id)
-            setConversations(data || [])
-            const target = (data || []).find((c) => c.id === convId)
+            const sorted = [...(data || [])].sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+            setConversations(sorted)
+            const target = sorted.find((c) => c.id === convId)
             if (target) setSelectedConversation(target)
           } catch {}
         }}
@@ -1740,8 +1746,9 @@ function Messages() {
         onStartConversation={async (conversationId) => {
           try {
             const data = await getMyConversations(user.id)
-            setConversations(data || [])
-            const target = (data || []).find((c) => c.id === conversationId)
+            const sorted = [...(data || [])].sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+            setConversations(sorted)
+            const target = sorted.find((c) => c.id === conversationId)
             if (target) setSelectedConversation(target)
           } catch (err) {
             console.warn("Refresh failed:", err)
