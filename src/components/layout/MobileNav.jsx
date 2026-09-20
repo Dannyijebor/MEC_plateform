@@ -49,7 +49,6 @@ function MobileNav() {
     { label: "Events", icon: CalendarDays, to: "/events" },
     { label: "Committees", icon: Shield, to: "/committees" },
     { label: "Documents", icon: FileText, to: "/documents" },
-    { label: "Profile", icon: User, to: "/profile" },
   ]
 
   const handleSignOut = async () => {
