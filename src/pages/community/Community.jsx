@@ -311,7 +311,17 @@ function Community() {
       return
     }
 
-    setPosts((currentPosts) => [data, ...currentPosts])
+    // Convert media_url to a signed URL immediately (matches feed loader behavior)
+    let postToAdd = data
+    if (data.media_url) {
+      const { data: signed } = await supabase.storage
+        .from("community-media")
+        .createSignedUrl(data.media_url, 60 * 60)
+      if (signed?.signedUrl) {
+        postToAdd = { ...data, media_url: signed.signedUrl }
+      }
+    }
+    setPosts((currentPosts) => [postToAdd, ...currentPosts])
 
     setReactionCounts((current) => ({
       ...current,
