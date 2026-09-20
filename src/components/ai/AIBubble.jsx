@@ -20,6 +20,7 @@ export default function AIBubble() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [mediaPlaying, setMediaPlaying] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
@@ -29,6 +30,27 @@ export default function AIBubble() {
   const scrollRef = useRef(null)
 
   // Auto-scroll on new messages
+  useEffect(() => {
+    const isVideo = (el) => el && el.tagName === "VIDEO"
+    const check = () => {
+      const anyPlaying = Array.from(document.querySelectorAll("video")).some(
+        (v) => !v.paused && !v.ended
+      )
+      setMediaPlaying(anyPlaying)
+    }
+    const onPlay = (e) => { if (isVideo(e.target)) check() }
+    const onPause = (e) => { if (isVideo(e.target)) check() }
+    const onEnded = (e) => { if (isVideo(e.target)) check() }
+    document.addEventListener("play", onPlay, true)
+    document.addEventListener("pause", onPause, true)
+    document.addEventListener("ended", onEnded, true)
+    return () => {
+      document.removeEventListener("play", onPlay, true)
+      document.removeEventListener("pause", onPause, true)
+      document.removeEventListener("ended", onEnded, true)
+    }
+  }, [])
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -134,6 +156,8 @@ export default function AIBubble() {
   }
 
   if (!user?.id) return null
+
+  if (mediaPlaying) return null
 
   return (
     <>
