@@ -147,10 +147,11 @@ export default function AIBubble() {
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-24 right-4 z-[150] flex h-14 w-14 items-center justify-center rounded-full bg-[#3B82F6] text-white shadow-[0_12px_40px_-8px_rgba(59,130,246,0.6)] sm:bottom-28"
+            className="fixed bottom-24 right-4 z-[150] flex h-14 items-center justify-center gap-2 rounded-full bg-[#3B82F6] px-5 text-white shadow-[0_12px_40px_-8px_rgba(59,130,246,0.6)] sm:bottom-28"
             aria-label="Open MEC Assistant"
           >
-            <Sparkles size={22} />
+            <Sparkles size={20} />
+            <span className="text-sm font-semibold tracking-wide">AI</span>
             <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" />
           </motion.button>
         )}

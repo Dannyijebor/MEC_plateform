@@ -45,7 +45,7 @@ function AppContent() {
         </div>
 
         <FloatingCallWidget />
-        <AIBubble />
+        {(location.pathname === "/" || location.pathname === "/community") && <AIBubble />}
       </div>
     </PresenceProvider>
   )
