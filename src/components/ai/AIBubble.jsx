@@ -29,7 +29,7 @@ export default function AIBubble() {
   const recognitionRef = useRef(null)
   const scrollRef = useRef(null)
 
-  // Auto-scroll on new messages
+  // Hide bubble while any video is playing
   useEffect(() => {
     const isVideo = (el) => el && el.tagName === "VIDEO"
     const check = () => {
@@ -44,10 +44,23 @@ export default function AIBubble() {
     document.addEventListener("play", onPlay, true)
     document.addEventListener("pause", onPause, true)
     document.addEventListener("ended", onEnded, true)
+
+    // Re-check when videos are added/removed from the DOM
+    // (e.g. exiting a story or unmounting a video post fires no events)
+    const observer = new MutationObserver(() => check())
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    })
+
+    // Initial check in case a video is already playing on mount
+    check()
+
     return () => {
       document.removeEventListener("play", onPlay, true)
       document.removeEventListener("pause", onPause, true)
       document.removeEventListener("ended", onEnded, true)
+      observer.disconnect()
     }
   }, [])
 
