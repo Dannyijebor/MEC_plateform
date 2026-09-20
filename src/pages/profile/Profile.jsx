@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { supabase } from "../../lib/supabase"
 import { CHILDREN, RELATIONSHIP_OPTIONS } from "../../data/familyTree"
+import ProfileHeader from "../../components/profile/ProfileHeader"
 
 function getInitials(name) {
   if (!name) return "M"
@@ -528,119 +529,24 @@ function Profile() {
         onChange={handleBannerChange}
       />
 
-      {/* BANNER */}
-      <section className="relative mb-4 overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm">
-        <div className="relative h-40 w-full sm:h-52 lg:h-60">
-          {profile.banner_url ? (
-            <img
-              src={profile.banner_url}
-              alt="Profile banner"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[#DCE7FF] via-[#F2F6FF] to-[#FFE9E0]" />
-          )}
-
+      <ProfileHeader
+        profile={profile}
+        displayName={displayName}
+        editable={editing}
+        onBannerClick={handleBannerClick}
+        onAvatarClick={handleAvatarClick}
+        uploadingBanner={uploadingBanner}
+        uploadingAvatar={uploadingAvatar}
+        followCounts={followCounts}
+        actions={
           <button
-            type="button"
-            onClick={handleBannerClick}
-            disabled={uploadingBanner}
-            className="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl border border-white/40 bg-black/45 px-3 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-black/60 disabled:opacity-60"
+            onClick={editing ? cancelEditing : startEditing}
+            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
           >
-            {uploadingBanner ? (
-              <><Loader2 size={14} className="animate-spin" /> Uploading…</>
-            ) : (
-              <><Camera size={14} /> {profile.banner_url ? "Change banner" : "Add banner"}</>
-            )}
+            {editing ? "Cancel" : "Edit profile"}
           </button>
-        </div>
-      </section>
-
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-white text-[#202635] shadow-sm">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(0,0,0,0.025),transparent_30%),radial-gradient(circle_at_85%_0%,rgba(0,0,0,0.02),transparent_30%)]" />
-
-        <div className="relative px-5 pb-7 pt-7 sm:px-8 sm:pb-9 sm:pt-9 lg:px-10">
-          <div className="flex items-start justify-between gap-4">
-            <div className="rounded-full border border-black/10 bg-black/[0.03] px-3 py-1.5 text-xs font-semibold">
-              MEC PROFILE
-            </div>
-
-            <button
-              onClick={editing ? cancelEditing : startEditing}
-              className="flex items-center gap-2 rounded-xl border border-black/10 bg-black/[0.03] px-3.5 py-2 text-sm font-semibold transition hover:bg-black/[0.06]"
-            >
-              {editing ? <X size={16} /> : <Edit3 size={16} />}
-              <span className="hidden sm:inline">
-                {editing ? "Cancel" : "Edit profile"}
-              </span>
-            </button>
-          </div>
-
-          <div className="mt-9 flex flex-col gap-6 sm:flex-row sm:items-end">
-            <div className="relative shrink-0">
-              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[2rem] border-4 border-white bg-black/[0.03] text-3xl font-bold shadow-lg sm:h-32 sm:w-32">
-                {profile.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
-              </div>
-
-              <button
-                onClick={handleAvatarClick}
-                disabled={uploadingAvatar}
-                aria-label="Change profile picture"
-                className="absolute -bottom-2 -right-2 flex h-11 w-11 items-center justify-center rounded-2xl border-4 border-white bg-[#202635] text-white shadow-lg transition hover:scale-105 disabled:opacity-60"
-              >
-                {uploadingAvatar ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Camera size={18} />
-                )}
-              </button>
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-                  {displayName}
-                </h1>
-
-                {profile.is_active && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-black/50">
-                {profile.username && (
-                  <span>@{profile.username}</span>
-                )}
-
-                <span>{roleLabel}</span>
-
-                <span className="inline-flex items-center gap-1.5">
-                  <CalendarDays size={14} />
-                  Joined {formatDate(profile.created_at)}
-                </span>
-              </div>
-
-              {profile.bio && !editing && (
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-black/60">
-                  {profile.bio}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       {/* STATUS */}
       {(message || error) && (

@@ -141,7 +141,7 @@ export default function ProfileHeader({
       </div>
 
       <div className="px-4 sm:px-6">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-bold leading-tight text-gray-900">
             {name}
           </h1>
@@ -152,6 +152,12 @@ export default function ProfileHeader({
               fill="currentColor"
               stroke="white"
             />
+          )}
+          {profile?.is_active && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Active
+            </span>
           )}
         </div>
 
@@ -172,6 +178,9 @@ export default function ProfileHeader({
         )}
 
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-500">
+          {profile?.role && (
+            <span className="capitalize">{profile.role}</span>
+          )}
           {profile?.location && (
             <span className="flex items-center gap-1.5">
               <MapPin size={14} /> {profile.location}
