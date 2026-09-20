@@ -152,6 +152,7 @@ export async function sendMessage({
   content,
   mediaUrl = null,
   mediaType = null,
+  linkPreview = null,
 }) {
   const { data, error } = await supabase
     .from("messages")
@@ -161,6 +162,7 @@ export async function sendMessage({
       content: content?.trim() || null,
       media_url: mediaUrl,
       media_type: mediaType,
+      link_preview: linkPreview,
     })
     .select()
     .single()
@@ -365,6 +367,7 @@ export async function sendReplyMessage({
   replyToId,
   mediaUrl = null,
   mediaType = null,
+  linkPreview = null,
 }) {
   const { data, error } = await supabase
     .from("messages")
@@ -375,6 +378,7 @@ export async function sendReplyMessage({
       reply_to_id: replyToId,
       media_url: mediaUrl,
       media_type: mediaType,
+      link_preview: linkPreview,
     })
     .select()
     .single()

@@ -7,6 +7,8 @@ import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { parseStatusReply, StatusReplyPreview } from "../../components/chat/StatusReplyPreview"
 import SwipeableBubble from "../../components/chat/SwipeableBubble"
 import { uploadToR2 } from "../../lib/r2"
+import LinkPreviewCard from "../../components/chat/LinkPreviewCard"
+import { extractFirstUrl, unfurlUrl } from "../../lib/linkPreview"
 import MessageActionMenu from "../../components/chat/MessageActionMenu"
 import VoiceRecorder from "../../components/chat/VoiceRecorder"
 import VoiceMessagePlayer from "../../components/chat/VoiceMessagePlayer"
@@ -890,6 +892,19 @@ function Messages() {
 
       const mediaUrl = mediaDraft?.url || null
       const mediaType = mediaDraft?.type || null
+
+      let linkPreview = null
+      if (!mediaUrl && content) {
+        const url = extractFirstUrl(content)
+        if (url) {
+          try {
+            linkPreview = await unfurlUrl(url)
+          } catch (e) {
+            console.warn("unfurl skipped:", e)
+          }
+        }
+      }
+
       const newMessage = replyingTo
         ? await sendReplyMessage({
             conversationId: selectedConversation.id,
@@ -898,6 +913,7 @@ function Messages() {
             replyToId: replyingTo.id,
             mediaUrl,
             mediaType,
+            linkPreview,
           })
         : await sendMessage({
             conversationId: selectedConversation.id,
@@ -905,6 +921,7 @@ function Messages() {
             content,
             mediaUrl,
             mediaType,
+            linkPreview,
           })
 
       setMessages((current) => {
@@ -1524,6 +1541,9 @@ function Messages() {
                                   </>
                                 )
                               })()}
+                              {message.link_preview && (
+                                <LinkPreviewCard preview={message.link_preview} />
+                              )}
                               {message.edited_at && (
                                 <p className="mt-1 text-[10px] opacity-60">(edited)</p>
                               )}
