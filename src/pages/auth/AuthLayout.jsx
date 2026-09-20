@@ -2,7 +2,6 @@ import { Sparkles } from "lucide-react"
 import { Outlet } from "react-router-dom"
 import { useTheme } from "../../context/ThemeContext"
 import { Moon, Sun } from "lucide-react"
-import Fireflies from "../../components/effects/Fireflies"
 
 function AuthLayout() {
   const { theme, toggleTheme } = useTheme()
@@ -18,8 +17,6 @@ function AuthLayout() {
       >
         {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
       </button>
-
-      <Fireflies />
 
       <div className="relative z-10 flex min-h-screen w-full">
 

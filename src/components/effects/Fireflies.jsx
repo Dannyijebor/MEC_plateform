@@ -391,16 +391,20 @@ function Fireflies() {
         depth,
       } = flake
 
+      const isDark =
+        document.documentElement.classList.contains("dark")
+      const snowRgb = isDark ? "255, 255, 255" : "32, 38, 53"
+
       if (depth > 0.7) {
         ctx.shadowBlur = radius * 3
         ctx.shadowColor =
-          `rgba(255, 255, 255, ${opacity * 0.4})`
+          `rgba(${snowRgb}, ${opacity * 0.4})`
       }
 
       ctx.beginPath()
 
       ctx.fillStyle =
-        `rgba(255, 255, 255, ${opacity})`
+        `rgba(${snowRgb}, ${opacity})`
 
       ctx.arc(
         x,
@@ -630,10 +634,13 @@ function Fireflies() {
           sparkle.opacity *
           (0.45 + pulse * 0.55)
 
+        const sparkleDark = document.documentElement.classList.contains("dark")
+        const sparkleRgb = sparkleDark ? "255, 255, 255" : "32, 38, 53"
+
         ctx.beginPath()
 
         ctx.fillStyle =
-          `rgba(255, 255, 255, ${opacity})`
+        ctx.fillStyle = `rgba(${sparkleRgb}, ${opacity})`
 
         ctx.arc(
           sparkle.x,
