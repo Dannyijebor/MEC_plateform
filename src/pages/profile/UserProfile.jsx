@@ -20,6 +20,7 @@ import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../hooks/useAuth"
 import { getOrCreateConversation } from "../../services/chat/chatService"
 import ProfileHeader from "../../components/profile/ProfileHeader"
+import FollowListModal from "../../components/profile/FollowListModal"
 
 function initials(name = "MEC") {
   return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase()
@@ -52,6 +53,7 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true)
   const [following, setFollowing] = useState(false)
   const [followCounts, setFollowCounts] = useState({ following: 0, followers: 0 })
+  const [followModal, setFollowModal] = useState(null)
   const [startingChat, setStartingChat] = useState(false)
 
   const isMe = me?.id === userId
@@ -201,6 +203,8 @@ export default function UserProfile() {
       <ProfileHeader
         profile={profile}
         displayName={name}
+        onFollowersClick={() => setFollowModal("followers")}
+        onFollowingClick={() => setFollowModal("following")}
         followCounts={followCounts}
         actions={
           isMe ? (
@@ -237,6 +241,13 @@ export default function UserProfile() {
             </>
           )
         }
+      />
+
+      <FollowListModal
+        open={followModal !== null}
+        onClose={() => setFollowModal(null)}
+        userId={userId}
+        mode={followModal || "followers"}
       />
 
       {/* ─── TABS ─── */}

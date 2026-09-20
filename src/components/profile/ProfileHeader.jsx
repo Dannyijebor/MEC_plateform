@@ -63,6 +63,8 @@ export default function ProfileHeader({
   uploadingBanner = false,
   uploadingAvatar = false,
   followCounts,
+  onFollowersClick,
+  onFollowingClick,
   actions,
 }) {
   const name = displayName || profile?.full_name || profile?.username || "MEC Member"
@@ -200,18 +202,26 @@ export default function ProfileHeader({
 
         {followCounts && (
           <div className="mt-4 flex items-center gap-5 text-sm">
-            <span>
+            <button
+              type="button"
+              onClick={onFollowingClick}
+              className="transition hover:opacity-70"
+            >
               <strong className="font-bold text-gray-900">
                 {followCounts.following}
               </strong>{" "}
               <span className="text-gray-500">Following</span>
-            </span>
-            <span>
+            </button>
+            <button
+              type="button"
+              onClick={onFollowersClick}
+              className="transition hover:opacity-70"
+            >
               <strong className="font-bold text-gray-900">
                 {followCounts.followers}
               </strong>{" "}
               <span className="text-gray-500">Followers</span>
-            </span>
+            </button>
           </div>
         )}
       </div>

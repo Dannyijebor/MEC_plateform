@@ -25,6 +25,7 @@ import { useAuth } from "../../hooks/useAuth"
 import { supabase } from "../../lib/supabase"
 import { CHILDREN, RELATIONSHIP_OPTIONS } from "../../data/familyTree"
 import ProfileHeader from "../../components/profile/ProfileHeader"
+import FollowListModal from "../../components/profile/FollowListModal"
 
 function getInitials(name) {
   if (!name) return "M"
@@ -64,6 +65,7 @@ function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 })
+  const [followModal, setFollowModal] = useState(null)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
 
@@ -533,6 +535,8 @@ function Profile() {
         profile={profile}
         displayName={displayName}
         editable={editing}
+        onFollowersClick={() => setFollowModal("followers")}
+        onFollowingClick={() => setFollowModal("following")}
         onBannerClick={handleBannerClick}
         onAvatarClick={handleAvatarClick}
         uploadingBanner={uploadingBanner}
@@ -546,6 +550,13 @@ function Profile() {
             {editing ? "Cancel" : "Edit profile"}
           </button>
         }
+      />
+
+      <FollowListModal
+        open={followModal !== null}
+        onClose={() => setFollowModal(null)}
+        userId={user?.id}
+        mode={followModal || "followers"}
       />
 
       {/* STATUS */}
