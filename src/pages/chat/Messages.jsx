@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus, ChevronRight, Mic } from "lucide-react"
+import { ArrowLeft, Search, Send, MessageCircle, Users, MoreVertical, Phone, Video, Palette, Check, CheckCheck, Loader2, Sparkles, X, Clock, Plus, ChevronRight, Mic, Paperclip } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { PhoneOff } from "lucide-react"
 import IncomingCallPopup from "../../components/chat/IncomingCallPopup"
 import { parseStatusReply, StatusReplyPreview } from "../../components/chat/StatusReplyPreview"
 import SwipeableBubble from "../../components/chat/SwipeableBubble"
+import { uploadToR2 } from "../../lib/r2"
 import MessageActionMenu from "../../components/chat/MessageActionMenu"
 import VoiceRecorder from "../../components/chat/VoiceRecorder"
 import VoiceMessagePlayer from "../../components/chat/VoiceMessagePlayer"
@@ -827,11 +828,50 @@ function Messages() {
   }
 
   const [justSentId, setJustSentId] = useState(null)
+  const mediaInputRef = useRef(null)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [mediaDraft, setMediaDraft] = useState(null)
+
+  const handleMediaPick = () => {
+    mediaInputRef.current?.click()
+  }
+
+  const handleMediaChange = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    setError("")
+    const isImage = file.type.startsWith("image/")
+    const isVideo = file.type.startsWith("video/")
+    if (!isImage && !isVideo) {
+      setError("Only images and videos can be sent.")
+      return
+    }
+    const maxBytes = isVideo ? 60 * 1024 * 1024 : 15 * 1024 * 1024
+    if (file.size > maxBytes) {
+      setError(isVideo ? "Videos must be under 60 MB." : "Images must be under 15 MB.")
+      return
+    }
+
+    setUploadingMedia(true)
+    try {
+      const { url, type } = await uploadToR2(file, "chat")
+      setMediaDraft({ url, type, name: file.name })
+    } catch (err) {
+      console.error("Media upload failed:", err)
+      setError("Could not upload that file. Try again.")
+    } finally {
+      setUploadingMedia(false)
+    }
+  }
+
+  const clearMediaDraft = () => setMediaDraft(null)
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
     const content = messageText.trim()
-    if (!content || !selectedConversation || !user || sending) return
+    if ((!content && !mediaDraft) || !selectedConversation || !user || sending) return
 
     setSending(true)
     setError("")
@@ -848,17 +888,23 @@ function Messages() {
         return
       }
 
+      const mediaUrl = mediaDraft?.url || null
+      const mediaType = mediaDraft?.type || null
       const newMessage = replyingTo
         ? await sendReplyMessage({
             conversationId: selectedConversation.id,
             senderId: user.id,
             content,
             replyToId: replyingTo.id,
+            mediaUrl,
+            mediaType,
           })
         : await sendMessage({
             conversationId: selectedConversation.id,
             senderId: user.id,
             content,
+            mediaUrl,
+            mediaType,
           })
 
       setMessages((current) => {
@@ -867,6 +913,7 @@ function Messages() {
       })
       setJustSentId(newMessage.id)
       setTimeout(() => setJustSentId(null), 1200)
+      setMediaDraft(null)
       setMessageText("")
       setReplyingTo(null)
       textareaRef.current?.focus()
@@ -1607,8 +1654,61 @@ function Messages() {
                     </button>
                   </div>
                 )}
+                <input
+                  ref={mediaInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  className="hidden"
+                  onChange={handleMediaChange}
+                />
+
+                {mediaDraft && (
+                  <div className="mx-auto mb-2 flex max-w-2xl items-center gap-3 rounded-xl border border-black/10 bg-white px-3 py-2 shadow-sm">
+                    {mediaDraft.type?.startsWith("image/") ? (
+                      <img
+                        src={mediaDraft.url}
+                        alt="preview"
+                        className="h-14 w-14 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={mediaDraft.url}
+                        className="h-14 w-14 rounded-lg object-cover"
+                        muted
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-semibold text-gray-800">
+                        {mediaDraft.name || "Attachment"}
+                      </p>
+                      <p className="text-[10px] text-gray-500">Ready to send</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearMediaDraft}
+                      className="rounded-lg p-1.5 text-gray-500 transition hover:bg-black/5"
+                      aria-label="Remove attachment"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
                 <form onSubmit={handleSendMessage} className="mx-auto flex max-w-2xl items-end gap-2">
                   <div className={`flex flex-1 items-end gap-2 rounded-2xl border ${theme.inputBorder} ${theme.inputBg} p-2 focus-within:ring-0 focus-within:outline-none`}>
+                    <button
+                      type="button"
+                      onClick={handleMediaPick}
+                      disabled={uploadingMedia || sending}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${theme.textMuted} transition hover:bg-black/5 disabled:opacity-50`}
+                      aria-label="Attach image or video"
+                    >
+                      {uploadingMedia ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <Paperclip size={18} />
+                      )}
+                    </button>
                     <textarea
                       ref={textareaRef}
                       value={messageText}
@@ -1631,7 +1731,7 @@ function Messages() {
                       className={`max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm ${theme.text} outline-none focus:outline-none focus:ring-0 focus:border-transparent appearance-none`}
                     />
                   </div>
-                  {messageText.trim() ? (
+                  {(messageText.trim() || mediaDraft) ? (
                     <button
                       type="submit"
                       disabled={sending}

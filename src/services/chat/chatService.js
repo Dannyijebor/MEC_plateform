@@ -363,14 +363,18 @@ export async function sendReplyMessage({
   senderId,
   content,
   replyToId,
+  mediaUrl = null,
+  mediaType = null,
 }) {
   const { data, error } = await supabase
     .from("messages")
     .insert({
       conversation_id: conversationId,
       sender_id: senderId,
-      content,
+      content: content?.trim() || null,
       reply_to_id: replyToId,
+      media_url: mediaUrl,
+      media_type: mediaType,
     })
     .select()
     .single()
