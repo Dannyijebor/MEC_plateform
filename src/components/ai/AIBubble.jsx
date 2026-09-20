@@ -75,10 +75,11 @@ export default function AIBubble() {
       const reply =
         res.data?.reply ||
         "Sorry, I couldn't think of a reply just now. Try again?"
+      const sources = Array.isArray(res.data?.sources) ? res.data.sources : []
 
       setMessages((current) => [
         ...current,
-        { id: "a-" + Date.now(), role: "assistant", content: reply },
+        { id: "a-" + Date.now(), role: "assistant", content: reply, sources },
       ])
     } catch (err) {
       console.error("AI error:", err)
@@ -238,6 +239,21 @@ export default function AIBubble() {
                           {m.role === "assistant" ? (
                               <div className="break-words text-sm leading-relaxed [&_h1]:font-bold [&_h1]:text-lg [&_h1]:my-2 [&_h2]:font-bold [&_h2]:my-2 [&_h3]:font-semibold [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_table]:text-xs [&_table]:border-collapse [&_table]:my-2 [&_td]:border [&_td]:border-gray-300 [&_td]:p-1 [&_th]:border [&_th]:border-gray-300 [&_th]:p-1 [&_strong]:font-semibold [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-gray-100 [&_pre]:p-2 [&_pre]:rounded [&_pre]:overflow-x-auto [&_a]:text-blue-600 [&_a]:underline">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                                {Array.isArray(m.sources) && m.sources.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {m.sources.map((s, i) => (
+                                      <a
+                                        key={i}
+                                        href={s.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="max-w-[180px] truncate rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] text-gray-600 transition hover:bg-gray-100"
+                                      >
+                                        {s.title || "source"}
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <p className="whitespace-pre-wrap break-words">{m.content}</p>
