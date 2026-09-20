@@ -11,6 +11,8 @@ import VoiceRecorder from "../../components/chat/VoiceRecorder"
 import VoiceMessagePlayer from "../../components/chat/VoiceMessagePlayer"
 import Butterfly from "../../components/chat/Butterfly"
 import { BugFly } from "../../components/chat/Bug"
+import RainBackground from "../../components/chat/RainBackground"
+import RainRipple from "../../components/chat/RainRipple"
 import ChatHeaderMenu from "../../components/chat/ChatHeaderMenu"
 import UserProfileModal from "../../components/common/UserProfileModal"
 import NewChatModal from "../../components/chat/NewChatModal"
@@ -255,6 +257,30 @@ const THEMES = {
     dark: false,
     hasButterfly: true,
     butterflyColors: { color1: "#06b6d4", color2: "#67e8f9", bodyColor: "#155e75" },
+  },
+  rainfall: {
+    name: "Rain Fall",
+    preview: "linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #38bdf8 100%)",
+    page: "bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0c1424]",
+    sidebar: "bg-[#0f172a]",
+    chatBg: "bg-[#0f172a]",
+    ownBubble: "bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] text-white",
+    otherBubble: "bg-[#1e293b] text-[#e2e8f0] border border-[#334155]",
+    accent: "#38bdf8",
+    accentText: "text-[#38bdf8]",
+    accentBg: "bg-[#38bdf8]",
+    accentHover: "hover:bg-[#0ea5e9]",
+    headerBg: "bg-[#0f172a]/95",
+    headerBorder: "border-[#1e293b]",
+    inputBg: "bg-[#1e293b]",
+    inputBorder: "border-[#334155]",
+    iconAccent: "text-[#38bdf8]",
+    iconBg: "bg-[#1e293b]",
+    text: "text-[#e2e8f0]",
+    textMuted: "text-[#94a3b8]",
+    textFaint: "text-[#64748b]",
+    dark: true,
+    hasRain: true,
   },
 }
 
@@ -795,6 +821,8 @@ function Messages() {
     }
   }
 
+  const [justSentId, setJustSentId] = useState(null)
+
   const handleSendMessage = async (e) => {
     e.preventDefault()
     const content = messageText.trim()
@@ -832,6 +860,8 @@ function Messages() {
         if (current.some((m) => m.id === newMessage.id)) return current
         return [...current, newMessage]
       })
+      setJustSentId(newMessage.id)
+      setTimeout(() => setJustSentId(null), 1200)
       setMessageText("")
       setReplyingTo(null)
       textareaRef.current?.focus()
@@ -1228,7 +1258,8 @@ function Messages() {
               </header>
 
               {/* Messages area */}
-              <div className={`flex-1 overflow-y-auto px-3 py-5 sm:px-6 ${theme.chatBg}`}>
+              <div className={`relative flex-1 overflow-y-auto px-3 py-5 sm:px-6 ${theme.chatBg}`}>
+                {theme.hasRain && <RainBackground />}
                 {messagesLoading ? (
                   <div className={`flex h-full items-center justify-center text-sm ${theme.textMuted}`}>
                     <Loader2 size={18} className="mr-2 animate-spin" />
@@ -1340,6 +1371,7 @@ function Messages() {
                             <SwipeableBubble
                               mine={mine}
                               messageId={message.id}
+                              justSent={justSentId === message.id}
                               onReply={() => {
                                 setReplyingTo({
                                   id: message.id,
@@ -1366,7 +1398,7 @@ function Messages() {
                                   : ""
                               }`}
                             >
-                              {!theme.hasButterfly && isLastMessage && !isCallEvent && !isThemeEvent && (
+                              {!theme.hasButterfly && !theme.hasRain && isLastMessage && !isCallEvent && !isThemeEvent && (
                                 <BugFly
                                   key={`bug-${message.id}`}
                                   color={theme.dark ? "#FCD34D" : "#78350F"}

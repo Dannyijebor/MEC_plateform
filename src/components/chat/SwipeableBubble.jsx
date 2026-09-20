@@ -2,8 +2,9 @@ import { motion, useMotionValue, useTransform } from "framer-motion"
 import { Reply } from "lucide-react"
 import { useRef } from "react"
 import { useLongPress } from "../../hooks/useLongPress"
+import RainRipple from "./RainRipple"
 
-export default function SwipeableBubble({ mine, onReply, onLongPress, messageId, children }) {
+export default function SwipeableBubble({ mine, onReply, onLongPress, messageId, children , justSent}) {
   const x = useMotionValue(0)
   const absX = useTransform(x, (v) => Math.abs(v))
   const opacity = useTransform(absX, [0, 20, 60], [0, 0.5, 1])
@@ -47,6 +48,7 @@ export default function SwipeableBubble({ mine, onReply, onLongPress, messageId,
 
       <div className="relative z-10" {...longPressHandlers}>
         {children}
+        {justSent && <RainRipple />}
       </div>
     </motion.div>
   )
