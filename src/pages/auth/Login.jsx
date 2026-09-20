@@ -46,11 +46,11 @@ function Login() {
           Welcome back
         </p>
 
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#f7f3ea] sm:text-3xl">
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#202635] sm:text-3xl">
           Sign in to MEC
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-[#f7f3ea]/45">
+        <p className="mt-2 text-sm leading-6 text-black/55">
           Enter your details to continue to the family community.
         </p>
       </div>
@@ -58,7 +58,7 @@ function Login() {
       {error && (
         <div
           role="alert"
-          className="mb-5 rounded-xl border border-red-300/10 bg-red-400/[0.06] px-4 py-3 text-sm leading-5 text-red-200/80"
+          className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700"
         >
           {error}
         </div>
@@ -71,7 +71,7 @@ function Login() {
         <div>
           <label
             htmlFor="email"
-            className="mb-2 block text-xs font-medium text-[#f7f3ea]/65"
+            className="mb-2 block text-xs font-medium text-black/60"
           >
             Email address
           </label>
@@ -84,7 +84,7 @@ function Login() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
-            className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
+            className="h-12 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 text-sm text-[#202635] outline-none transition placeholder:text-black/30 focus:border-[#3B82F6]/40 focus:bg-white"
           />
         </div>
 
@@ -92,14 +92,14 @@ function Login() {
           <div className="mb-2 flex items-center justify-between">
             <label
               htmlFor="password"
-              className="text-xs font-medium text-[#f7f3ea]/65"
+              className="text-xs font-medium text-black/60"
             >
               Password
             </label>
 
             <button
               type="button"
-              className="text-[11px] text-[#3B82F6] transition hover:text-[#e4c982]"
+              className="text-[11px] text-[#3B82F6] transition hover:text-[#2563EB]"
             >
               Forgot password?
             </button>
@@ -113,7 +113,7 @@ function Login() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
-              className="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 pr-12 text-sm text-[#f7f3ea] outline-none transition placeholder:text-[#f7f3ea]/25 focus:border-[#3B82F6]/40 focus:bg-white/[0.05]"
+              className="h-12 w-full rounded-xl border border-black/10 bg-[#fafafa] px-4 pr-12 text-sm text-[#202635] outline-none transition placeholder:text-black/30 focus:border-[#3B82F6]/40 focus:bg-white"
             />
 
             <button
@@ -124,7 +124,7 @@ function Login() {
                   ? "Hide password"
                   : "Show password"
               }
-              className="absolute right-0 top-0 flex h-12 w-12 items-center justify-center text-[#f7f3ea]/35 transition hover:text-[#f7f3ea]/70"
+              className="absolute right-0 top-0 flex h-12 w-12 items-center justify-center text-black/40 transition hover:text-black/65"
             >
               {showPassword ? (
                 <EyeOff size={18} />
@@ -138,7 +138,7 @@ function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 text-sm font-semibold text-[#ffffff] transition hover:bg-[#e4c982] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-4 text-sm font-semibold text-white transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             "Signing in..."
@@ -152,16 +152,16 @@ function Login() {
       </form>
 
       <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-white/[0.06]" />
-        <span className="text-[10px] uppercase tracking-wider text-[#f7f3ea]/25">
+        <div className="h-px flex-1 bg-black/[0.08]" />
+        <span className="text-[10px] uppercase tracking-wider text-black/30">
           New to MEC?
         </span>
-        <div className="h-px flex-1 bg-white/[0.06]" />
+        <div className="h-px flex-1 bg-black/[0.08]" />
       </div>
 
       <Link
         to="/register"
-        className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-white/30 bg-white/[0.06] px-4 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/[0.12] active:scale-[0.99]"
+        className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-black/15 bg-white px-4 text-sm font-semibold text-[#202635] transition hover:border-black/25 hover:bg-black/[0.03] active:scale-[0.99]"
       >
         Create an account
       </Link>

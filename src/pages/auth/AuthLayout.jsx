@@ -14,7 +14,7 @@ function AuthLayout() {
         onClick={toggleTheme}
         data-auth-toggle
         aria-label="Toggle theme"
-        className="fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-700 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
+        className="fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-gray-700 shadow-md backdrop-blur transition hover:scale-105 active:scale-95"
       >
         {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
       </button>
@@ -37,7 +37,7 @@ function AuthLayout() {
               <p className="text-sm font-semibold">
                 Mack Eselebor Clan
               </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#f7f3ea]/35">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-black/40">
                 Family Community
               </p>
             </div>
@@ -52,13 +52,13 @@ function AuthLayout() {
               Stay connected to the people who matter most.
             </h1>
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-[#f7f3ea]/45">
+            <p className="mt-5 max-w-md text-sm leading-7 text-black/55">
               Share memories, celebrate milestones, discover family
               stories, and stay connected with the Mack Eselebor Clan.
             </p>
           </div>
 
-          <p className="text-xs text-[#f7f3ea]/25">
+          <p className="text-xs text-black/35">
             Private family community
           </p>
         </section>
@@ -78,17 +78,17 @@ function AuthLayout() {
                 <p className="text-sm font-semibold">
                   Mack Eselebor Clan
                 </p>
-                <p className="text-[9px] uppercase tracking-[0.18em] text-[#f7f3ea]/35">
+                <p className="text-[9px] uppercase tracking-[0.18em] text-black/40">
                   Family Community
                 </p>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/[0.07] bg-[#11182b]/75 p-5 shadow-2xl backdrop-blur-2xl sm:p-7">
+            <div className="rounded-3xl border border-black/[0.08] bg-white p-5 shadow-xl sm:p-7">
               <Outlet />
             </div>
 
-            <p className="mt-6 text-center text-[10px] leading-5 text-[#f7f3ea]/25">
+            <p className="mt-6 text-center text-[10px] leading-5 text-black/35">
               This is a private community for members of the
               Mack Eselebor Clan.
             </p>
