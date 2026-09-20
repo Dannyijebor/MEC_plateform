@@ -23,6 +23,7 @@ const THEME_KEYS = [
   { key: "butterflyGarden", name: "Butterfly Garden", preview: "linear-gradient(135deg, #dcfce7 0%, #fef3c7 50%, #fce7f3 100%)" },
   { key: "lavenderDream", name: "Lavender Dream", preview: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%)" },
   { key: "oceanBreeze", name: "Ocean Breeze", preview: "linear-gradient(135deg, #cffafe 0%, #67e8f9 100%)" },
+  { key: "rainfall", name: "Rain Fall", preview: "linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #38bdf8 100%)" },
 ]
 
 export default function ChatHeaderMenu({
