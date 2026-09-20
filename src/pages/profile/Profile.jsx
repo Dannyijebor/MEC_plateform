@@ -23,6 +23,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { supabase } from "../../lib/supabase"
+import { CHILDREN, RELATIONSHIP_OPTIONS } from "../../data/familyTree"
 
 function getInitials(name) {
   if (!name) return "M"
@@ -52,6 +53,7 @@ function Profile() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const fileInputRef = useRef(null)
+  const bannerInputRef = useRef(null)
 
   const [profile, setProfile] = useState(null)
   const [form, setForm] = useState(null)
@@ -59,6 +61,8 @@ function Profile() {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 })
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
 
@@ -78,6 +82,10 @@ function Profile() {
           full_name,
           username,
           avatar_url,
+          banner_url,
+          date_of_birth,
+          related_to_slug,
+          relationship_type,
           bio,
           phone,
           location,
@@ -115,6 +123,9 @@ function Profile() {
         bio: data.bio || "",
         phone: data.phone || "",
         location: data.location || "",
+        dateOfBirth: data.date_of_birth || "",
+        relatedToSlug: data.related_to_slug || "",
+        relationshipType: data.relationship_type || "",
       })
 
       setLoading(false)
@@ -125,6 +136,28 @@ function Profile() {
     return () => {
       mounted = false
     }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function loadFollowCounts() {
+      const { count: followersCount } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", user.id)
+      const { count: followingCount } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", user.id)
+      if (cancelled) return
+      setFollowCounts({
+        followers: followersCount || 0,
+        following: followingCount || 0,
+      })
+    }
+    loadFollowCounts()
+    return () => { cancelled = true }
   }, [user])
 
   const displayName =
@@ -179,6 +212,9 @@ function Profile() {
       bio: profile?.bio || "",
       phone: profile?.phone || "",
       location: profile?.location || "",
+      dateOfBirth: profile?.date_of_birth || "",
+      relatedToSlug: profile?.related_to_slug || "",
+      relationshipType: profile?.relationship_type || "",
     })
 
     setError("")
@@ -219,6 +255,9 @@ function Profile() {
         bio: form.bio.trim() || null,
         phone: form.phone.trim() || null,
         location: form.location.trim() || null,
+        date_of_birth: form.dateOfBirth || null,
+        related_to_slug: form.relatedToSlug || null,
+        relationship_type: form.relationshipType || null,
       })
       .eq("id", user.id)
       .select(`
@@ -226,6 +265,10 @@ function Profile() {
         full_name,
         username,
         avatar_url,
+        banner_url,
+        date_of_birth,
+        related_to_slug,
+        relationship_type,
         bio,
         phone,
         location,
@@ -264,6 +307,70 @@ function Profile() {
 
     setEditing(false)
     setMessage("Profile updated successfully.")
+  }
+
+  const handleBannerClick = () => {
+    bannerInputRef.current?.click()
+  }
+
+  const handleBannerChange = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file || !user) return
+
+    setError("")
+    setMessage("")
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if (!allowedTypes.includes(file.type)) {
+      setError("Please choose a JPG, PNG, WebP, or GIF image.")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Banner images must be smaller than 5 MB.")
+      return
+    }
+
+    setUploadingBanner(true)
+
+    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg"
+    const path = `${user.id}/banner-${Date.now()}.${extension}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-avatars")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      })
+
+    if (uploadError) {
+      console.error("Banner upload failed:", uploadError)
+      setUploadingBanner(false)
+      setError(uploadError.message || "Unable to upload your banner.")
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("profile-avatars")
+      .getPublicUrl(path)
+
+    const { data, error: updateError } = await supabase
+      .from("profiles")
+      .update({ banner_url: publicUrl })
+      .eq("id", user.id)
+      .select(`id, full_name, username, avatar_url, banner_url, date_of_birth, related_to_slug, relationship_type, bio, phone, location, role, is_active, created_at, updated_at`)
+      .single()
+
+    setUploadingBanner(false)
+
+    if (updateError) {
+      setError(updateError.message || "Unable to save your banner.")
+      return
+    }
+
+    setProfile(data)
+    setMessage("Banner updated.")
   }
 
   const handleAvatarClick = () => {
@@ -338,6 +445,10 @@ function Profile() {
         full_name,
         username,
         avatar_url,
+        banner_url,
+        date_of_birth,
+        related_to_slug,
+        relationship_type,
         bio,
         phone,
         location,
@@ -409,6 +520,41 @@ function Profile() {
         className="hidden"
         onChange={handleAvatarChange}
       />
+      <input
+        ref={bannerInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleBannerChange}
+      />
+
+      {/* BANNER */}
+      <section className="relative mb-4 overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm">
+        <div className="relative h-40 w-full sm:h-52 lg:h-60">
+          {profile.banner_url ? (
+            <img
+              src={profile.banner_url}
+              alt="Profile banner"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-[#DCE7FF] via-[#F2F6FF] to-[#FFE9E0]" />
+          )}
+
+          <button
+            type="button"
+            onClick={handleBannerClick}
+            disabled={uploadingBanner}
+            className="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl border border-white/40 bg-black/45 px-3 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-black/60 disabled:opacity-60"
+          >
+            {uploadingBanner ? (
+              <><Loader2 size={14} className="animate-spin" /> Uploading…</>
+            ) : (
+              <><Camera size={14} /> {profile.banner_url ? "Change banner" : "Add banner"}</>
+            )}
+          </button>
+        </div>
+      </section>
 
       {/* HERO */}
       <section className="relative overflow-hidden rounded-[2rem] border border-black/10 bg-white text-[#202635] shadow-sm">
