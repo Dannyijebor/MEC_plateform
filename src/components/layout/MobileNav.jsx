@@ -17,16 +17,23 @@ import {
   X,
   Menu,
   User,
+
+  Sparkles,
+  ChevronDown,
+  Check,
 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useHideTopChrome } from "../../hooks/useHideTopChrome"
 import { useAuthRoute } from "../../hooks/useAuthRoute"
 import { useTheme } from "../../context/ThemeContext"
+import { useBgEffect, EFFECTS } from "../../context/EffectContext"
 
 function MobileNav() {
   const [open, setOpen] = useState(false)
   const hideTopChrome = useHideTopChrome()
   const { theme, toggleTheme } = useTheme()
+  const { effect, setEffect } = useBgEffect()
+  const [showEffects, setShowEffects] = useState(false)
   const isAuthRoute = useAuthRoute()
 
   if (isAuthRoute) return null
@@ -162,6 +169,52 @@ function MobileNav() {
               <Settings size={18} />
               Settings
             </NavLink>
+
+            {/* Background effect picker */}
+            <div className="mt-1">
+              <button
+                type="button"
+                onClick={() => setShowEffects((v) => !v)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#111827]/65 transition hover:bg-[#3B82F6]/[0.08]"
+              >
+                <Sparkles size={18} />
+                <span className="flex-1 text-left">
+                  Background:{" "}
+                  <span className="font-semibold text-[#111827]">
+                    {EFFECTS.find((e) => e.key === effect)?.name || "Constellation"}
+                  </span>
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={"transition " + (showEffects ? "rotate-180" : "")}
+                />
+              </button>
+              {showEffects && (
+                <div className="mt-0.5 space-y-0.5">
+                  {EFFECTS.map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => {
+                        setEffect(opt.key)
+                        setShowEffects(false)
+                      }}
+                      className={
+                        "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 pl-11 text-sm transition " +
+                        (effect === opt.key
+                          ? "bg-[#3B82F6]/[0.10] font-semibold text-[#111827]"
+                          : "text-[#111827]/60 hover:bg-[#3B82F6]/[0.06]")
+                      }
+                    >
+                      <span className="flex-1 text-left">{opt.name}</span>
+                      {effect === opt.key && (
+                        <Check size={14} className="text-[#3B82F6]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <button
               type="button"
