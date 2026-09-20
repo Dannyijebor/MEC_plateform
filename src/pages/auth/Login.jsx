@@ -161,7 +161,7 @@ function Login() {
 
       <Link
         to="/register"
-        className="flex h-12 w-full items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 text-sm font-medium text-[#f7f3ea]/70 transition hover:bg-white/[0.06] hover:text-[#f7f3ea]"
+        className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-white/30 bg-white/[0.06] px-4 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/[0.12] active:scale-[0.99]"
       >
         Create an account
       </Link>

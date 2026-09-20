@@ -65,6 +65,18 @@ function Fireflies() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
+    // Debounced resize — mobile URL bar hide/show, orientation, window resize
+    let resizeTimer = null
+    const handleResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(resize, 150)
+    }
+    window.addEventListener("resize", handleResize)
+    window.addEventListener("orientationchange", handleResize)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize)
+    }
+
     const createSnow = () => {
       const area = width * height
 
@@ -788,13 +800,19 @@ function Fireflies() {
           handleMotionChange
         )
       }
+      window.removeEventListener("resize", handleResize)
+      window.removeEventListener("orientationchange", handleResize)
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize)
+      }
+      if (resizeTimer) clearTimeout(resizeTimer)
     }
   }, [])
 
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0 h-screen w-screen"
+      className="pointer-events-none fixed inset-0 z-0"
       aria-hidden="true"
     />
   )
