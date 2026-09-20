@@ -1258,8 +1258,9 @@ function Messages() {
               </header>
 
               {/* Messages area */}
-              <div className={`relative flex-1 overflow-y-auto px-3 py-5 sm:px-6 ${theme.chatBg}`}>
+              <div className={`relative flex-1 overflow-hidden ${theme.chatBg}`}>
                 {theme.hasRain && <RainBackground />}
+                <div className="relative z-10 h-full overflow-y-auto px-3 py-5 sm:px-6">
                 {messagesLoading ? (
                   <div className={`flex h-full items-center justify-center text-sm ${theme.textMuted}`}>
                     <Loader2 size={18} className="mr-2 animate-spin" />
@@ -1648,6 +1649,7 @@ function Messages() {
                 <p className={`mt-2 text-center text-[10px] ${theme.textFaint}`}>
                   Messages disappear after 24 hours
                 </p>
+                </div>
               </div>
             </>
           )}
