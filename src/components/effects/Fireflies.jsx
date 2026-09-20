@@ -6,66 +6,27 @@ function Fireflies() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
-    const ctx = canvas.getContext("2d", {
-      alpha: true,
-      desynchronized: true,
-    })
-
+    const ctx = canvas.getContext("2d", { alpha: true })
     if (!ctx) return
 
-    let animationFrame
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
     let width = window.innerWidth
     let height = window.innerHeight
-
-    let snow = []
-    let butterflies = []
-    let sparkles = []
-
-    const pointer = {
-      x: -1000,
-      y: -1000,
-      active: false,
-      lastInteraction: 0,
-    }
-
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    )
-
-    const isReducedMotion = () => reducedMotion.matches
-
-    const random = (min, max) =>
-      Math.random() * (max - min) + min
-
-    const distance = (x1, y1, x2, y2) => {
-      const dx = x2 - x1
-      const dy = y2 - y1
-      return Math.sqrt(dx * dx + dy * dy)
-    }
-
-    const lerp = (a, b, amount) =>
-      a + (b - a) * amount
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.75)
 
     const resize = () => {
       width = window.innerWidth
       height = window.innerHeight
-
-      const dpr = Math.min(
-        window.devicePixelRatio || 1,
-        1.75
-      )
-
+      dpr = Math.min(window.devicePixelRatio || 1, 1.75)
       canvas.width = Math.floor(width * dpr)
       canvas.height = Math.floor(height * dpr)
-
-      canvas.style.width = `${width}px`
-      canvas.style.height = `${height}px`
-
+      canvas.style.width = width + "px"
+      canvas.style.height = height + "px"
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
+    resize()
 
-    // Debounced resize — mobile URL bar hide/show, orientation, window resize
     let resizeTimer = null
     const handleResize = () => {
       if (resizeTimer) clearTimeout(resizeTimer)
@@ -77,741 +38,271 @@ function Fireflies() {
       window.visualViewport.addEventListener("resize", handleResize)
     }
 
-    const createSnow = () => {
-      const area = width * height
+    const isDark = () => document.documentElement.classList.contains("dark")
+    const isMobile = width < 768
 
-      const count = isReducedMotion()
-        ? Math.min(60, Math.max(30, Math.floor(area / 18000)))
-        : Math.min(160, Math.max(65, Math.floor(area / 9000)))
+    /* ---------- Snow ---------- */
+    const SNOW_COUNT = isMobile ? 42 : 72
+    const snow = []
 
-      snow = Array.from({ length: count }, () => {
-        const depth = random(0, 1)
+    const resetSnowflake = (f, initial) => {
+      f.x = Math.random() * width
+      f.y = initial ? Math.random() * height : -10 - Math.random() * 40
+      f.vy = 0.35 + Math.random() * 0.85
+      f.vx = (Math.random() - 0.5) * 0.25
+      f.radius = 1.1 + Math.random() * 2.4
+      f.opacity = 0.32 + Math.random() * 0.5
+      f.swayPhase = Math.random() * Math.PI * 2
+      f.swayAmp = 0.35 + Math.random() * 0.7
+      f.swaySpeed = 0.6 + Math.random() * 0.8
+    }
 
-        return {
-          x: random(-30, width + 30),
-          y: random(-height, height),
+    for (let i = 0; i < SNOW_COUNT; i++) {
+      const f = {}
+      resetSnowflake(f, true)
+      snow.push(f)
+    }
 
-          radius:
-            depth < 0.5
-              ? random(0.6, 1.4)
-              : random(1, 2.7),
-
-          speed:
-            depth < 0.5
-              ? random(0.22, 0.6)
-              : random(0.5, 1.15),
-
-          drift: random(-0.22, 0.22),
-
-          opacity:
-            depth < 0.5
-              ? random(0.2, 0.42)
-              : random(0.36, 0.72),
-
-          depth,
-
-          phase: random(0, Math.PI * 2),
-          phaseSpeed: random(0.004, 0.012),
-        }
+    /* ---------- Butterflies ---------- */
+    const BUTTERFLY_COUNT = isMobile ? 4 : 6
+    const butterflies = []
+    for (let i = 0; i < BUTTERFLY_COUNT; i++) {
+      butterflies.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: 9 + Math.random() * 8,
+        angle: Math.random() * Math.PI * 2,
+        flapPhase: Math.random() * Math.PI * 2,
+        flapSpeed: 0.18 + Math.random() * 0.14,
+        wanderPhase: Math.random() * Math.PI * 2,
+        wanderSpeed: 0.004 + Math.random() * 0.008,
       })
     }
 
-    const createButterflies = () => {
-      const count = isReducedMotion()
-        ? 3
-        : width < 640
-          ? 5
-          : 8
-
-      butterflies = Array.from(
-        { length: count },
-        (_, index) => {
-          const angle = random(0, Math.PI * 2)
-
-          return {
-            id: index,
-
-            x: random(width * 0.08, width * 0.92),
-            y: random(height * 0.08, height * 0.92),
-
-            size:
-              width < 640
-                ? random(5.5, 8)
-                : random(7, 12),
-
-            angle,
-            targetAngle: angle,
-
-            speed: random(0.16, 0.4),
-
-            wingPhase: random(0, Math.PI * 2),
-            wingSpeed: random(0.075, 0.12),
-
-            driftPhase: random(0, Math.PI * 2),
-            driftSpeed: random(0.004, 0.009),
-
-            turnTimer: random(80, 240),
-
-            glow: random(0.45, 0.85),
-            opacity: random(0.4, 0.74),
-
-            interaction: 0,
-            followingPointer: false,
-
-            hue: index % 3,
-          }
-        }
-      )
+    /* ---------- Sparkles ---------- */
+    const SPARKLE_COUNT = isMobile ? 14 : 24
+    const sparkles = []
+    for (let i = 0; i < SPARKLE_COUNT; i++) {
+      sparkles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: 0.7 + Math.random() * 1.5,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.008 + Math.random() * 0.016,
+        opacity: 0.32 + Math.random() * 0.5,
+      })
     }
 
-    const createSparkles = () => {
-      const count = isReducedMotion() ? 10 : 24
-
-      sparkles = Array.from(
-        { length: count },
-        () => ({
-          x: random(0, width),
-          y: random(0, height),
-          radius: random(0.35, 0.9),
-          phase: random(0, Math.PI * 2),
-          speed: random(0.008, 0.018),
-          opacity: random(0.1, 0.3),
-        })
-      )
+    /* ---------- Cursor ---------- */
+    const pointer = { x: -9999, y: -9999, active: false }
+    const onMove = (x, y) => {
+      pointer.x = x
+      pointer.y = y
+      pointer.active = true
     }
+    const onMouse = (e) => onMove(e.clientX, e.clientY)
+    const onTouch = (e) => {
+      const t = e.touches?.[0]
+      if (t) onMove(t.clientX, t.clientY)
+    }
+    const onLeave = () => {
+      pointer.active = false
+      pointer.x = -9999
+      pointer.y = -9999
+    }
+    window.addEventListener("mousemove", onMouse)
+    window.addEventListener("mouseleave", onLeave)
+    window.addEventListener("touchmove", onTouch, { passive: true })
+    window.addEventListener("touchend", onLeave)
 
-    const drawButterfly = (butterfly) => {
-      const {
-        x,
-        y,
-        size,
-        wingPhase,
-        opacity,
-        glow,
-        hue,
-      } = butterfly
-
+    /* ---------- Butterfly drawing ---------- */
+    const drawButterfly = (b, rgb) => {
       ctx.save()
+      ctx.translate(b.x, b.y)
+      ctx.rotate(b.angle)
 
-      ctx.translate(x, y)
-      ctx.rotate(butterfly.angle)
+      // Wing flap: 0..1 mapped from sin, where 1 = wings fully spread
+      const flap = (Math.sin(b.flapPhase) + 1) * 0.5
+      const wingX = 0.28 + flap * 0.82
 
-      const wing =
-        Math.cos(wingPhase)
+      const s = b.size
 
-      const wingScale =
-        0.42 + Math.abs(wing) * 0.58
-
-      const haloRadius =
-        size * (2.5 + glow * 2)
-
-      const halo =
-        ctx.createRadialGradient(
-          0,
-          0,
-          0,
-          0,
-          0,
-          haloRadius
-        )
-
-      halo.addColorStop(
-        0,
-        `rgba(255, 239, 216, ${opacity * 0.16})`
-      )
-
-      halo.addColorStop(
-        0.45,
-        `rgba(171, 177, 255, ${opacity * 0.06})`
-      )
-
-      halo.addColorStop(
-        1,
-        "rgba(171, 177, 255, 0)"
-      )
-
-      ctx.fillStyle = halo
-
+      // Upper wings
+      ctx.fillStyle = "rgba(" + rgb + ", 0.72)"
       ctx.beginPath()
-      ctx.arc(
-        0,
-        0,
-        haloRadius,
-        0,
-        Math.PI * 2
-      )
+      ctx.ellipse(-s * 0.55, -s * 0.15, s * 0.55 * wingX, s * 0.65, -0.15, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(s * 0.55, -s * 0.15, s * 0.55 * wingX, s * 0.65, 0.15, 0, Math.PI * 2)
       ctx.fill()
 
-      let wingA
-      let wingB
-
-      if (hue === 0) {
-        wingA = "rgba(143, 151, 255,"
-        wingB = "rgba(210, 185, 255,"
-      } else if (hue === 1) {
-        wingA = "rgba(255, 181, 145,"
-        wingB = "rgba(255, 219, 192,"
-      } else {
-        wingA = "rgba(139, 205, 232,"
-        wingB = "rgba(204, 232, 245,"
-      }
-
-      const drawWingPair = (side) => {
-        const direction = side === "left" ? -1 : 1
-
-        ctx.save()
-        ctx.scale(
-          wingScale * direction,
-          1
-        )
-
-        const gradient =
-          ctx.createRadialGradient(
-            size * 0.65,
-            -size * 0.45,
-            0,
-            size * 0.65,
-            -size * 0.45,
-            size * 1.2
-          )
-
-        gradient.addColorStop(
-          0,
-          `${wingB} ${opacity})`
-        )
-
-        gradient.addColorStop(
-          0.45,
-          `${wingA} ${opacity * 0.7})`
-        )
-
-        gradient.addColorStop(
-          1,
-          `${wingA} 0)`
-        )
-
-        ctx.fillStyle = gradient
-
-        ctx.beginPath()
-
-        ctx.ellipse(
-          size * 0.58,
-          -size * 0.42,
-          size * 0.78,
-          size * 0.58,
-          0.55,
-          0,
-          Math.PI * 2
-        )
-
-        ctx.fill()
-
-        ctx.beginPath()
-
-        ctx.ellipse(
-          size * 0.54,
-          size * 0.38,
-          size * 0.58,
-          size * 0.4,
-          -0.42,
-          0,
-          Math.PI * 2
-        )
-
-        ctx.fill()
-
-        ctx.restore()
-      }
-
-      drawWingPair("left")
-      drawWingPair("right")
-
+      // Lower wings
+      ctx.fillStyle = "rgba(" + rgb + ", 0.6)"
       ctx.beginPath()
-
-      ctx.fillStyle =
-        `rgba(61, 66, 91, ${Math.min(
-          0.72,
-          opacity + 0.12
-        )})`
-
-      ctx.ellipse(
-        0,
-        0,
-        size * 0.12,
-        size * 0.62,
-        0,
-        0,
-        Math.PI * 2
-      )
-
+      ctx.ellipse(-s * 0.42, s * 0.35, s * 0.42 * wingX, s * 0.5, 0.15, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.ellipse(s * 0.42, s * 0.35, s * 0.42 * wingX, s * 0.5, -0.15, 0, Math.PI * 2)
       ctx.fill()
 
-      ctx.strokeStyle =
-        `rgba(80, 83, 110, ${opacity * 0.5})`
-
-      ctx.lineWidth = 0.55
-
+      // Body
+      ctx.fillStyle = "rgba(" + rgb + ", 0.9)"
       ctx.beginPath()
+      ctx.ellipse(0, 0, s * 0.1, s * 0.55, 0, 0, Math.PI * 2)
+      ctx.fill()
 
-      ctx.moveTo(
-        -size * 0.05,
-        -size * 0.38
-      )
-
-      ctx.quadraticCurveTo(
-        -size * 0.25,
-        -size * 0.82,
-        -size * 0.42,
-        -size * 0.88
-      )
-
-      ctx.moveTo(
-        size * 0.05,
-        -size * 0.38
-      )
-
-      ctx.quadraticCurveTo(
-        size * 0.25,
-        -size * 0.82,
-        size * 0.42,
-        -size * 0.88
-      )
-
+      // Antennae
+      ctx.strokeStyle = "rgba(" + rgb + ", 0.6)"
+      ctx.lineWidth = 0.7
+      ctx.beginPath()
+      ctx.moveTo(-s * 0.05, -s * 0.5)
+      ctx.quadraticCurveTo(-s * 0.2, -s * 0.75, -s * 0.3, -s * 0.85)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(s * 0.05, -s * 0.5)
+      ctx.quadraticCurveTo(s * 0.2, -s * 0.75, s * 0.3, -s * 0.85)
       ctx.stroke()
 
       ctx.restore()
     }
 
-    const drawSnowflake = (flake) => {
-      const {
-        x,
-        y,
-        radius,
-        opacity,
-        depth,
-      } = flake
+    /* ---------- Animation ---------- */
+    let raf
+    let running = true
+    let lastTime = performance.now()
 
-      const isDark =
-        document.documentElement.classList.contains("dark")
-      const snowRgb = isDark ? "255, 255, 255" : "32, 38, 53"
+    const step = (now) => {
+      if (!running) return
+      const dt = Math.min((now - lastTime) / 16.67, 2.2)
+      lastTime = now
 
-      if (depth > 0.7) {
-        ctx.shadowBlur = radius * 3
-        ctx.shadowColor =
-          `rgba(${snowRgb}, ${opacity * 0.4})`
-      }
+      ctx.clearRect(0, 0, width, height)
 
-      ctx.beginPath()
+      const dark = isDark()
+      const snowRgb = dark ? "255, 255, 255" : "32, 38, 53"
+      const sparkleRgb = dark ? "255, 255, 255" : "32, 38, 53"
+      const butterflyRgb = dark ? "125, 211, 252" : "59, 130, 246"
 
-      ctx.fillStyle =
-        `rgba(${snowRgb}, ${opacity})`
+      /* --- Snow --- */
+      for (const f of snow) {
+        f.swayPhase += f.swaySpeed * 0.02 * dt
+        f.x += (f.vx + Math.sin(f.swayPhase) * f.swayAmp) * dt
+        f.y += f.vy * dt
 
-      ctx.arc(
-        x,
-        y,
-        radius,
-        0,
-        Math.PI * 2
-      )
-
-      ctx.fill()
-
-      ctx.shadowBlur = 0
-    }
-
-    const updateSnow = () => {
-      snow.forEach((flake) => {
-        flake.phase += flake.phaseSpeed
-
-        const sway =
-          Math.sin(flake.phase) *
-          (0.15 + flake.depth * 0.3)
-
-        flake.x +=
-          flake.drift +
-          sway
-
-        flake.y += flake.speed
-
-        if (
-          pointer.active &&
-          !isReducedMotion()
-        ) {
-          const d = distance(
-            flake.x,
-            flake.y,
-            pointer.x,
-            pointer.y
-          )
-
-          if (d < 60) {
-            const force = (60 - d) / 60
-
-            flake.x +=
-              (flake.x - pointer.x) *
-              force *
-              0.003
-          }
+        if (f.y > height + 10 || f.x < -20 || f.x > width + 20) {
+          resetSnowflake(f, false)
         }
 
-        if (flake.y > height + 15) {
-          flake.y = -15
-          flake.x = random(-20, width + 20)
+        // Soft halo for bigger flakes
+        if (f.radius > 2.3) {
+          ctx.beginPath()
+          ctx.fillStyle = "rgba(" + snowRgb + ", " + (f.opacity * 0.28) + ")"
+          ctx.arc(f.x, f.y, f.radius * 1.9, 0, Math.PI * 2)
+          ctx.fill()
         }
-
-        if (flake.x > width + 20) {
-          flake.x = -20
-        }
-
-        if (flake.x < -20) {
-          flake.x = width + 20
-        }
-      })
-    }
-
-    const updateButterflies = () => {
-      butterflies.forEach((butterfly) => {
-        butterfly.wingPhase +=
-          butterfly.wingSpeed
-
-        butterfly.driftPhase +=
-          butterfly.driftSpeed
-
-        butterfly.turnTimer -= 1
-
-        if (butterfly.turnTimer <= 0) {
-          butterfly.targetAngle +=
-            random(-0.75, 0.75)
-
-          butterfly.turnTimer =
-            random(100, 280)
-        }
-
-        let nearPointer = false
-
-        if (
-          pointer.active &&
-          !isReducedMotion()
-        ) {
-          const d = distance(
-            butterfly.x,
-            butterfly.y,
-            pointer.x,
-            pointer.y
-          )
-
-          const interactionRadius =
-            Math.max(
-              48,
-              butterfly.size * 5
-            )
-
-          if (d < interactionRadius) {
-            nearPointer = true
-
-            butterfly.interaction =
-              lerp(
-                butterfly.interaction,
-                1,
-                0.09
-              )
-
-            const targetAngle =
-              Math.atan2(
-                pointer.y - butterfly.y,
-                pointer.x - butterfly.x
-              )
-
-            butterfly.targetAngle =
-              lerp(
-                butterfly.targetAngle,
-                targetAngle,
-                0.035
-              )
-
-            butterfly.followingPointer = true
-          }
-        }
-
-        if (!nearPointer) {
-          butterfly.interaction =
-            lerp(
-              butterfly.interaction,
-              0,
-              0.025
-            )
-
-          if (
-            butterfly.interaction < 0.02
-          ) {
-            butterfly.followingPointer = false
-          }
-        }
-
-        let angleDifference =
-          butterfly.targetAngle -
-          butterfly.angle
-
-        while (
-          angleDifference > Math.PI
-        ) {
-          angleDifference -=
-            Math.PI * 2
-        }
-
-        while (
-          angleDifference < -Math.PI
-        ) {
-          angleDifference +=
-            Math.PI * 2
-        }
-
-        butterfly.angle +=
-          angleDifference * 0.018
-
-        const floatX =
-          Math.sin(
-            butterfly.driftPhase
-          ) * 0.16
-
-        const floatY =
-          Math.cos(
-            butterfly.driftPhase * 1.4
-          ) * 0.13
-
-        const interactionSpeed =
-          1 +
-          butterfly.interaction * 0.6
-
-        butterfly.x +=
-          Math.cos(butterfly.angle) *
-            butterfly.speed *
-            interactionSpeed +
-          floatX
-
-        butterfly.y +=
-          Math.sin(butterfly.angle) *
-            butterfly.speed *
-            interactionSpeed +
-          floatY
-
-        const margin = 70
-
-        if (butterfly.x < -margin) {
-          butterfly.x = width + margin
-          butterfly.targetAngle =
-            random(-Math.PI, Math.PI)
-        }
-
-        if (butterfly.x > width + margin) {
-          butterfly.x = -margin
-          butterfly.targetAngle =
-            random(-Math.PI, Math.PI)
-        }
-
-        if (butterfly.y < -margin) {
-          butterfly.y = height + margin
-          butterfly.targetAngle =
-            random(-Math.PI, Math.PI)
-        }
-
-        if (butterfly.y > height + margin) {
-          butterfly.y = -margin
-          butterfly.targetAngle =
-            random(-Math.PI, Math.PI)
-        }
-      })
-    }
-
-    const drawSparkles = () => {
-      sparkles.forEach((sparkle) => {
-        sparkle.phase += sparkle.speed
-
-        const pulse =
-          (Math.sin(sparkle.phase) + 1) / 2
-
-        const opacity =
-          sparkle.opacity *
-          (0.45 + pulse * 0.55)
-
-        const sparkleDark = document.documentElement.classList.contains("dark")
-        const sparkleRgb = sparkleDark ? "255, 255, 255" : "32, 38, 53"
 
         ctx.beginPath()
-
-        ctx.fillStyle =
-        ctx.fillStyle = `rgba(${sparkleRgb}, ${opacity})`
-
-        ctx.arc(
-          sparkle.x,
-          sparkle.y,
-          sparkle.radius,
-          0,
-          Math.PI * 2
-        )
-
+        ctx.fillStyle = "rgba(" + snowRgb + ", " + f.opacity + ")"
+        ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2)
         ctx.fill()
-      })
-    }
+      }
 
-    const handlePointerMove = (event) => {
-      pointer.x = event.clientX
-      pointer.y = event.clientY
-      pointer.active = true
-      pointer.lastInteraction =
-        performance.now()
-    }
+      /* --- Sparkles --- */
+      for (const s of sparkles) {
+        s.phase += s.speed * dt
+        const pulse = (Math.sin(s.phase) + 1) * 0.5
+        const alpha = s.opacity * (0.15 + pulse * 0.85)
+        const r = s.radius * (0.5 + pulse * 0.8)
+        ctx.beginPath()
+        ctx.fillStyle = "rgba(" + sparkleRgb + ", " + alpha + ")"
+        ctx.arc(s.x, s.y, r, 0, Math.PI * 2)
+        ctx.fill()
+      }
 
-    const handlePointerDown = (event) => {
-      pointer.x = event.clientX
-      pointer.y = event.clientY
-      pointer.active = true
-      pointer.lastInteraction =
-        performance.now()
+      /* --- Butterflies --- */
+      for (const b of butterflies) {
+        // Wander noise
+        b.wanderPhase += b.wanderSpeed * dt
+        b.vx += Math.cos(b.wanderPhase) * 0.06 * dt
+        b.vy += Math.sin(b.wanderPhase * 1.3) * 0.06 * dt
 
-      if (!isReducedMotion()) {
-        butterflies.forEach((butterfly) => {
-          const d = distance(
-            butterfly.x,
-            butterfly.y,
-            pointer.x,
-            pointer.y
-          )
-
-          if (d < 75) {
-            butterfly.interaction =
-              Math.max(
-                butterfly.interaction,
-                0.8
-              )
-
-            butterfly.targetAngle =
-              Math.atan2(
-                pointer.y - butterfly.y,
-                pointer.x - butterfly.x
-              )
+        // Cursor attraction
+        if (pointer.active) {
+          const dx = pointer.x - b.x
+          const dy = pointer.y - b.y
+          const d2 = dx * dx + dy * dy
+          const R = 220
+          if (d2 < R * R && d2 > 400) {
+            const d = Math.sqrt(d2)
+            const f = (1 - d / R) * 0.055
+            b.vx += (dx / d) * f * dt
+            b.vy += (dy / d) * f * dt
           }
-        })
-      }
-    }
+        }
 
-    const handlePointerLeave = () => {
-      pointer.active = false
-    }
+        // Damping + speed cap
+        b.vx *= 0.97
+        b.vy *= 0.97
+        const sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy)
+        const maxSp = 1.25
+        if (sp > maxSp) {
+          b.vx = (b.vx / sp) * maxSp
+          b.vy = (b.vy / sp) * maxSp
+        }
 
-    const draw = () => {
-      ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-      )
+        b.x += b.vx * dt
+        b.y += b.vy * dt
 
-      updateSnow()
-      updateButterflies()
+        // Wrap
+        if (b.x < -30) b.x = width + 30
+        else if (b.x > width + 30) b.x = -30
+        if (b.y < -30) b.y = height + 30
+        else if (b.y > height + 30) b.y = -30
 
-      snow
-        .filter((flake) => flake.depth < 0.5)
-        .forEach(drawSnowflake)
+        // Face direction of motion
+        if (sp > 0.12) {
+          const target = Math.atan2(b.vy, b.vx) + Math.PI / 2
+          let diff = target - b.angle
+          while (diff > Math.PI) diff -= Math.PI * 2
+          while (diff < -Math.PI) diff += Math.PI * 2
+          b.angle += diff * 0.08 * dt
+        }
 
-      drawSparkles()
-
-      snow
-        .filter((flake) => flake.depth >= 0.5)
-        .forEach(drawSnowflake)
-
-      butterflies.forEach(drawButterfly)
-
-      if (
-        pointer.active &&
-        performance.now() -
-          pointer.lastInteraction >
-          1800
-      ) {
-        pointer.active = false
+        b.flapPhase += b.flapSpeed * dt
+        drawButterfly(b, butterflyRgb)
       }
 
-      animationFrame =
-        requestAnimationFrame(draw)
+      raf = requestAnimationFrame(step)
     }
+    raf = requestAnimationFrame(step)
 
-    const handleMotionChange = () => {
-      createSnow()
-      createButterflies()
-      createSparkles()
+    const onVis = () => {
+      if (document.hidden) {
+        running = false
+        cancelAnimationFrame(raf)
+      } else if (!running) {
+        running = true
+        lastTime = performance.now()
+        raf = requestAnimationFrame(step)
+      }
     }
-
-    resize()
-    createSnow()
-    createButterflies()
-    createSparkles()
-    draw()
-
-    window.addEventListener(
-      "resize",
-      resize,
-      { passive: true }
-    )
-
-    window.addEventListener(
-      "pointermove",
-      handlePointerMove,
-      { passive: true }
-    )
-
-    window.addEventListener(
-      "pointerdown",
-      handlePointerDown,
-      { passive: true }
-    )
-
-    window.addEventListener(
-      "pointerleave",
-      handlePointerLeave,
-      { passive: true }
-    )
-
-    if (reducedMotion.addEventListener) {
-      reducedMotion.addEventListener(
-        "change",
-        handleMotionChange
-      )
-    }
+    document.addEventListener("visibilitychange", onVis)
 
     return () => {
-      cancelAnimationFrame(animationFrame)
-
-      window.removeEventListener(
-        "resize",
-        resize
-      )
-
-      window.removeEventListener(
-        "pointermove",
-        handlePointerMove
-      )
-
-      window.removeEventListener(
-        "pointerdown",
-        handlePointerDown
-      )
-
-      window.removeEventListener(
-        "pointerleave",
-        handlePointerLeave
-      )
-
-      if (reducedMotion.removeEventListener) {
-        reducedMotion.removeEventListener(
-          "change",
-          handleMotionChange
-        )
-      }
+      running = false
+      cancelAnimationFrame(raf)
       window.removeEventListener("resize", handleResize)
       window.removeEventListener("orientationchange", handleResize)
       if (window.visualViewport) {
         window.visualViewport.removeEventListener("resize", handleResize)
       }
+      window.removeEventListener("mousemove", onMouse)
+      window.removeEventListener("mouseleave", onLeave)
+      window.removeEventListener("touchmove", onTouch)
+      window.removeEventListener("touchend", onLeave)
+      document.removeEventListener("visibilitychange", onVis)
       if (resizeTimer) clearTimeout(resizeTimer)
     }
   }, [])
