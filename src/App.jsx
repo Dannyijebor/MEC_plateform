@@ -20,7 +20,7 @@ function AppContent() {
   return (
     <PresenceProvider>
       <div className="min-h-screen overflow-x-hidden bg-[#faf8f3] text-[#202635]">
-        <Fireflies />
+        {!["/login", "/register", "/welcome"].includes(location.pathname) && <Fireflies />}
 
         <div className="relative z-10">
           <Sidebar />
