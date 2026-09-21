@@ -89,7 +89,7 @@ function useSowAnimation(state) {
 
     const pathLen = move.path.length
     // Adaptive speed: short moves feel natural, long moves stay snappy
-    const frameDelay = Math.max(55, Math.min(120, 1000 / (pathLen + 1)))
+    const frameDelay = Math.max(160, Math.min(320, 2400 / (pathLen + 1)))
 
     // Frame 0 — pick up seeds (source pit empties)
     const t0 = setTimeout(() => {
@@ -116,7 +116,7 @@ function useSowAnimation(state) {
     })
 
     // Final frame — apply captures and show final board
-    const finalDelay = (pathLen + 1) * frameDelay + 320
+    const finalDelay = (pathLen + 1) * frameDelay + 500
     const tFinal = setTimeout(() => {
       setDisplayBoard(state.board)
       setActivePit(null)
