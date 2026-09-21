@@ -164,17 +164,56 @@ export default function MatchRoom() {
   )
 
   // ── Share ───────────────────────────────────────────────
-  const handleShare = async () => {
-    const url = window.location.href
+  const [manualCopyUrl, setManualCopyUrl] = useState("")
+
+  const copyToClipboard = async (text) => {
+    // Try modern API
     try {
-      if (navigator.share) {
-        await navigator.share({ title: "Ayo on MEC", url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1800)
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+        return true
       }
     } catch {}
+    // Fallback: temporary textarea + execCommand
+    try {
+      const ta = document.createElement("textarea")
+      ta.value = text
+      ta.style.position = "fixed"
+      ta.style.opacity = "0"
+      ta.style.top = "0"
+      ta.style.left = "0"
+      document.body.appendChild(ta)
+      ta.focus()
+      ta.select()
+      const ok = document.execCommand("copy")
+      document.body.removeChild(ta)
+      return ok
+    } catch {
+      return false
+    }
+  }
+
+  const handleShare = async () => {
+    const url = window.location.href
+    // 1. Try native share sheet (WhatsApp, Telegram, SMS, etc.)
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Ayo on MEC", url })
+        return
+      } catch (e) {
+        // User cancelled or share failed — fall through to clipboard
+        console.warn("Share cancelled or failed:", e)
+      }
+    }
+    // 2. Try clipboard
+    const ok = await copyToClipboard(url)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2200)
+    } else {
+      // 3. Last resort — show the URL so user can long-press to copy
+      setManualCopyUrl(url)
+    }
   }
 
   // ── Render ──────────────────────────────────────────────
@@ -233,6 +272,25 @@ export default function MatchRoom() {
             {copied ? <Check size={16} /> : <Share2 size={16} />}
             {copied ? "Link copied" : "Share invite"}
           </button>
+
+          {(manualCopyUrl || copied) && (
+            <div className="mt-4 w-full">
+              <label className="mb-1.5 block text-left text-[10px] font-bold uppercase tracking-wider text-[#92400E]">
+                Invite link
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={manualCopyUrl || window.location.href}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => e.target.select()}
+                className="w-full rounded-xl border border-[#D97706]/30 bg-white px-3 py-2 text-xs text-[#78350F] outline-none"
+              />
+              <p className="mt-1.5 text-left text-[10px] text-[#92400E]">
+                Long-press the link above to copy it manually.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     )
