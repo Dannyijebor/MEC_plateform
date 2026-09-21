@@ -6,6 +6,7 @@ import GroupInfo from "../pages/chat/GroupInfo"
 import FamilyTree from "../pages/family/FamilyTree"
 import GamesHub from "../pages/games/GamesHub"
 import AyoLobby from "../pages/games/AyoLobby"
+import MatchRoom from "../pages/games/MatchRoom"
 import Events from "../pages/events/Events"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
@@ -154,6 +155,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <AyoLobby />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/games/:gameId/:matchId"
+        element={
+          <ProtectedRoute>
+            <MatchRoom />
           </ProtectedRoute>
         }
       />
