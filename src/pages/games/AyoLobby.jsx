@@ -80,8 +80,8 @@ export default function AyoLobby() {
         state: { justCreated: true, inviteUrl: url, copied },
       })
     } catch (e) {
-      console.error("Create match failed:", e)
-      setError(e.message || "Could not create match")
+      console.error("Create match failed — full error:", e)
+      setError(e?.message || e?.details || e?.hint || JSON.stringify(e) || "Unknown error")
       setCreating(false)
     }
   }
@@ -109,7 +109,7 @@ export default function AyoLobby() {
         type="button"
         onClick={handleNewGame}
         disabled={creating}
-        className="mb-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#202635] py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-black disabled:opacity-60"
+        className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#202635] py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-black disabled:opacity-60"
       >
         {creating ? (
           <><Loader2 size={16} className="animate-spin" /> Creating match…</>
@@ -117,6 +117,13 @@ export default function AyoLobby() {
           <><Plus size={16} /> Start a new game</>
         )}
       </button>
+
+      {error && (
+        <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm font-semibold text-red-700">Could not create match</p>
+          <p className="mt-1 break-all text-xs text-red-600">{error}</p>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-10">
