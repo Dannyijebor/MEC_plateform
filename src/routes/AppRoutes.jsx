@@ -8,6 +8,7 @@ import GamesHub from "../pages/games/GamesHub"
 import AyoLobby from "../pages/games/AyoLobby"
 import MatchRoom from "../pages/games/MatchRoom"
 import AyoPractice from "../pages/games/AyoPractice"
+import NeonWavesPage from "../pages/games/NeonWavesPage"
 import Events from "../pages/events/Events"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
@@ -165,6 +166,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <AyoPractice />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/games/neon"
+        element={
+          <ProtectedRoute>
+            <NeonWavesPage />
           </ProtectedRoute>
         }
       />
