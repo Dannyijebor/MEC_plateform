@@ -18,8 +18,8 @@ export const CAMERA = {
   z: 0,
   fov: 75,
   near: 0.1,
-  far: 120,
-  speed: 6,
+  far: 160,
+  speed: 8.5,
 }
 
 export const CORRIDOR = {
