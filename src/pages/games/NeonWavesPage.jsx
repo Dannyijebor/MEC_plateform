@@ -2,7 +2,14 @@ import { Link } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import NeonWaves from "../../components/games/NeonWaves"
 
+import { useEffect } from "react"
+
 export default function NeonWavesPage() {
+  useEffect(() => {
+    document.body.classList.add("game-fullscreen")
+    return () => document.body.classList.remove("game-fullscreen")
+  }, [])
+
   return (
     <div className="mx-auto w-full max-w-2xl pb-24 pt-4">
       <div className="mb-3 flex items-center justify-between">

@@ -8,6 +8,7 @@ const HIDE_PATHS = [
   "/events",
   "/committees",
   "/members",
+  "/games/neon",
 ]
 
 export function useHideTopChrome() {

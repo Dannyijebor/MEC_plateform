@@ -1463,3 +1463,34 @@ body.dark [data-events-page] [class*="bg-gray-50"] {
 body.dark [data-events-page] [class*="bg-[#1E40AF]"] {
   background-color: #3b82f6 !important;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FULLSCREEN GAME MODE
+   The Navbar hides via useHideTopChrome.
+   This handles the bottom nav, the AI bubble, and page padding.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Bottom mobile nav */
+body.game-fullscreen nav.fixed.inset-x-0.bottom-0 {
+  display: none !important;
+}
+
+/* AI bubble (floating sparkles) */
+body.game-fullscreen [aria-label="Open MEC Assistant"] {
+  display: none !important;
+}
+
+/* Dark background so no cream edges show through */
+body.game-fullscreen {
+  background-color: #080812 !important;
+}
+
+body.game-fullscreen #root,
+body.game-fullscreen main {
+  background-color: #080812 !important;
+}
+
+/* Remove the page container padding during gameplay */
+body.game-fullscreen main {
+  padding: 0 !important;
+}
