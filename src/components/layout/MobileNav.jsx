@@ -21,6 +21,7 @@ import {
   Sparkles,
   ChevronDown,
   Check,
+  Swords,
 } from "lucide-react"
 import { supabase } from "../../lib/supabase"
 import { useHideTopChrome } from "../../hooks/useHideTopChrome"
@@ -44,6 +45,7 @@ function MobileNav() {
     { label: "Spaces", icon: Radio, to: "/spaces" },
     { label: "Family", icon: UsersRound, to: "/family-tree" },
     { label: "Events", icon: CalendarDays, to: "/events" },
+    { label: "Games", icon: Swords, to: "/games" },
   ]
 
   const menuItems = [
@@ -54,6 +56,7 @@ function MobileNav() {
     { label: "Family Tree", icon: UsersRound, to: "/family-tree" },
     { label: "Members", icon: Users, to: "/members" },
     { label: "Events", icon: CalendarDays, to: "/events" },
+    { label: "Games", icon: Swords, to: "/games" },
     { label: "Committees", icon: Shield, to: "/committees" },
     { label: "Documents", icon: FileText, to: "/documents" },
   ]

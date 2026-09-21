@@ -4,6 +4,8 @@ import DashboardHome from "../pages/dashboard/DashboardHome"
 import Messages from "../pages/chat/Messages"
 import GroupInfo from "../pages/chat/GroupInfo"
 import FamilyTree from "../pages/family/FamilyTree"
+import GamesHub from "../pages/games/GamesHub"
+import AyoLobby from "../pages/games/AyoLobby"
 import Events from "../pages/events/Events"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
@@ -134,6 +136,24 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Community />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/games"
+        element={
+          <ProtectedRoute>
+            <GamesHub />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/games/ayo"
+        element={
+          <ProtectedRoute>
+            <AyoLobby />
           </ProtectedRoute>
         }
       />
