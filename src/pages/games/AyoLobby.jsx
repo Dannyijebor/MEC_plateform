@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { ArrowLeft, Loader2, Plus, Swords, Users, ChevronRight, Clock } from "lucide-react"
+import { ArrowLeft, Loader2, Plus, Swords, Users, ChevronRight, Clock, Cpu } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import {
   createAyoMatch,
@@ -124,6 +124,48 @@ export default function AyoLobby() {
           <p className="mt-1 break-all text-xs text-red-600">{error}</p>
         </div>
       )}
+
+      {/* Practice section */}
+      <section className="mb-5">
+        <div className="mb-2 flex items-center gap-2 px-1">
+          <Cpu size={14} className="text-black/45" />
+          <h2 className="text-xs font-bold uppercase tracking-wider text-black/45">
+            Practice against the computer
+          </h2>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <Link
+            to="/games/ayo/practice?d=easy"
+            className="flex flex-col items-center gap-1 rounded-2xl border border-emerald-200 bg-emerald-50 px-2 py-3 text-center transition hover:bg-emerald-100"
+          >
+            <span className="text-lg">🌱</span>
+            <span className="text-sm font-bold text-emerald-800">Easy</span>
+            <span className="text-[10px] leading-tight text-emerald-700">
+              Plays random moves
+            </span>
+          </Link>
+          <Link
+            to="/games/ayo/practice?d=medium"
+            className="flex flex-col items-center gap-1 rounded-2xl border border-amber-200 bg-amber-50 px-2 py-3 text-center transition hover:bg-amber-100"
+          >
+            <span className="text-lg">⚡</span>
+            <span className="text-sm font-bold text-amber-800">Medium</span>
+            <span className="text-[10px] leading-tight text-amber-700">
+              Captures greedily
+            </span>
+          </Link>
+          <Link
+            to="/games/ayo/practice?d=hard"
+            className="flex flex-col items-center gap-1 rounded-2xl border border-red-200 bg-red-50 px-2 py-3 text-center transition hover:bg-red-100"
+          >
+            <span className="text-lg">🔥</span>
+            <span className="text-sm font-bold text-red-800">Hard</span>
+            <span className="text-[10px] leading-tight text-red-700">
+              Thinks ahead
+            </span>
+          </Link>
+        </div>
+      </section>
 
       {loading ? (
         <div className="flex items-center justify-center py-10">

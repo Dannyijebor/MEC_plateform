@@ -29,7 +29,7 @@ export const SEEDS_PER_PIT = 4
 export const TOTAL_SEEDS = PITS * SEEDS_PER_PIT
 export const WIN_THRESHOLD = 25
 
-const OWN_ROW = {
+export const OWN_ROW = {
   A: [0, 1, 2, 3, 4, 5],
   B: [6, 7, 8, 9, 10, 11],
 }
