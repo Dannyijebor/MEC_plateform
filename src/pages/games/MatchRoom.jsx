@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom"
-import { ArrowLeft, Loader2, Share2, Check, Clock, AlertCircle } from "lucide-react"
+import { ArrowLeft, Loader2, Share2, Check, Clock, AlertCircle, Copy, MessageCircle } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import AyoBoard from "../../components/games/AyoBoard"
 import {
@@ -284,24 +284,67 @@ export default function MatchRoom() {
             {copied ? "Link copied" : "Share invite"}
           </button>
 
-          {true && (
-            <div className="mt-4 w-full">
-              <label className="mb-1.5 block text-left text-[10px] font-bold uppercase tracking-wider text-[#92400E]">
-                Invite link
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={manualCopyUrl || window.location.href}
-                onFocus={(e) => e.target.select()}
-                onClick={(e) => e.target.select()}
-                className="w-full rounded-xl border border-[#D97706]/30 bg-white px-3 py-2 text-xs text-[#78350F] outline-none"
-              />
-              <p className="mt-1.5 text-left text-[10px] text-[#92400E]">
-                Long-press the link above to copy it manually.
+          <div className="mt-5 w-full">
+            <label className="mb-1.5 block text-left text-[10px] font-bold uppercase tracking-wider text-[#92400E]">
+              Invite link
+            </label>
+            <div className="rounded-xl border border-[#D97706]/30 bg-white p-3">
+              <p className="break-all text-left text-xs leading-5 text-[#78350F] select-all">
+                {typeof window !== "undefined" ? window.location.href : ""}
               </p>
             </div>
-          )}
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  const url = window.location.href
+                  try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                      await navigator.clipboard.writeText(url)
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                      return
+                    }
+                  } catch (e) {
+                    console.warn("clipboard failed", e)
+                  }
+                  try {
+                    const ta = document.createElement("textarea")
+                    ta.value = url
+                    document.body.appendChild(ta)
+                    ta.select()
+                    document.execCommand("copy")
+                    document.body.removeChild(ta)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 2000)
+                  } catch (e) {
+                    console.warn("execCommand copy failed", e)
+                  }
+                }}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D97706]/30 bg-white px-3 py-2.5 text-xs font-semibold text-[#78350F] transition hover:bg-[#FEF3C7]"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+
+              <a
+                href={"https://wa.me/?text=" + encodeURIComponent("Join my Ayo game on MEC: " + (typeof window !== "undefined" ? window.location.href : ""))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-[#25D366]/40 bg-[#25D366]/10 px-3 py-2.5 text-xs font-semibold text-[#128C7E] transition hover:bg-[#25D366]/20"
+              >
+                <MessageCircle size={14} />
+                WhatsApp
+              </a>
+            </div>
+
+            {copied && (
+              <p className="mt-2 text-left text-[10px] font-semibold text-green-700">
+                Link copied to clipboard
+              </p>
+            )}
+          </div>
         </div>
       </div>
     )
