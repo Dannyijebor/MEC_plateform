@@ -5,8 +5,8 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import {
   COLORS, CAMERA, CORRIDOR, ENEMY, ENEMY_TYPES, PLAYER, WAVE,
 } from "./constants"
+import { loadZombieModels, spawnZombie } from "./zombies"
 
-// ── Radial glow texture (shared by enemies, particles, streaks) ──
 function createGlowTexture() {
   const size = 128
   const canvas = document.createElement("canvas")
@@ -20,19 +20,14 @@ function createGlowTexture() {
   g.addColorStop(1, "rgba(255,255,255,0)")
   ctx.fillStyle = g
   ctx.fillRect(0, 0, size, size)
-  const tex = new THREE.CanvasTexture(canvas)
-  tex.needsUpdate = true
-  return tex
+  return new THREE.CanvasTexture(canvas)
 }
 
 export function createMecStrikeEngine(canvas, callbacks = {}) {
   const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    powerPreference: "high-performance",
+    canvas, antialias: true, powerPreference: "high-performance",
   })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8))
-  renderer.shadowMap.enabled = false
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.15
 
@@ -44,65 +39,52 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
   camera.position.set(CAMERA.x, CAMERA.y, CAMERA.z)
   camera.lookAt(CAMERA.x, CAMERA.y, CAMERA.z + 10)
 
-  // ── Lighting ──────────────────────────────────
   scene.add(new THREE.AmbientLight(0x1A2A4A, 1.0))
   const dir = new THREE.DirectionalLight(0x60A5FA, 0.5)
   dir.position.set(2, 8, 3)
   scene.add(dir)
-
   const cyanLight = new THREE.PointLight(0x38BDF8, 2.5, 50, 2)
   cyanLight.position.set(0, 3, 15)
   scene.add(cyanLight)
 
-  // ── Post-processing: bloom ────────────────────
+  // Bloom
   const composer = new EffectComposer(renderer)
   composer.addPass(new RenderPass(scene, camera))
-  const bloom = new UnrealBloomPass(
-    new THREE.Vector2(256, 256),
-    0.75,   // strength
-    0.55,   // radius
-    0.18,   // threshold
-  )
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.75, 0.55, 0.18)
   composer.addPass(bloom)
   const glowTex = createGlowTexture()
 
-  // ── Corridor geometry pools ──────────────────
+  // Zombie models (async load)
+  let zombieModels = null
+  let zombiesReady = false
+  loadZombieModels().then((m) => {
+    zombieModels = m
+    zombiesReady = true
+  })
+
+  // Corridor
   const corridorGroup = new THREE.Group()
   scene.add(corridorGroup)
 
   const wallMat = new THREE.MeshStandardMaterial({
-    color: 0x142A5C,
-    emissive: 0x1E40AF,
-    emissiveIntensity: 0.35,
-    roughness: 0.55,
-    metalness: 0.5,
+    color: 0x142A5C, emissive: 0x1E40AF, emissiveIntensity: 0.35,
+    roughness: 0.55, metalness: 0.5,
   })
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x0B1220,
-    roughness: 0.35,
-    metalness: 0.85,
+    color: 0x0B1220, roughness: 0.35, metalness: 0.85,
   })
   const ceilMat = new THREE.MeshStandardMaterial({
-    color: 0x0A1428,
-    emissive: 0x1E3A8A,
-    emissiveIntensity: 0.15,
-    roughness: 0.8,
+    color: 0x0A1428, emissive: 0x1E3A8A, emissiveIntensity: 0.15, roughness: 0.8,
   })
-  const neonStripeMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8 })
+  const neonMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8 })
   const panelMat = new THREE.MeshStandardMaterial({
-    color: 0x1E293B,
-    emissive: 0x0EA5E9,
-    emissiveIntensity: 0.4,
-    roughness: 0.3,
-    metalness: 0.7,
+    color: 0x1E293B, emissive: 0x0EA5E9, emissiveIntensity: 0.4,
+    roughness: 0.3, metalness: 0.7,
   })
   const ceilLightMat = new THREE.MeshBasicMaterial({ color: 0x7DD3FC })
   const pillarMat = new THREE.MeshStandardMaterial({
-    color: 0x0F1F45,
-    emissive: 0x1E40AF,
-    emissiveIntensity: 0.5,
-    roughness: 0.4,
-    metalness: 0.6,
+    color: 0x0F1F45, emissive: 0x1E40AF, emissiveIntensity: 0.5,
+    roughness: 0.4, metalness: 0.6,
   })
 
   const wallGeo = new THREE.BoxGeometry(0.4, CORRIDOR.height, CORRIDOR.segmentLength)
@@ -118,69 +100,54 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     const z = i * CORRIDOR.segmentLength
     const g = new THREE.Group()
 
-    // Walls
-    const leftWall = new THREE.Mesh(wallGeo, wallMat)
-    leftWall.position.set(-CORRIDOR.halfWidth, CORRIDOR.height / 2, 0)
-    g.add(leftWall)
-    const rightWall = new THREE.Mesh(wallGeo, wallMat)
-    rightWall.position.set(CORRIDOR.halfWidth, CORRIDOR.height / 2, 0)
-    g.add(rightWall)
+    const lw = new THREE.Mesh(wallGeo, wallMat)
+    lw.position.set(-CORRIDOR.halfWidth, CORRIDOR.height / 2, 0)
+    g.add(lw)
+    const rw = new THREE.Mesh(wallGeo, wallMat)
+    rw.position.set(CORRIDOR.halfWidth, CORRIDOR.height / 2, 0)
+    g.add(rw)
 
-    // Floor
-    const floor = new THREE.Mesh(floorGeo, floorMat)
-    floor.position.set(0, -0.2, 0)
-    g.add(floor)
+    const fl = new THREE.Mesh(floorGeo, floorMat)
+    fl.position.set(0, -0.2, 0)
+    g.add(fl)
+    const ce = new THREE.Mesh(ceilGeo, ceilMat)
+    ce.position.set(0, CORRIDOR.height + 0.2, 0)
+    g.add(ce)
 
-    // Ceiling
-    const ceil = new THREE.Mesh(ceilGeo, ceilMat)
-    ceil.position.set(0, CORRIDOR.height + 0.2, 0)
-    g.add(ceil)
+    const sl = new THREE.Mesh(stripeGeo, neonMat)
+    sl.position.set(-CORRIDOR.halfWidth + 0.25, 0.5, 0)
+    g.add(sl)
+    const sr = new THREE.Mesh(stripeGeo, neonMat)
+    sr.position.set(CORRIDOR.halfWidth - 0.25, 0.5, 0)
+    g.add(sr)
+    const al = new THREE.Mesh(stripeGeo, neonMat)
+    al.position.set(-CORRIDOR.halfWidth + 0.25, 3.6, 0)
+    g.add(al)
+    const ar = new THREE.Mesh(stripeGeo, neonMat)
+    ar.position.set(CORRIDOR.halfWidth - 0.25, 3.6, 0)
+    g.add(ar)
 
-    // Floor neon strips
-    const stripL = new THREE.Mesh(stripeGeo, neonStripeMat)
-    stripL.position.set(-CORRIDOR.halfWidth + 0.25, 0.5, 0)
-    g.add(stripL)
-    const stripR = new THREE.Mesh(stripeGeo, neonStripeMat)
-    stripR.position.set(CORRIDOR.halfWidth - 0.25, 0.5, 0)
-    g.add(stripR)
-
-    // Mid-height accent line
-    const accentL = new THREE.Mesh(stripeGeo, neonStripeMat)
-    accentL.position.set(-CORRIDOR.halfWidth + 0.25, 3.6, 0)
-    g.add(accentL)
-    const accentR = new THREE.Mesh(stripeGeo, neonStripeMat)
-    accentR.position.set(CORRIDOR.halfWidth - 0.25, 3.6, 0)
-    g.add(accentR)
-
-    // Wall panels (small glowing rectangles)
     for (let k = -1; k <= 1; k++) {
-      const panelL = new THREE.Mesh(panelGeo, panelMat)
-      panelL.position.set(-CORRIDOR.halfWidth + 0.25, 2.2, k * 2)
-      panelL.rotation.y = Math.PI / 2
-      g.add(panelL)
-
-      const panelR = new THREE.Mesh(panelGeo, panelMat)
-      panelR.position.set(CORRIDOR.halfWidth - 0.25, 2.2, k * 2)
-      panelR.rotation.y = Math.PI / 2
-      g.add(panelR)
+      const pl = new THREE.Mesh(panelGeo, panelMat)
+      pl.position.set(-CORRIDOR.halfWidth + 0.25, 2.2, k * 2)
+      pl.rotation.y = Math.PI / 2
+      g.add(pl)
+      const pr = new THREE.Mesh(panelGeo, panelMat)
+      pr.position.set(CORRIDOR.halfWidth - 0.25, 2.2, k * 2)
+      pr.rotation.y = Math.PI / 2
+      g.add(pr)
+      const cl = new THREE.Mesh(ceilLightGeo, ceilLightMat)
+      cl.position.set(0, CORRIDOR.height - 0.05, k * 2)
+      g.add(cl)
     }
 
-    // Ceiling lights (glowing strips)
-    for (let k = -1; k <= 1; k++) {
-      const light = new THREE.Mesh(ceilLightGeo, ceilLightMat)
-      light.position.set(0, CORRIDOR.height - 0.05, k * 2)
-      g.add(light)
-    }
-
-    // Vertical pillar rings (every 2nd segment)
     if (i % 2 === 0) {
-      const pillarL = new THREE.Mesh(pillarGeo, pillarMat)
-      pillarL.position.set(-CORRIDOR.halfWidth + 0.3, CORRIDOR.height / 2, 0)
-      g.add(pillarL)
-
-      const pillarR = new THREE.Mesh(pillarGeo, pillarMat)
-      pillarR.position.set(CORRIDOR.halfWidth - 0.3, CORRIDOR.height / 2, 0)
-      g.add(pillarR)
+      const pl2 = new THREE.Mesh(pillarGeo, pillarMat)
+      pl2.position.set(-CORRIDOR.halfWidth + 0.3, CORRIDOR.height / 2, 0)
+      g.add(pl2)
+      const pr2 = new THREE.Mesh(pillarGeo, pillarMat)
+      pr2.position.set(CORRIDOR.halfWidth - 0.3, CORRIDOR.height / 2, 0)
+      g.add(pr2)
     }
 
     g.position.set(0, 0, z)
@@ -188,51 +155,41 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     segments.push(g)
   }
 
-  // ── Enemies ──────────────────────────────────
+  // Enemy + particle groups
   const enemyGroup = new THREE.Group()
   scene.add(enemyGroup)
   const enemies = []
 
-  // ── Particles ─────────────────────────────────
   const particleGroup = new THREE.Group()
   scene.add(particleGroup)
   const particles = []
   const particleGeo = new THREE.SphereGeometry(0.08, 6, 6)
 
-  // ── Warp streaks ──────────────────────────────
+  // Warp streaks
   const streakGroup = new THREE.Group()
   scene.add(streakGroup)
   const streaks = []
   const streakGeo = new THREE.BoxGeometry(0.03, 0.03, 1.2)
-  const streakMat = new THREE.MeshBasicMaterial({
-    color: 0x38BDF8,
-    transparent: true,
-    opacity: 0.55,
-  })
 
   function spawnStreak() {
     const x = (Math.random() - 0.5) * CORRIDOR.halfWidth * 1.9
     const y = Math.random() * CORRIDOR.height * 0.9 + 0.3
     const z = camera.position.z + 20 + Math.random() * 40
-    const mesh = new THREE.Mesh(streakGeo, streakMat.clone())
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x38BDF8, transparent: true, opacity: 0.55,
+    })
+    const mesh = new THREE.Mesh(streakGeo, mat)
     mesh.position.set(x, y, z)
     streakGroup.add(mesh)
     streaks.push({ mesh, life: 1.2, maxLife: 1.2 })
   }
 
-  // ── State ─────────────────────────────────────
   const state = {
     phase: "playing",
-    hp: PLAYER.maxHp,
-    maxHp: PLAYER.maxHp,
-    score: 0,
-    wave: 1,
-    enemiesToSpawn: 0,
-    spawnTimer: 0,
-    spawnInterval: ENEMY.spawnIntervalBase,
-    interWaveTimer: 0,
-    kills: 0,
-    distance: 0,
+    hp: PLAYER.maxHp, maxHp: PLAYER.maxHp,
+    score: 0, wave: 1,
+    enemiesToSpawn: 0, spawnTimer: 0, spawnInterval: ENEMY.spawnIntervalBase,
+    interWaveTimer: 0, kills: 0, distance: 0,
   }
 
   function startWave(wave) {
@@ -258,79 +215,56 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     const t = ENEMY_TYPES[type]
     const lanes = [-1.6, 0, 1.6]
     const lane = lanes[Math.floor(Math.random() * 3)]
-    const baseY = t.flies ? 2.6 + Math.random() * 1.4 : t.radius + 0.05
-
+    const baseY = t.flies ? 2.6 + Math.random() * 1.4 : 0
     const group = new THREE.Group()
 
-    // Core — icosahedron for a faceted, threatening shape
-    const coreGeo = new THREE.IcosahedronGeometry(t.radius, 0)
-    const coreMat = new THREE.MeshStandardMaterial({
-      color: t.color,
-      emissive: t.color,
-      emissiveIntensity: 1.4,
-      roughness: 0.3,
-      metalness: 0.3,
-    })
-    const core = new THREE.Mesh(coreGeo, coreMat)
-    group.add(core)
+    let mixer = null
+    let clips = null
+    let kind = "fallback"
+    const golemMaterials = []
 
-    // Inner glow sprite — additive halo
-    const spriteMat = new THREE.SpriteMaterial({
-      map: glowTex,
-      color: t.color,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      depthWrite: false,
-      opacity: 0.9,
-    })
-    const glow = new THREE.Sprite(spriteMat)
-    glow.scale.setScalar(t.radius * 6)
-    group.add(glow)
-
-    // Orbital rings at random angles
-    const rings = []
-    for (let r = 0; r < 3; r++) {
-      const ringGeo = new THREE.TorusGeometry(t.radius * (1.5 + r * 0.35), 0.03, 6, 22)
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: t.color,
-        transparent: true,
-        opacity: 0.85,
+    if (zombiesReady && zombieModels && zombieModels[type]) {
+      const z = spawnZombie(zombieModels, type)
+      if (z) {
+        group.add(z.group)
+        mixer = z.mixer
+        clips = z.clips
+        kind = z.kind || "humanoid"
+        if (mixer && clips && clips.walk) {
+          const action = mixer.clipAction(clips.walk)
+          action.play()
+          action.time = Math.random() * clips.walk.duration
+        }
+        if (kind === "golem") {
+          group.traverse((child) => {
+            if (child.isMesh && child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material]
+              for (const m of mats) golemMaterials.push(m)
+            }
+          })
+        }
+      }
+    } else {
+      // Fallback geometric sphere
+      const coreGeo = new THREE.IcosahedronGeometry(t.radius, 0)
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: t.color, emissive: t.color, emissiveIntensity: 1.4,
+        roughness: 0.3, metalness: 0.3,
       })
-      const ring = new THREE.Mesh(ringGeo, ringMat)
-      ring.rotation.set(
-        Math.random() * Math.PI,
-        Math.random() * Math.PI,
-        Math.random() * Math.PI,
-      )
-      group.add(ring)
-      rings.push({
-        mesh: ring,
-        speed: 0.5 + Math.random() * 1.5,
-        axis: new THREE.Vector3(
-          Math.random() - 0.5,
-          Math.random() - 0.5,
-          Math.random() - 0.5,
-        ).normalize(),
-      })
+      const core = new THREE.Mesh(coreGeo, coreMat)
+      group.add(core)
     }
 
     group.position.set(lane, baseY, camera.position.z + ENEMY.spawnDistance)
     enemyGroup.add(group)
 
     enemies.push({
-      type,
-      mesh: group,
-      core,
-      glow,
-      rings,
-      hp: t.hp,
-      baseY,
+      type, kind, mesh: group,
+      mixer, walkAction: null, clips, golemMaterials,
+      hp: t.hp, baseY,
       bobPhase: Math.random() * Math.PI * 2,
-      bobAmp: t.flies ? 0.5 : 0.15,
       spinSpeed: 0.6 + Math.random() * 0.8,
-      spawnT: 0,
-      dying: false,
-      dieT: 0,
+      spawnT: 0, dying: false, dieT: 0,
     })
   }
 
@@ -342,9 +276,12 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     state.score += ENEMY_TYPES[e.type].score
 
     const color = ENEMY_TYPES[e.type].color
+    const origin = e.mesh.position.clone()
+    origin.y += 0.9
+
     for (let i = 0; i < 22; i++) {
       const p = new THREE.Mesh(particleGeo, new THREE.MeshBasicMaterial({ color }))
-      p.position.copy(e.mesh.position)
+      p.position.copy(origin)
       const d = new THREE.Vector3(
         Math.random() - 0.5,
         Math.random() - 0.5,
@@ -374,27 +311,35 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     raycaster.setFromCamera(ndc, camera)
     raycaster.far = CAMERA.far
 
-    // Include all children of live enemy groups
-    const targets = []
-    for (const e of enemies) {
-      if (!e.dying) targets.push(e.core, e.glow, ...e.rings.map((r) => r.mesh))
-    }
+    const targets = enemies.filter((e) => !e.dying).map((e) => e.mesh)
+    const hits = raycaster.intersectObjects(targets, true)
 
-    const hits = raycaster.intersectObjects(targets, false)
     if (hits.length > 0) {
-      const hitMesh = hits[0].object
-      const e = enemies.find((x) =>
-        x.core === hitMesh ||
-        x.glow === hitMesh ||
-        x.rings.some((r) => r.mesh === hitMesh)
-      )
-      if (e && !e.dying) {
-        e.hp -= 1
-        if (e.hp <= 0) killEnemy(e)
+      let obj = hits[0].object
+      let matched = null
+      while (obj && !matched) {
+        matched = enemies.find((x) => x.mesh === obj)
+        if (!matched) obj = obj.parent
+      }
+      if (matched && !matched.dying) {
+        matched.hp -= 1
+        if (matched.hp <= 0) killEnemy(matched)
         else {
-          e.core.material.emissiveIntensity = 3.5
+          // Flash white
+          const originals = []
+          matched.mesh.traverse((child) => {
+            if (child.isMesh && child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material]
+              for (const m of mats) {
+                originals.push({ m, color: m.color.clone() })
+                m.color.setRGB(1, 1, 1)
+              }
+            }
+          })
           setTimeout(() => {
-            if (e.core && e.core.material) e.core.material.emissiveIntensity = 1.4
+            for (const o of originals) {
+              if (o.m) o.m.color.copy(o.color)
+            }
           }, 90)
         }
       }
@@ -446,16 +391,13 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     camera.position.z += CAMERA.speed * dt
     state.distance += CAMERA.speed * dt
 
-    // Recycle corridor segments
     for (const s of segments) {
       if (s.position.z < camera.position.z - CORRIDOR.segmentLength) {
         s.position.z += CORRIDOR.segmentLength * CORRIDOR.visibleSegments
       }
     }
-
     cyanLight.position.z = camera.position.z + 15
 
-    // Camera shake
     if (shakeT > 0) {
       shakeT -= dt
       const k = shakeT / 0.15
@@ -466,14 +408,9 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       camera.position.y = CAMERA.y
     }
 
-    // Spawn warp streaks constantly
     streakTimer -= dt
-    if (streakTimer <= 0) {
-      spawnStreak()
-      streakTimer = 0.02
-    }
+    if (streakTimer <= 0) { spawnStreak(); streakTimer = 0.02 }
 
-    // Update streaks
     for (let i = streaks.length - 1; i >= 0; i--) {
       const s = streaks[i]
       s.mesh.position.z -= 55 * dt
@@ -486,7 +423,6 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       }
     }
 
-    // Spawn enemies
     if (state.enemiesToSpawn > 0) {
       state.spawnTimer -= dt * 1000
       if (state.spawnTimer <= 0) {
@@ -496,7 +432,6 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       }
     }
 
-    // Update enemies
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i]
       e.spawnT = Math.min(1, e.spawnT + dt * 5)
@@ -504,16 +439,11 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
 
       if (e.dying) {
         e.dieT -= dt
-        e.mesh.scale.setScalar(Math.max(0, e.dieT / 0.35))
+        e.mesh.scale.setScalar(Math.max(0.001, e.dieT / 0.35))
+        if (e.mixer) e.mixer.update(dt)
         if (e.dieT <= 0) {
           enemyGroup.remove(e.mesh)
-          e.core.geometry.dispose()
-          e.core.material.dispose()
-          e.glow.material.dispose()
-          for (const r of e.rings) {
-            r.mesh.geometry.dispose()
-            r.mesh.material.dispose()
-          }
+          if (e.mixer) e.mixer.stopAllAction()
           enemies.splice(i, 1)
         }
         continue
@@ -522,23 +452,39 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       const t = ENEMY_TYPES[e.type]
       e.mesh.position.z -= t.speed * ENEMY.walkSpeed * dt
       e.bobPhase += dt * 4
-      e.mesh.position.y = e.baseY + Math.sin(e.bobPhase) * e.bobAmp
 
-      // Spin core
-      e.core.rotation.x += dt * e.spinSpeed
-      e.core.rotation.y += dt * e.spinSpeed * 0.7
-
-      // Spin rings on their axes
-      for (const r of e.rings) {
-        r.mesh.rotateOnAxis(r.axis, dt * r.speed)
+      if (e.kind === "humanoid") {
+        if (e.mixer) e.mixer.update(dt)
+        e.mesh.position.y = e.baseY + Math.sin(e.bobPhase * 0.8) * 0.04
+        e.mesh.rotation.y = Math.PI
+      } else if (e.kind === "golem") {
+        e.mesh.position.y = e.baseY + 0.4 + Math.sin(e.bobPhase * 1.2) * 0.18
+        e.mesh.rotation.y += dt * 0.55
+        const pulse = 0.7 + Math.sin(e.bobPhase * 2.5) * 0.4
+        for (const m of e.golemMaterials) {
+          if (m.emissiveIntensity !== undefined) m.emissiveIntensity = pulse * 1.2
+        }
+        if (Math.random() < 0.35) {
+          const p = new THREE.Mesh(
+            particleGeo,
+            new THREE.MeshBasicMaterial({ color: 0x7DD3FC, transparent: true, opacity: 0.9 }),
+          )
+          p.position.copy(e.mesh.position)
+          p.position.z += 0.3 + Math.random() * 0.4
+          p.position.y += (Math.random() - 0.5) * 0.6
+          p.position.x += (Math.random() - 0.5) * 0.6
+          particles.push({
+            mesh: p,
+            vel: new THREE.Vector3((Math.random() - 0.5) * 1.2, (Math.random() - 0.3) * 0.8, -0.4),
+            life: 0.7 + Math.random() * 0.4,
+            maxLife: 1.1,
+          })
+          particleGroup.add(p)
+        }
+      } else {
+        e.mesh.position.y = e.baseY + Math.sin(e.bobPhase) * (t.flies ? 0.5 : 0.15)
       }
 
-      // Pulse glow
-      const pulse = 0.75 + Math.sin(e.bobPhase * 2) * 0.25
-      e.glow.material.opacity = pulse * 0.85
-      e.glow.scale.setScalar(t.radius * (5.5 + pulse * 1.5))
-
-      // Reached player
       if (e.mesh.position.z < camera.position.z + 0.5) {
         state.hp -= ENEMY.damageOnContact
         shakeT = 0.3
@@ -553,15 +499,12 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       }
     }
 
-    // Particles
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i]
       p.mesh.position.addScaledVector(p.vel, dt)
       p.vel.multiplyScalar(0.93)
       p.life -= dt
-      const a = Math.max(0, p.life / p.maxLife)
-      p.mesh.material.transparent = true
-      p.mesh.material.opacity = a
+      p.mesh.material.opacity = Math.max(0, p.life / p.maxLife)
       if (p.life <= 0) {
         particleGroup.remove(p.mesh)
         p.mesh.material.dispose()
@@ -569,7 +512,6 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       }
     }
 
-    // Wave complete?
     if (state.enemiesToSpawn === 0 && enemies.length === 0 && state.phase === "playing") {
       if (state.interWaveTimer <= 0) {
         state.interWaveTimer = WAVE.interWaveDelay
@@ -584,9 +526,7 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     }
   }
 
-  function render() {
-    composer.render()
-  }
+  function render() { composer.render() }
 
   function loop(now) {
     if (!running) return
@@ -605,10 +545,7 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     raf = requestAnimationFrame(loop)
   }
 
-  function stop() {
-    running = false
-    cancelAnimationFrame(raf)
-  }
+  function stop() { running = false; cancelAnimationFrame(raf) }
 
   function destroy() {
     stop()
@@ -622,11 +559,8 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
 
   function getHud() {
     return {
-      hp: state.hp,
-      maxHp: state.maxHp,
-      score: state.score,
-      wave: state.wave,
-      kills: state.kills,
+      hp: state.hp, maxHp: state.maxHp,
+      score: state.score, wave: state.wave, kills: state.kills,
       distance: Math.floor(state.distance),
       enemiesLeft: enemies.length + state.enemiesToSpawn,
       phase: state.phase,
@@ -645,19 +579,10 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
     camera.position.z = 0
     for (const e of enemies) {
       enemyGroup.remove(e.mesh)
-      e.core.geometry.dispose()
-      e.core.material.dispose()
-      e.glow.material.dispose()
-      for (const r of e.rings) {
-        r.mesh.geometry.dispose()
-        r.mesh.material.dispose()
-      }
+      if (e.mixer) e.mixer.stopAllAction()
     }
     enemies.length = 0
-    for (const p of particles) {
-      particleGroup.remove(p.mesh)
-      p.mesh.material.dispose()
-    }
+    for (const p of particles) particleGroup.remove(p.mesh)
     particles.length = 0
     for (const s of streaks) {
       streakGroup.remove(s.mesh)
