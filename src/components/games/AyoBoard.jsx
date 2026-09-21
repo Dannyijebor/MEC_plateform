@@ -372,6 +372,38 @@ export default function AyoBoard({
         </div>
       </div>
 
+      {/* Live counts */}
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-black/10 bg-white px-3 py-2 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-black/45">
+            In play
+          </p>
+          <p className="mt-0.5 text-lg font-black text-[#202635]">
+            {board.reduce((a, b) => a + b, 0)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-black/10 bg-white px-3 py-2 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-black/45">
+            Your row
+          </p>
+          <p className="mt-0.5 text-lg font-black text-[#202635]">
+            {playerRole === "A"
+              ? board.slice(0, 6).reduce((a, b) => a + b, 0)
+              : board.slice(6, 12).reduce((a, b) => a + b, 0)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-black/10 bg-white px-3 py-2 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-black/45">
+            Their row
+          </p>
+          <p className="mt-0.5 text-lg font-black text-[#202635]">
+            {playerRole === "A"
+              ? board.slice(6, 12).reduce((a, b) => a + b, 0)
+              : board.slice(0, 6).reduce((a, b) => a + b, 0)}
+          </p>
+        </div>
+      </div>
+
       {/* Status row */}
       <div className="mt-4 flex items-center justify-between px-1 text-sm">
         <span className="text-black/50">
@@ -459,6 +491,7 @@ export default function AyoBoard({
 }
 
 function ScoreCard({ name, score, active, isWinner, side }) {
+  const pct = Math.min(100, (score / 25) * 100)
   return (
     <div
       className={
@@ -474,9 +507,22 @@ function ScoreCard({ name, score, active, isWinner, side }) {
         <span className="truncate text-xs font-semibold text-black/60">{name}</span>
         {isWinner && <Crown size={12} className="text-[#D97706]" />}
       </div>
-      <div className="mt-0.5 flex items-baseline gap-1.5">
+      <div className="mt-0.5 flex items-baseline gap-1">
         <span className="text-xl font-black text-[#202635]">{score}</span>
-        <span className="text-[10px] uppercase tracking-wider text-black/40">seeds</span>
+        <span className="text-xs font-semibold text-black/40">/ 25</span>
+        <span className="ml-1 text-[10px] uppercase tracking-wider text-black/40">
+          to win
+        </span>
+      </div>
+      {/* Progress bar */}
+      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/8">
+        <div
+          className={
+            "h-full rounded-full transition-all duration-500 " +
+            (isWinner ? "bg-[#D97706]" : active ? "bg-[#3B82F6]" : "bg-[#93C5FD]")
+          }
+          style={{ width: pct + "%" }}
+        />
       </div>
     </div>
   )

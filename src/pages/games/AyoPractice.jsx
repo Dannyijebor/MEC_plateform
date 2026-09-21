@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Cpu, RotateCcw, Loader2, Brain } from "lucide-react"
 import AyoBoard from "../../components/games/AyoBoard"
+import AyoRules from "../../components/games/AyoRules"
 import { createInitialState, applyMove, legalMoves } from "../../games/ayo/engine"
 import { chooseMove, thinkingDelay } from "../../games/ayo/ai"
 
@@ -91,6 +92,8 @@ export default function AyoPractice() {
           Practice · {DIFF_LABEL[difficulty]}
         </div>
       </div>
+
+      <AyoRules />
 
       <AyoBoard
         state={state}

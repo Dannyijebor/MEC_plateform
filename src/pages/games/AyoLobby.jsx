@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft, Loader2, Plus, Swords, Users, ChevronRight, Clock, Cpu } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
+import AyoRules from "../../components/games/AyoRules"
 import {
   createAyoMatch,
   listMyMatches,
@@ -124,6 +125,8 @@ export default function AyoLobby() {
           <p className="mt-1 break-all text-xs text-red-600">{error}</p>
         </div>
       )}
+
+      <AyoRules />
 
       {/* Practice section */}
       <section className="mb-5">
