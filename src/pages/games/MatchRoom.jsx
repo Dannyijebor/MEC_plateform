@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react"
-import { Link, useParams, useNavigate } from "react-router-dom"
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom"
 import { ArrowLeft, Loader2, Share2, Check, Clock, AlertCircle } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import AyoBoard from "../../components/games/AyoBoard"
@@ -19,6 +19,8 @@ export default function MatchRoom() {
   const { matchId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const location = useLocation()
+  const justCreatedState = location.state || {}
 
   const [match, setMatch] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -26,6 +28,15 @@ export default function MatchRoom() {
   const [copied, setCopied] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const finishHandledRef = useRef(false)
+
+  // If we arrived here right after creating the match, flash "copied"
+  useEffect(() => {
+    if (justCreatedState.copied) {
+      setCopied(true)
+      const t = setTimeout(() => setCopied(false), 3500)
+      return () => clearTimeout(t)
+    }
+  }, [justCreatedState.copied])
 
   // ── Load + subscribe ────────────────────────────────────
   useEffect(() => {
@@ -164,7 +175,7 @@ export default function MatchRoom() {
   )
 
   // ── Share ───────────────────────────────────────────────
-  const [manualCopyUrl, setManualCopyUrl] = useState("")
+  const [manualCopyUrl, setManualCopyUrl] = useState(justCreatedState.inviteUrl || "")
 
   const copyToClipboard = async (text) => {
     // Try modern API
@@ -273,7 +284,7 @@ export default function MatchRoom() {
             {copied ? "Link copied" : "Share invite"}
           </button>
 
-          {(manualCopyUrl || copied) && (
+          {true && (
             <div className="mt-4 w-full">
               <label className="mb-1.5 block text-left text-[10px] font-bold uppercase tracking-wider text-[#92400E]">
                 Invite link

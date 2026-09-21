@@ -19,6 +19,7 @@ export default function AyoLobby() {
   const [creating, setCreating] = useState(false)
   const [myMatches, setMyMatches] = useState([])
   const [challenges, setChallenges] = useState([])
+  const [error, setError] = useState("")
 
   useEffect(() => {
     if (!user) return
@@ -50,9 +51,37 @@ export default function AyoLobby() {
     setCreating(true)
     try {
       const match = await createAyoMatch(user.id)
-      navigate(`/games/ayo/${match.id}`)
+      const url = window.location.origin + "/games/ayo/" + match.id
+
+      // Best-effort: copy the invite link immediately
+      let copied = false
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(url)
+          copied = true
+        }
+      } catch {}
+      if (!copied) {
+        try {
+          const ta = document.createElement("textarea")
+          ta.value = url
+          ta.style.position = "fixed"
+          ta.style.opacity = "0"
+          document.body.appendChild(ta)
+          ta.focus()
+          ta.select()
+          document.execCommand("copy")
+          document.body.removeChild(ta)
+          copied = true
+        } catch {}
+      }
+
+      navigate("/games/ayo/" + match.id, {
+        state: { justCreated: true, inviteUrl: url, copied },
+      })
     } catch (e) {
       console.error("Create match failed:", e)
+      setError(e.message || "Could not create match")
       setCreating(false)
     }
   }
