@@ -462,7 +462,9 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
         e.mesh.rotation.y += dt * 0.55
         const pulse = 0.7 + Math.sin(e.bobPhase * 2.5) * 0.4
         for (const m of e.golemMaterials) {
-          if (m.emissiveIntensity !== undefined) m.emissiveIntensity = pulse * 1.2
+          if (m && m.emissiveIntensity !== undefined) {
+            m.emissiveIntensity = pulse * 1.2
+          }
         }
         if (Math.random() < 0.35) {
           const p = new THREE.Mesh(
