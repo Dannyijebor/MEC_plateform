@@ -1,6 +1,7 @@
 import {
   ARENA, PHYSICS, PLAYER, DUMMY, PISTOL, COLORS, PLATFORMS, DUMMY_SPOTS,
 } from "./constants"
+import { createBot, decideAction, updateBot, BOT_NAMES } from "./bots"
 
 export function createClanCombatEngine(canvas, callbacks = {}) {
   const ctx = canvas.getContext("2d")
@@ -73,6 +74,16 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
 
   const bullets = []
   const particles = []
+  const bots = []
+  const killFeed = []
+  let screenShake = 0
+  let screenShakeT = 0
+
+  // Spawn 3 bots at staggered X positions
+  const botSpawns = [140, 270, 400]
+  BOT_NAMES.slice(0, 3).forEach((name, i) => {
+    bots.push(createBot("bot-" + i, name, botSpawns[i]))
+  })
 
   // ── Physics helpers ─────────────────────────────────
   function overlapsPlatform(px, py, pw, ph, plat) {
@@ -112,6 +123,13 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
   // ── Update ──────────────────────────────────────────
   function update(dt) {
     time += dt
+    if (screenShakeT > 0) {
+      screenShakeT -= dt
+      if (screenShakeT <= 0) screenShake = 0
+    }
+    for (let i = killFeed.length - 1; i >= 0; i--) {
+      if (time - killFeed[i].at > 3.5) killFeed.splice(i, 1)
+    }
 
     // ─── Player ───
     const moveAccel = input.moveX * PHYSICS.moveSpeed
@@ -186,6 +204,54 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
         bullets.splice(i, 1)
         continue
       }
+      // Hit bots
+      let botHit = false
+      for (const bot of bots) {
+        if (bot.hp <= 0) continue
+        if (b.ownerId === bot.id) continue
+        if (
+          b.x > bot.x && b.x < bot.x + PLAYER.w &&
+          b.y > bot.y && b.y < bot.y + PLAYER.h
+        ) {
+          bot.hp -= PISTOL.damage
+          bot.hitFlash = 0.09
+          spawnHitSpark(b.x, b.y, "#EF4444")
+          // Blood particles
+          for (let k = 0; k < 8; k++) {
+            particles.push(makeParticle(b.x, b.y, "#DC2626", { speed: 220, gravity: 500, life: 0.6, r: 3 }))
+          }
+          bullets.splice(i, 1)
+          botHit = true
+          if (bot.hp <= 0) {
+            killBot(bot)
+          }
+          break
+        }
+      }
+      if (botHit) continue
+      // Hit player (bots' bullets)
+      if (b.ownerId && b.ownerId !== "player") {
+        if (
+          player.iframes <= 0 &&
+          b.x > player.x && b.x < player.x + PLAYER.w &&
+          b.y > player.y && b.y < player.y + PLAYER.h
+        ) {
+          player.hp -= PISTOL.damage * 0.7
+          player.hitFlash = 0.12
+          player.iframes = 0.35
+          spawnHitSpark(b.x, b.y, "#EF4444")
+          for (let k = 0; k < 6; k++) {
+            particles.push(makeParticle(b.x, b.y, "#DC2626", { speed: 200, gravity: 500, life: 0.5, r: 2.5 }))
+          }
+          triggerShake(6)
+          bullets.splice(i, 1)
+          if (player.hp <= 0) {
+            player.hp = 0
+            onPlayerDown()
+          }
+          continue
+        }
+      }
       // Hit platforms
       let hit = false
       for (const p of PLATFORMS) {
@@ -217,6 +283,24 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
           bullets.splice(i, 1)
           if (d.hp <= 0) killDummy(d)
           break
+        }
+      }
+    }
+
+    // ─── Bots ───
+    for (const bot of bots) {
+      decideAction(bot, player, bots, dt)
+      updateBot(bot, dt, (bullet) => {
+        bullets.push({ ...bullet, ownerId: bot.id })
+      })
+      // Check bot touching player = damage
+      if (player.iframes <= 0) {
+        const d = Math.hypot(bot.x + PLAYER.w/2 - (player.x + PLAYER.w/2), bot.y + PLAYER.h/2 - (player.y + PLAYER.h/2))
+        if (d < PLAYER.w) {
+          player.hp -= 6
+          player.hitFlash = 0.15
+          player.iframes = 0.4
+          triggerShake(4)
         }
       }
     }
@@ -301,6 +385,50 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
     }
   }
 
+  function triggerShake(amount) {
+    screenShake = Math.max(screenShake, amount)
+    screenShakeT = 0.15
+  }
+
+  function killBot(bot) {
+    player.kills++
+    pushFeed("You", bot.name)
+    triggerShake(8)
+    for (let i = 0; i < 30; i++) {
+      particles.push(makeParticle(bot.x + PLAYER.w / 2, bot.y + PLAYER.h / 2, "#DC2626", { speed: 300, gravity: 600, life: 0.9, r: 3 }))
+    }
+    // Respawn after 3s
+    bot.hp = bot.maxHp
+    bot.x = 30 + Math.random() * (ARENA.W - 60)
+    bot.y = ARENA.groundY - PLAYER.h
+    bot.vx = 0
+    bot.vy = 0
+    bot.fuel = PHYSICS.jetpackMaxFuel
+    bot.iframes = 1.5
+    bot.thinkTimer = 1.5
+  }
+
+  function onPlayerDown() {
+    player.kills = Math.max(0, player.kills - 0)
+    pushFeed("K.O.", "You")
+    triggerShake(14)
+    for (let i = 0; i < 40; i++) {
+      particles.push(makeParticle(player.x + PLAYER.w / 2, player.y + PLAYER.h / 2, "#DC2626", { speed: 340, gravity: 700, life: 1, r: 3.5 }))
+    }
+    player.hp = player.maxHp
+    player.x = ARENA.W / 2
+    player.y = ARENA.groundY - PLAYER.h
+    player.vx = 0
+    player.vy = 0
+    player.iframes = 2
+    player.fuel = PHYSICS.jetpackMaxFuel
+  }
+
+  function pushFeed(a, b) {
+    killFeed.push({ a, b, at: time })
+    if (killFeed.length > 4) killFeed.shift()
+  }
+
   function spawnHitSpark(x, y, color) {
     for (let i = 0; i < 6; i++) {
       particles.push(makeParticle(x, y, color, { speed: 180, life: 0.25, r: 2 }))
@@ -330,7 +458,13 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
     ctx.fillRect(0, 0, width, height)
 
     ctx.save()
-    ctx.translate(offsetX, offsetY)
+    // Screen shake
+    let shakeX = 0, shakeY = 0
+    if (screenShake > 0) {
+      shakeX = (Math.random() - 0.5) * screenShake
+      shakeY = (Math.random() - 0.5) * screenShake
+    }
+    ctx.translate(offsetX + shakeX, offsetY + shakeY)
     ctx.scale(scale, scale)
 
     // Arena background
@@ -418,34 +552,94 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
     }
     ctx.globalAlpha = 1
 
+    // Bots
+    for (const bot of bots) {
+      drawBot(bot)
+    }
+
     // Player
     drawPlayer()
 
-    // ── Overlays inside arena ──
-    // Kill counter
-    ctx.fillStyle = "rgba(0,0,0,0.5)"
-    roundRect(ctx, 12, 12, 130, 34, 10)
-    ctx.fill()
-    ctx.fillStyle = "#94A3B8"
-    ctx.font = "bold 11px system-ui, sans-serif"
-    ctx.fillText("KILLS", 24, 34)
-    ctx.fillStyle = COLORS.bullet
-    ctx.font = "bold 20px system-ui, sans-serif"
-    ctx.fillText(String(player.kills), 96, 34)
-
-    // Fuel bar
-    ctx.fillStyle = "rgba(0,0,0,0.5)"
-    roundRect(ctx, 12, 54, 130, 16, 8)
-    ctx.fill()
-    const fuelPct = player.fuel / PHYSICS.jetpackMaxFuel
-    ctx.fillStyle = "#FB923C"
-    roundRect(ctx, 14, 56, 126 * fuelPct, 12, 6)
-    ctx.fill()
+    // ── Kill feed (inside arena) ──
+    ctx.font = "bold 12px system-ui, sans-serif"
+    killFeed.forEach((k, i) => {
+      const y = 20 + i * 20
+      const age = time - k.at
+      const alpha = age < 3 ? 1 : Math.max(0, 1 - (age - 3) / 0.5)
+      ctx.globalAlpha = alpha
+      ctx.fillStyle = "rgba(0,0,0,0.55)"
+      const text = k.a + "  ☠  " + k.b
+      const tw = ctx.measureText(text).width + 20
+      roundRect(ctx, 12, y, tw, 22, 8)
+      ctx.fill()
+      ctx.fillStyle = k.a === "You" ? "#FDE047" : "#F87171"
+      ctx.fillText(k.a, 22, y + 15)
+      ctx.fillStyle = "#94A3B8"
+      ctx.fillText("☠", 22 + ctx.measureText(k.a).width + 8, y + 15)
+      ctx.fillStyle = "#E2E8F0"
+      ctx.fillText(k.b, 22 + ctx.measureText(k.a).width + 26, y + 15)
+      ctx.globalAlpha = 1
+    })
 
     ctx.restore()
 
     // Controls hint (in screen space, outside arena)
     // (handled by React overlay in the component)
+  }
+
+  function drawBot(bot) {
+    const cx = bot.x + PLAYER.w / 2
+    const cy = bot.y + PLAYER.h / 2
+    const flash = bot.hitFlash > 0
+    const alpha = bot.iframes > 0 && Math.floor(time * 20) % 2 === 0 ? 0.4 : 1
+    ctx.globalAlpha = alpha
+
+    // Gun
+    const aimLen = Math.hypot(bot.aimX, bot.aimY) || 1
+    const ax = bot.aimX / aimLen
+    const ay = bot.aimY / aimLen
+    const aimAngle = Math.atan2(ay, ax)
+
+    ctx.save()
+    ctx.translate(cx, cy)
+    ctx.rotate(aimAngle)
+    ctx.fillStyle = "#B91C1C"
+    ctx.shadowBlur = 10
+    ctx.shadowColor = "#EF4444"
+    roundRect(ctx, PLAYER.w / 2 - 2, -3, 20, 6, 2)
+    ctx.fill()
+    if (bot.muzzle > 0) {
+      ctx.beginPath()
+      ctx.arc(PLAYER.w / 2 + 20, 0, 8 * (bot.muzzle / 0.07), 0, Math.PI * 2)
+      ctx.fillStyle = "rgba(253, 224, 71, 0.9)"
+      ctx.fill()
+    }
+    ctx.restore()
+
+    // Body
+    ctx.fillStyle = flash ? "#FFFFFF" : "#EF4444"
+    ctx.shadowBlur = 12
+    ctx.shadowColor = "#EF4444"
+    roundRect(ctx, bot.x, bot.y + PLAYER.headR * 0.8, PLAYER.w, PLAYER.h - PLAYER.headR * 0.8, 5)
+    ctx.fill()
+
+    // Head
+    ctx.beginPath()
+    ctx.arc(cx, bot.y + PLAYER.headR, PLAYER.headR, 0, Math.PI * 2)
+    ctx.fillStyle = flash ? "#FFFFFF" : "#FCA5A5"
+    ctx.fill()
+    ctx.shadowBlur = 0
+    ctx.globalAlpha = 1
+
+    // HP bar
+    drawHpBar(cx, bot.y - 8, 34, bot.hp / bot.maxHp, "#EF4444")
+
+    // Name tag
+    ctx.font = "bold 10px system-ui, sans-serif"
+    ctx.fillStyle = "rgba(255,255,255,0.75)"
+    ctx.textAlign = "center"
+    ctx.fillText(bot.name, cx, bot.y - 14)
+    ctx.textAlign = "left"
   }
 
   function drawPlayer() {
@@ -563,6 +757,7 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
       fuel: player.fuel,
       maxFuel: PHYSICS.jetpackMaxFuel,
       onGround: player.onGround,
+      botsAlive: bots.filter((b) => b.hp > 0).length,
     }
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Zap, Flame, Crosshair } from "lucide-react"
+import { Zap, Flame, Crosshair, Users } from "lucide-react"
 import { createClanCombatEngine } from "../../games/clan-combat/engine"
 
 const STICK_RADIUS = 58
@@ -181,11 +181,19 @@ export default function ClanCombat() {
 
         {/* HUD top bar */}
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
-          <div className="flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 backdrop-blur-md">
-            <Crosshair size={12} className="text-[#FDE047]" />
-            <span className="text-[11px] font-black tabular-nums text-[#FDE047]">
-              {hud.kills}
-            </span>
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 backdrop-blur-md">
+              <Crosshair size={12} className="text-[#FDE047]" />
+              <span className="text-[11px] font-black tabular-nums text-[#FDE047]">
+                {hud.kills}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 backdrop-blur-md">
+              <Users size={12} className="text-[#F87171]" />
+              <span className="text-[11px] font-black tabular-nums text-[#F87171]">
+                {hud.botsAlive ?? 0}
+              </span>
+            </div>
           </div>
           <div className="flex flex-col items-end gap-1.5">
             <div className="flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 backdrop-blur-md">

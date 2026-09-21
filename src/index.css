@@ -1494,3 +1494,8 @@ body.game-fullscreen main {
 body.game-fullscreen main {
   padding: 0 !important;
 }
+
+/* Clan Combat — hide the effects canvas entirely */
+body.game-fullscreen canvas[aria-hidden="true"] {
+  display: none !important;
+}
