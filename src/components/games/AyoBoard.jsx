@@ -384,7 +384,9 @@ export default function AyoBoard({
           }
         >
           {isAnimating
-            ? "Sowing seeds…"
+            ? (lastMove && lastMove.mover === playerRole
+                ? "Your move"
+                : opponentName + " is sowing…")
             : finished
               ? winner === playerRole
                 ? "You won"

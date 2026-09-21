@@ -195,6 +195,7 @@ export function applyMove(state, pitIndex) {
       capturedIndices: info.capturedIndices,
       capturedCount,
       suppressCapture: info.suppressCapture,
+      mover: turn,
     },
     moveCount: state.moveCount + 1,
   }

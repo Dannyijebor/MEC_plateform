@@ -98,19 +98,22 @@ export default function AyoPractice() {
         onMove={handleMove}
         onRematch={state.finished ? handleRematch : null}
         myName="You"
-        opponentName={aiThinking ? "Computer is thinking…" : "Computer"}
+        opponentName="Computer"
         autoRotate={false}
       />
+
+      {aiThinking && !state.finished && (
+        <div className="mt-3 flex items-center justify-center gap-2 rounded-full bg-[#FEF3C7] px-4 py-2 text-xs font-semibold text-[#78350F] w-fit mx-auto">
+          <Loader2 size={12} className="animate-spin" />
+          Computer is thinking…
+        </div>
+      )}
 
       {error && (
         <p className="mt-3 text-center text-xs font-semibold text-red-500">{error}</p>
       )}
 
-      {aiThinking && !state.finished && (
-        <p className="mt-3 flex items-center justify-center gap-2 text-xs text-black/50">
-          <Loader2 size={12} className="animate-spin" /> Computer is thinking…
-        </p>
-      )}
+
 
       <div className="mt-5 flex justify-center gap-2">
         <button
