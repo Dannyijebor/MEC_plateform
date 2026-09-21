@@ -10,6 +10,7 @@ const HIDE_PATHS = [
   "/members",
   "/games/neon",
   "/games/clan-combat",
+  "/games/mec-strike",
 ]
 
 export function useHideTopChrome() {

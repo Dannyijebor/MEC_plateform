@@ -10,6 +10,7 @@ import MatchRoom from "../pages/games/MatchRoom"
 import AyoPractice from "../pages/games/AyoPractice"
 import NeonWavesPage from "../pages/games/NeonWavesPage"
 import ClanCombatPage from "../pages/games/ClanCombatPage"
+import MecStrikePage from "../pages/games/MecStrikePage"
 import Events from "../pages/events/Events"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
@@ -185,6 +186,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ClanCombatPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/games/mec-strike"
+        element={
+          <ProtectedRoute>
+            <MecStrikePage />
           </ProtectedRoute>
         }
       />
