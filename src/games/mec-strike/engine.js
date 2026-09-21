@@ -39,13 +39,18 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
   camera.position.set(CAMERA.x, CAMERA.y, CAMERA.z)
   camera.lookAt(CAMERA.x, CAMERA.y, CAMERA.z + 10)
 
-  scene.add(new THREE.AmbientLight(0x1A2A4A, 1.0))
-  const dir = new THREE.DirectionalLight(0x60A5FA, 0.5)
+  scene.add(new THREE.AmbientLight(0x3A4A6A, 1.5))
+  const dir = new THREE.DirectionalLight(0x88AAFF, 0.9)
   dir.position.set(2, 8, 3)
   scene.add(dir)
   const cyanLight = new THREE.PointLight(0x38BDF8, 2.5, 50, 2)
   cyanLight.position.set(0, 3, 15)
   scene.add(cyanLight)
+
+  // Headlight — bright spotlight from the camera so enemies are always lit
+  const headlight = new THREE.PointLight(0xDDEEFF, 3.5, 60, 1.2)
+  headlight.position.set(0, 0, 0)
+  scene.add(headlight)
 
   // Bloom
   const composer = new EffectComposer(renderer)
@@ -397,6 +402,8 @@ export function createMecStrikeEngine(canvas, callbacks = {}) {
       }
     }
     cyanLight.position.z = camera.position.z + 15
+    // Headlight stays 2m in front of the camera
+    headlight.position.set(camera.position.x, camera.position.y + 0.3, camera.position.z + 2)
 
     if (shakeT > 0) {
       shakeT -= dt
