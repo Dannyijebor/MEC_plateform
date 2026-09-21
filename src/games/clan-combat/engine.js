@@ -2,10 +2,19 @@ import {
   ARENA, PHYSICS, PLAYER, DUMMY, PISTOL, COLORS, PLATFORMS, DUMMY_SPOTS,
 } from "./constants"
 import { createBot, decideAction, updateBot, BOT_NAMES } from "./bots"
+import { loadClanCombatSprites, pickFrame } from "./sprites"
 
 export function createClanCombatEngine(canvas, callbacks = {}) {
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("No 2D context")
+
+  // ── Sprites ────────────────────────────────────────
+  let sprites = null
+  let spritesReady = false
+  loadClanCombatSprites().then((s) => {
+    sprites = s
+    spritesReady = true
+  })
 
   // ── Viewport ────────────────────────────────────────
   let width = 0, height = 0, scale = 1, offsetX = 0, offsetY = 0, dpr = 1
@@ -588,6 +597,14 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
   }
 
   function drawBot(bot) {
+    if (spritesReady && sprites) {
+      drawSpriteEntity(bot, "enemy", {
+        firing: bot.muzzle > 0,
+        jetpacking: bot.vy < -50 && !bot.onGround,
+        nameTag: bot.name,
+      })
+      return
+    }
     const cx = bot.x + PLAYER.w / 2
     const cy = bot.y + PLAYER.h / 2
     const flash = bot.hitFlash > 0
@@ -643,6 +660,13 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
   }
 
   function drawPlayer() {
+    if (spritesReady && sprites) {
+      drawSpriteEntity(player, "player", {
+        firing: player.muzzle > 0,
+        jetpacking: input.jetpack && !player.onGround,
+      })
+      return
+    }
     const cx = player.x + PLAYER.w / 2
     const cy = player.y + PLAYER.h / 2
     const flash = player.hitFlash > 0
@@ -690,6 +714,95 @@ export function createClanCombatEngine(canvas, callbacks = {}) {
 
     // HP bar
     drawHpBar(cx, player.y - 8, 34, player.hp / player.maxHp, "#38BDF8")
+  }
+
+  function drawSpriteEntity(entity, spriteKey, opts = {}) {
+    const sheet = sprites[spriteKey]
+    if (!sheet) return
+
+    const renderW = 54
+    const renderH = 108
+    const cx = entity.x + PLAYER.w / 2
+    const bottomY = entity.y + PLAYER.h
+    const drawX = cx - renderW / 2
+    const drawY = bottomY - renderH
+
+    const frameName = pickFrame(entity, time, {
+      firing: opts.firing,
+      jetpacking: opts.jetpacking,
+    })
+    const img = sheet[frameName] || sheet.stand
+    if (!img) return
+
+    const alpha = entity.iframes > 0 && Math.floor(time * 20) % 2 === 0 ? 0.4 : 1
+    ctx.globalAlpha = alpha
+
+    const aimLen = Math.hypot(entity.aimX, entity.aimY) || 1
+    const ax = entity.aimX / aimLen
+    const ay = entity.aimY / aimLen
+    const flip = (entity.facing === -1) || (Math.abs(ax) > 0.1 && ax < 0)
+
+    ctx.save()
+    if (flip) {
+      ctx.translate(drawX + renderW, drawY)
+      ctx.scale(-1, 1)
+      ctx.drawImage(img, 0, 0, renderW, renderH)
+    } else {
+      ctx.drawImage(img, drawX, drawY, renderW, renderH)
+    }
+    ctx.restore()
+
+    // Hit flash overlay
+    if (entity.hitFlash > 0) {
+      ctx.globalAlpha = (entity.hitFlash / 0.09) * 0.5
+      ctx.fillStyle = "#FFFFFF"
+      ctx.globalCompositeOperation = "source-atop"
+      ctx.fillRect(drawX, drawY, renderW, renderH)
+      ctx.globalCompositeOperation = "source-over"
+      ctx.globalAlpha = alpha
+    }
+
+    // Gun barrel — rotates to aim
+    const aimAngle = Math.atan2(ay, ax)
+    const gunBaseX = cx
+    const gunBaseY = entity.y + PLAYER.h * 0.4
+    ctx.save()
+    ctx.translate(gunBaseX, gunBaseY)
+    ctx.rotate(aimAngle)
+    ctx.fillStyle = spriteKey === "player" ? "#0EA5E9" : "#BE185D"
+    roundRect(ctx, 6, -3, 22, 6, 2)
+    ctx.fill()
+    ctx.fillStyle = spriteKey === "player" ? "#7DD3FC" : "#F9A8D4"
+    roundRect(ctx, 6, -2, 22, 2, 1)
+    ctx.fill()
+
+    // Muzzle flash
+    if (entity.muzzle > 0) {
+      const r = 12 * (entity.muzzle / 0.07)
+      const grad = ctx.createRadialGradient(28, 0, 0, 28, 0, r * 1.8)
+      grad.addColorStop(0, "rgba(255, 240, 150, 0.95)")
+      grad.addColorStop(0.6, "rgba(253, 224, 71, 0.7)")
+      grad.addColorStop(1, "rgba(253, 224, 71, 0)")
+      ctx.fillStyle = grad
+      ctx.beginPath()
+      ctx.arc(28, 0, r * 1.8, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.restore()
+
+    ctx.globalAlpha = 1
+
+    // HP bar
+    drawHpBar(cx, drawY - 10, 44, entity.hp / entity.maxHp, spriteKey === "player" ? "#38BDF8" : "#EF4444")
+
+    // Name tag
+    if (opts.nameTag) {
+      ctx.font = "bold 10px system-ui, sans-serif"
+      ctx.fillStyle = "rgba(255,255,255,0.8)"
+      ctx.textAlign = "center"
+      ctx.fillText(opts.nameTag, cx, drawY - 16)
+      ctx.textAlign = "left"
+    }
   }
 
   function drawHpBar(cx, y, w, pct, color) {
