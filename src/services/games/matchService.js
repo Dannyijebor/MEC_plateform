@@ -14,7 +14,13 @@ export function initialStateForAyo(players) {
   }
 }
 
+export const INVITE_TTL_MINUTES = 60
+
 export async function createAyoMatch(userId) {
+  const expiresAt = new Date(
+    Date.now() + INVITE_TTL_MINUTES * 60 * 1000,
+  ).toISOString()
+
   const { data, error } = await supabase
     .from("game_matches")
     .insert({
@@ -23,6 +29,7 @@ export async function createAyoMatch(userId) {
       players: [userId],
       current_turn: userId,
       state: initialStateForAyo([userId, null]),
+      expires_at: expiresAt,
     })
     .select()
     .single()
@@ -62,6 +69,28 @@ export async function joinAyoMatch(matchId, userId) {
   return data
 }
 
+export async function cancelAyoMatch(matchId, userId) {
+  const { data, error } = await supabase
+    .from("game_matches")
+    .update({ status: "abandoned", updated_at: new Date().toISOString() })
+    .eq("id", matchId)
+    .eq("status", "waiting")
+    .contains("players", [userId])
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function expireAyoMatch(matchId) {
+  const { error } = await supabase
+    .from("game_matches")
+    .update({ status: "abandoned", updated_at: new Date().toISOString() })
+    .eq("id", matchId)
+    .eq("status", "waiting")
+  if (error) throw error
+}
+
 export async function getMatch(matchId) {
   const { data, error } = await supabase
     .from("game_matches")
@@ -80,7 +109,17 @@ export async function listMyMatches(userId) {
     .in("status", ["waiting", "active"])
     .order("updated_at", { ascending: false })
   if (error) throw error
-  return data || []
+  const now = Date.now()
+  return (data || []).filter((m) => {
+    if (
+      m.status === "waiting" &&
+      m.expires_at &&
+      new Date(m.expires_at).getTime() < now
+    ) {
+      return false
+    }
+    return true
+  })
 }
 
 export async function listOpenChallenges(userId) {
@@ -89,9 +128,14 @@ export async function listOpenChallenges(userId) {
     .select("*")
     .eq("status", "waiting")
     .order("created_at", { ascending: false })
-    .limit(10)
+    .limit(20)
   if (error) throw error
-  return (data || []).filter((m) => !m.players.includes(userId))
+  const now = Date.now()
+  return (data || []).filter((m) => {
+    if (m.players.includes(userId)) return false
+    if (m.expires_at && new Date(m.expires_at).getTime() < now) return false
+    return true
+  })
 }
 
 export async function submitMove(matchId, moverId, newState, nextTurnUserId) {

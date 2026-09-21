@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom"
-import { ArrowLeft, Loader2, Share2, Check, Clock, AlertCircle, Copy, MessageCircle } from "lucide-react"
+import { ArrowLeft, Loader2, Share2, Check, Clock, AlertCircle, Copy, MessageCircle, XCircle } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 import AyoBoard from "../../components/games/AyoBoard"
 import {
@@ -9,6 +9,8 @@ import {
   submitMove,
   finishMatch,
   subscribeToMatch,
+  cancelAyoMatch,
+  expireAyoMatch,
 } from "../../services/games/matchService"
 import {
   applyMove,
@@ -89,6 +91,41 @@ export default function MatchRoom() {
         setError(e.message || "Could not join match")
       })
   }, [match, user])
+
+  // ── Invite countdown ────────────────────────────────────
+  const [countdownSecs, setCountdownSecs] = useState(null)
+  const [expired, setExpired] = useState(false)
+
+  useEffect(() => {
+    if (!match) return
+    if (match.status !== "waiting") {
+      setCountdownSecs(null)
+      return
+    }
+    if (!match.expires_at) return
+
+    const expires = new Date(match.expires_at).getTime()
+
+    const tick = () => {
+      const remaining = Math.max(0, Math.floor((expires - Date.now()) / 1000))
+      setCountdownSecs(remaining)
+      if (remaining === 0 && !expired) {
+        setExpired(true)
+        // Auto-abandon on the server
+        expireAyoMatch(match.id).catch((e) => console.warn("expire failed:", e))
+      }
+    }
+    tick()
+    const iv = setInterval(tick, 1000)
+    return () => clearInterval(iv)
+  }, [match, expired])
+
+  const formatCountdown = (secs) => {
+    if (secs == null) return ""
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return `${m}:${String(s).padStart(2, "0")}`
+  }
 
   // ── Handle game end ─────────────────────────────────────
   useEffect(() => {
@@ -257,6 +294,35 @@ export default function MatchRoom() {
   const myRole = roles.A === user.id ? "A" : roles.B === user.id ? "B" : null
   const oppRole = myRole === "A" ? "B" : "A"
 
+  // Expired state
+  if (match.status === "waiting" && (expired || countdownSecs === 0)) {
+    return (
+      <div className="mx-auto w-full max-w-lg pb-24 pt-4">
+        <Link
+          to="/games"
+          className="mb-4 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-black/70 transition hover:bg-black/5"
+        >
+          <ArrowLeft size={16} /> Back to games
+        </Link>
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <XCircle size={28} />
+          </div>
+          <h1 className="text-xl font-black text-red-800">Invite expired</h1>
+          <p className="mt-2 text-sm text-red-700">
+            Nobody joined in time. Start a new game and try again.
+          </p>
+          <Link
+            to="/games/ayo"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#202635] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-black"
+          >
+            Start a new game
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   // Waiting state
   if (match.status === "waiting") {
     return (
@@ -275,6 +341,15 @@ export default function MatchRoom() {
           <p className="mt-2 text-sm text-[#92400E]">
             Share the link with a family member so they can join and play.
           </p>
+          {countdownSecs != null && (
+            <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white/60 px-4 py-2">
+              <Clock size={14} className="text-[#92400E]" />
+              <span className="text-xs font-semibold text-[#92400E]">
+                Expires in {formatCountdown(countdownSecs)}
+              </span>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={handleShare}
@@ -344,6 +419,22 @@ export default function MatchRoom() {
                 Link copied to clipboard
               </p>
             )}
+
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await cancelAyoMatch(match.id, user.id)
+                  navigate("/games/ayo")
+                } catch (e) {
+                  console.error("Cancel failed:", e)
+                  setError("Could not cancel invite")
+                }
+              }}
+              className="mt-4 w-full rounded-xl border border-red-200 bg-white py-2.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+            >
+              Cancel invite
+            </button>
           </div>
         </div>
       </div>
