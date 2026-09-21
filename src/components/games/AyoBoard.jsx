@@ -45,6 +45,97 @@ function seedPositions(count, radius, maxRadius) {
   return positions
 }
 
+// ─────────────────────────────────────────────────────────────
+// useSowAnimation
+//
+// Watches state.moveCount. When it changes, animates the sowing
+// process one seed at a time before showing the final (captured)
+// board.
+// ─────────────────────────────────────────────────────────────
+function useSowAnimation(state) {
+  const [displayBoard, setDisplayBoard] = useState(() => state.board)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [activePit, setActivePit] = useState(null)
+  const lastMoveCountRef = useRef(null)
+  const timersRef = useRef([])
+
+  useEffect(() => {
+    const moveCount = state.moveCount ?? 0
+
+    // First render — sync without animation
+    if (lastMoveCountRef.current === null) {
+      lastMoveCountRef.current = moveCount
+      setDisplayBoard(state.board)
+      return
+    }
+
+    // No new move
+    if (moveCount === lastMoveCountRef.current) return
+    lastMoveCountRef.current = moveCount
+
+    // Clear pending timers from any earlier animation
+    timersRef.current.forEach((t) => clearTimeout(t))
+    timersRef.current = []
+
+    const move = state.lastMove
+    if (!move || !move.path || move.path.length === 0) {
+      setDisplayBoard(state.board)
+      setIsAnimating(false)
+      setActivePit(null)
+      return
+    }
+
+    setIsAnimating(true)
+
+    const pathLen = move.path.length
+    // Adaptive speed: short moves feel natural, long moves stay snappy
+    const frameDelay = Math.max(55, Math.min(120, 1000 / (pathLen + 1)))
+
+    // Frame 0 — pick up seeds (source pit empties)
+    const t0 = setTimeout(() => {
+      setDisplayBoard((prev) => {
+        const next = prev.slice()
+        next[move.pitIndex] = 0
+        return next
+      })
+      setActivePit(move.pitIndex)
+    }, 0)
+    timersRef.current.push(t0)
+
+    // Frames 1..N — sow one seed at a time
+    move.path.forEach((pit, i) => {
+      const t = setTimeout(() => {
+        setDisplayBoard((prev) => {
+          const next = prev.slice()
+          next[pit] = (next[pit] || 0) + 1
+          return next
+        })
+        setActivePit(pit)
+      }, (i + 1) * frameDelay)
+      timersRef.current.push(t)
+    })
+
+    // Final frame — apply captures and show final board
+    const finalDelay = (pathLen + 1) * frameDelay + 320
+    const tFinal = setTimeout(() => {
+      setDisplayBoard(state.board)
+      setActivePit(null)
+      setIsAnimating(false)
+    }, finalDelay)
+    timersRef.current.push(tFinal)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.moveCount])
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((t) => clearTimeout(t))
+    }
+  }, [])
+
+  return { displayBoard, isAnimating, activePit }
+}
+
 function Pit({
   index,
   count,
@@ -53,6 +144,7 @@ function Pit({
   isLastSource,
   isCaptured,
   isSelected,
+  isReceiving,
   onTap,
   rotation,
 }) {
@@ -142,6 +234,16 @@ function Pit({
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
+
+      {/* Sowing highlight — the pit currently receiving a seed */}
+      {isReceiving && (
+        <motion.span
+          className="pointer-events-none absolute inset-0 rounded-full bg-[#F59E0B]/25"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: [0, 1, 0.4], scale: [0.6, 1.05, 1] }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        />
+      )}
     </button>
   )
 }
@@ -156,6 +258,7 @@ export default function AyoBoard({
   autoRotate = true,
 }) {
   const { board, captures, turn, finished, winner, lastMove } = state
+  const { displayBoard, isAnimating, activePit } = useSowAnimation(state)
   const opponentRole = playerRole === "A" ? "B" : "A"
   const myTurn = turn === playerRole && !finished
 
@@ -165,14 +268,14 @@ export default function AyoBoard({
 
   // Legal moves for the local player
   const legalMoves = useMemo(() => {
-    if (!myTurn) return new Set()
+    if (!myTurn || isAnimating) return new Set()
     const ownPits = playerRole === "A" ? [0, 1, 2, 3, 4, 5] : [6, 7, 8, 9, 10, 11]
     const set = new Set()
     for (const pit of ownPits) {
       if (board[pit] > 0) set.add(pit)
     }
     return set
-  }, [board, myTurn, playerRole])
+  }, [board, myTurn, playerRole, isAnimating])
 
   // Show a brief "your turn" flash when it becomes yours
   const [showTurnFlash, setShowTurnFlash] = useState(false)
@@ -233,9 +336,10 @@ export default function AyoBoard({
             <Pit
               key={pit}
               index={pit}
-              count={board[pit]}
+              count={displayBoard[pit]}
               isOwn={false}
               isLegal={legalMoves.has(pit)}
+              isReceiving={activePit === pit}
               isLastSource={lastMove && lastMove.pitIndex === pit}
               isCaptured={lastMove && lastMove.capturedIndices?.includes(pit)}
               onTap={() => onMove?.(pit)}
@@ -255,9 +359,10 @@ export default function AyoBoard({
             <Pit
               key={pit}
               index={pit}
-              count={board[pit]}
+              count={displayBoard[pit]}
               isOwn={true}
               isLegal={legalMoves.has(pit)}
+              isReceiving={activePit === pit}
               isLastSource={lastMove && lastMove.pitIndex === pit}
               isCaptured={lastMove && lastMove.capturedIndices?.includes(pit)}
               onTap={() => onMove?.(pit)}
@@ -278,15 +383,17 @@ export default function AyoBoard({
             (finished ? "text-black/60" : myTurn ? "text-[#3B82F6]" : "text-black/50")
           }
         >
-          {finished
-            ? winner === playerRole
-              ? "You won"
-              : winner === opponentRole
-                ? "You lost"
-                : "Draw"
-            : myTurn
-              ? "Your turn"
-              : opponentName + "'s turn"}
+          {isAnimating
+            ? "Sowing seeds…"
+            : finished
+              ? winner === playerRole
+                ? "You won"
+                : winner === opponentRole
+                  ? "You lost"
+                  : "Draw"
+              : myTurn
+                ? "Your turn"
+                : opponentName + "'s turn"}
         </span>
       </div>
 
