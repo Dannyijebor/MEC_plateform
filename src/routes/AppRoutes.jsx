@@ -9,6 +9,7 @@ import AyoLobby from "../pages/games/AyoLobby"
 import MatchRoom from "../pages/games/MatchRoom"
 import AyoPractice from "../pages/games/AyoPractice"
 import NeonWavesPage from "../pages/games/NeonWavesPage"
+import ClanCombatPage from "../pages/games/ClanCombatPage"
 import Events from "../pages/events/Events"
 import Community from "../pages/community/Community"
 import Spaces from "../pages/spaces/Spaces"
@@ -175,6 +176,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <NeonWavesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/games/clan-combat"
+        element={
+          <ProtectedRoute>
+            <ClanCombatPage />
           </ProtectedRoute>
         }
       />
