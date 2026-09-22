@@ -9,14 +9,14 @@ export const ZOMBIE_CONFIG = {
     file: "grunt.glb",
     tint: new THREE.Color(0x88D888),
     emissive: new THREE.Color(0x1F4A1F),
-    scale: 0.85,
+    scale: 1.0,
     kind: "humanoid",
   },
   drone: {
     file: "drone.glb",
     tint: new THREE.Color(0xA8E0A0),
     emissive: new THREE.Color(0x3A5A2A),
-    scale: 0.7,
+    scale: 0.65,
     kind: "humanoid",
   },
   elite: {
@@ -40,14 +40,14 @@ function tintMaterial(m, cfg) {
       if (m.roughness !== undefined) m.roughness = 0.35
       if (m.metalness !== undefined) m.metalness = 0.4
     } else {
-      // Brighten the tint so zombies aren't murky
+      // Gentle green wash — preserves original colors under a sickly filter
       if (m.color) {
-        m.color.multiply(cfg.tint)
-        m.color.multiplyScalar(1.6)     // ← lift overall brightness
+        m.color.lerp(new THREE.Color(0x88D888), 0.45)   // 45% green blend
+        m.color.multiplyScalar(1.25)                     // slight brightness lift
       }
       if (m.emissive) m.emissive.copy(cfg.emissive)
-      if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 0.9   // ← stronger self-glow
-      if (m.roughness !== undefined) m.roughness = 0.6
+      if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 0.55
+      if (m.roughness !== undefined) m.roughness = 0.7
       if (m.metalness !== undefined) m.metalness = 0.05
     }
     m.needsUpdate = true
